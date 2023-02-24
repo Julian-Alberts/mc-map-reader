@@ -1,11 +1,14 @@
 use std::{collections::HashMap, io::Read};
 
 use crate::{
-    data::*,
+    file_format::mc_region::header::ChunkInfo,
     nbt::{self, Tag},
+    nbt_data::chunk::*,
 };
 
-use super::{header::ChunkInfo, CHUNK_ALLIGNMENT};
+/// 1KiB
+const KIB: u32 = 1024;
+pub const CHUNK_ALLIGNMENT: u32 = KIB * 4;
 
 pub fn load_chunk(raw: &[u8], chunk_info: &ChunkInfo) -> crate::load::Result<ChunkData> {
     let offset = ((chunk_info.offset - 2) * CHUNK_ALLIGNMENT) as usize;
@@ -30,25 +33,25 @@ fn nbt_to_chunk_data(tag: Tag) -> crate::load::Result<ChunkData> {
     for (key, value) in root.iter() {
         match key.as_str() {
             "DataVersion" => {
-                cdb.data_version(*value.get_as_i32()?);
+                cdb.with_data_version(*value.get_as_i32()?);
             }
             "xPos" => {
-                cdb.x_pos(*value.get_as_i32()?);
+                cdb.with_x_pos(*value.get_as_i32()?);
             }
             "yPos" => {
-                cdb.y_pos(*value.get_as_i32()?);
+                cdb.with_y_pos(*value.get_as_i32()?);
             }
             "zPos" => {
-                cdb.z_pos(*value.get_as_i32()?);
+                cdb.with_z_pos(*value.get_as_i32()?);
             }
             "Status" => {
-                cdb.status(value.get_as_string()?.as_str().try_into()?);
+                cdb.with_status(value.get_as_string()?.as_str().try_into()?);
             }
             "LastUpdate" => {
-                cdb.last_update(*value.get_as_i64()?);
+                cdb.with_last_update(*value.get_as_i64()?);
             }
             "sections" => {
-                cdb.sections(nbt_to_sections(value)?);
+                cdb.with_sections(nbt_to_sections(value)?);
             }
             _ => {}
         }
@@ -74,9 +77,9 @@ fn nbt_to_section(section: &HashMap<String, Tag>) -> crate::load::Result<Section
     let mut section_builder = SectionBuilder::default();
     for (key, value) in section {
         match key.as_str() {
-            "Y" => section_builder.y(*value.get_as_i8()?),
-            "block_states" => section_builder.block_states(nbt_to_block_states(value)?),
-            "biomes" => section_builder.biomes(nbt_to_biomes(value)?),
+            "Y" => section_builder.with_y(*value.get_as_i8()?),
+            "block_states" => section_builder.with_block_states(nbt_to_block_states(value)?),
+            "biomes" => section_builder.with_biomes(nbt_to_biomes(value)?),
             _ => &mut section_builder,
         };
     }
@@ -90,8 +93,8 @@ fn nbt_to_biomes(biomes: &Tag) -> crate::load::Result<Biomes> {
     let mut bb = BiomesBuilder::default();
     for (key, value) in biomes {
         match key.as_str() {
-            "palette" => bb.palette(nbt_to_biome_palette(value)?),
-            "data" => bb.data(value.get_as_vec_i64()?.clone()),
+            "palette" => bb.with_palette(nbt_to_biome_palette(value)?),
+            "data" => bb.with_data(value.get_as_vec_i64()?.clone()),
             _ => &mut bb,
         };
     }
@@ -117,8 +120,8 @@ fn nbt_to_block_states(block_states: &Tag) -> crate::load::Result<BlockStates> {
     let mut block_state_builder = BlockStatesBuilder::default();
     for (key, value) in block_states {
         match key.as_str() {
-            "palette" => block_state_builder.palette(nbt_to_block_state_palette(value)?),
-            "data" => block_state_builder.data(value.get_as_vec_i64()?.clone()),
+            "palette" => block_state_builder.with_palette(nbt_to_block_state_palette(value)?),
+            "data" => block_state_builder.with_data(value.get_as_vec_i64()?.clone()),
             _ => &mut block_state_builder,
         };
     }
@@ -143,8 +146,8 @@ fn nbt_to_block_state_palette_item(palette_item: &Tag) -> crate::load::Result<Bl
     let mut block_state_builder = BlockStateBuilder::default();
     for (key, value) in palette_item {
         match key.as_str() {
-            "Name" => block_state_builder.name(value.get_as_string()?.clone()),
-            "Properties" => block_state_builder.properties(if let Tag::Compound(p) = value {
+            "Name" => block_state_builder.with_name(value.get_as_string()?.clone()),
+            "Properties" => block_state_builder.with_properties(if let Tag::Compound(p) = value {
                 p.clone()
             } else {
                 return Err(nbt::Error::InvalidValue.into());

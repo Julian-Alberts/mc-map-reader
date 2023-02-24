@@ -21,23 +21,22 @@ pub struct ChunkData {
     #[get = "pub"]
     sections: Vec<Section>,
     #[get = "pub"]
-    block_entities: Vec<BlockEntity>
-    /*#[get = "pub"]
-    carving_masks: Option<()>,
-    #[get = "pub"]
-    height_maps: (),
-    #[get = "pub"]
-    lights: Vec<i16>,
-    #[get = "pub"]
-    entities: Vec<()>,
-    #[get = "pub"]
-    fluid_ticks: Vec<()>,
-    #[get = "pub"]
-    block_ticks: Vec<()>,
-    #[get_copy = "pub"]
-    inhabited_time: i64,
-    #[get = "pub"]
-    post_processing: Vec<()>*/
+    block_entities: Vec<BlockEntity>, /*#[get = "pub"]
+                                      carving_masks: Option<()>,
+                                      #[get = "pub"]
+                                      height_maps: (),
+                                      #[get = "pub"]
+                                      lights: Vec<i16>,
+                                      #[get = "pub"]
+                                      entities: Vec<()>,
+                                      #[get = "pub"]
+                                      fluid_ticks: Vec<()>,
+                                      #[get = "pub"]
+                                      block_ticks: Vec<()>,
+                                      #[get_copy = "pub"]
+                                      inhabited_time: i64,
+                                      #[get = "pub"]
+                                      post_processing: Vec<()>*/
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -78,16 +77,14 @@ pub struct Biomes {
     data: Option<Vec<i64>>,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, Clone)]
 pub struct BlockState {
     name: String,
     properties: Option<HashMap<String, crate::nbt::Tag>>,
 }
 
 #[derive(Debug)]
-pub struct BlockEntity {
-
-}
+pub struct BlockEntity {}
 
 #[derive(Debug, Error)]
 pub enum ChunkStatusError {
@@ -98,15 +95,17 @@ pub enum ChunkStatusError {
 #[derive(Debug, Error)]
 pub enum MissingData {
     #[error(transparent)]
-    SectionData(#[from] crate::data::SectionBuilderError),
+    SectionData(#[from] SectionBuilderError),
     #[error(transparent)]
-    BlockStatesData(#[from] crate::data::BlockStatesBuilderError),
+    BlockStatesData(#[from] BlockStatesBuilderError),
     #[error(transparent)]
-    BlockStateData(#[from] crate::data::BlockStateBuilderError),
+    BlockStateData(#[from] BlockStateBuilderError),
     #[error(transparent)]
-    ChunkData(#[from] crate::data::ChunkDataBuilderError),
+    ChunkData(#[from] ChunkDataBuilderError),
     #[error(transparent)]
-    BiomesData(#[from] crate::data::BiomesBuilderError),
+    BiomesData(#[from] BiomesBuilderError),
+    #[error(transparent)]
+    BlockEntityData(#[from] super::load::block_entity::BlockEntityMissingDataError),
 }
 
 impl TryFrom<&str> for ChunkStatus {

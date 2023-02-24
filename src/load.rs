@@ -1,10 +1,10 @@
-use std::{fs::OpenOptions, io::Read, mem::MaybeUninit, os::raw};
+use std::{fs::OpenOptions, io::Read, mem::MaybeUninit};
 
 use thiserror::Error;
 
 use crate::{
-    data::ChunkData,
     file_format::anvil::{self, AnvilSave},
+    nbt_data::{self, chunk::ChunkData},
 };
 
 pub struct Loader;
@@ -44,14 +44,14 @@ impl LoadMcSave<AnvilSave> for Loader {
                     }
                 })
         {
-            let c = anvil::load::load_chunk(&raw_chunk_data, chunk)?;
+            let c = nbt_data::load::chunk::load_chunk(&raw_chunk_data, chunk)?;
             chunks[index] = Some(c);
         }
 
         Ok(AnvilSave::new(header, chunks))
     }
 
-    fn load_from_bytes(&self, bytes: &[u8]) -> Result<AnvilSave> {
+    fn load_from_bytes(&self, _bytes: &[u8]) -> Result<AnvilSave> {
         todo!()
     }
 }
@@ -70,7 +70,7 @@ pub enum Error {
     #[error(transparent)]
     NBT(#[from] crate::nbt::Error),
     #[error(transparent)]
-    ChunkStatus(#[from] crate::data::ChunkStatusError),
+    ChunkStatus(#[from] crate::nbt_data::chunk::ChunkStatusError),
     #[error(transparent)]
-    MissingData(#[from] crate::data::MissingData),
+    MissingData(#[from] crate::nbt_data::chunk::MissingData),
 }
