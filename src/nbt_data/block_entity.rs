@@ -4,13 +4,14 @@ use getset::{CopyGetters, Getters};
 use jbe::Builder;
 
 use crate::{
-    nbt::Tag,
+    nbt::{List, Tag},
     nbt_data::{chunk::BlockState, entity::Entity},
 };
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct BlockEntity {
     id: String,
+    #[builder({default false})]
     keep_packed: bool,
     x: i32,
     y: i32,
@@ -59,7 +60,7 @@ pub enum BlockEntityType {
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Banner {
     custom_name: Option<String>,
-    patterns: Vec<BannerPattern>,
+    patterns: List<BannerPattern>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
@@ -71,7 +72,7 @@ pub struct BannerPattern {
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Barrel {
     custom_name: Option<String>,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
     loot_table: Option<String>,
     loot_table_seed: Option<i64>,
@@ -101,7 +102,7 @@ pub struct Beacon {
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Beehive {
-    bees: Vec<BeeInHive>,
+    bees: List<BeeInHive>,
     flower_pos: FlowerPos,
 }
 
@@ -125,7 +126,7 @@ pub struct BlastFurnace {
     cook_time: i16,
     cook_time_total: i16,
     custom_name: Option<String>,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
     recipes_used: HashMap<String, i32>,
 }
@@ -401,37 +402,80 @@ pub struct TrappedChest {
 macro_rules! impl_IBE_for_builder {
     ($ty:ty) => {
         impl InventoryBlockEntityBuilder for $ty {
-    
+            fn set_custom_name(&mut self, custom_name: String) {
+                self.set_custom_name(custom_name)
+            }
+
+            fn set_items(&mut self, items: List<ItemWithSlot>) {
+                self.set_items(items)
+            }
+
+            fn set_lock(&mut self, lock: String) {
+                self.set_lock(lock)
+            }
+
+            fn set_loot_table(&mut self, loot_table: String) {
+                self.set_loot_table(loot_table)
+            }
+
+            fn set_loot_table_seed(&mut self, loot_table_seed: i64) {
+                self.set_loot_table_seed(loot_table_seed)
+            }
+        }
+    };
+}
+
+macro_rules! impl_CBEB_for_builder {
+    ($ty:ty) => {
+        impl CookingBlockEntityBuilder for $ty {
+            fn set_burn_time(&mut self, burn_time: i16) {
+                self.set_burn_time(burn_time)
+            }
+        
+            fn set_cook_time(&mut self, cook_time: i16) {
+                self.set_cook_time(cook_time)
+            }
+        
+            fn set_cook_time_total(&mut self, cook_time_total: i16) {
+                self.set_cook_time_total(cook_time_total)
+            }
+        
             fn set_custom_name(&mut self, custom_name: String) {
                 self.set_custom_name(custom_name)
             }
             
-            fn set_items(&mut self, items: Vec<ItemWithSlot>) {
+            fn set_items(&mut self, items: List<ItemWithSlot>) {
                 self.set_items(items)
             }
-            
+
             fn set_lock(&mut self, lock: String) {
                 self.set_lock(lock)
             }
         
-            fn set_loot_table(&mut self, loot_table: String) {
-                self.set_loot_table(loot_table)
+            fn set_recipes_used(&mut self, recipes_used: HashMap<String, i32>) {
+                self.set_recipes_used(recipes_used)
             }
-        
-            fn set_loot_table_seed(&mut self, loot_table_seed: i64) {
-                self.set_loot_table_seed(loot_table_seed)
-            }
-        
         }
     };
 }
 
 impl_IBE_for_builder!(BarrelBuilder);
+impl_CBEB_for_builder!(BlastFurnaceBuilder);
 
 pub trait InventoryBlockEntityBuilder {
     fn set_custom_name(&mut self, custom_name: String);
-    fn set_items(&mut self, items: Vec<ItemWithSlot>);
+    fn set_items(&mut self, items: List<ItemWithSlot>);
     fn set_lock(&mut self, lock: String);
     fn set_loot_table(&mut self, loot_table: String);
     fn set_loot_table_seed(&mut self, loot_table_seed: i64);
+}
+
+pub trait CookingBlockEntityBuilder {
+    fn set_burn_time(&mut self, burn_time: i16);
+    fn set_cook_time(&mut self, cook_time: i16);
+    fn set_cook_time_total(&mut self, cook_time_total: i16);
+    fn set_custom_name(&mut self, custom_name: String);
+    fn set_items(&mut self, items: List<ItemWithSlot>);
+    fn set_lock(&mut self, lock: String);
+    fn set_recipes_used(&mut self, recipes_used: HashMap<String, i32>);
 }

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use getset::{CopyGetters, Getters};
 use jbe::Builder;
 
-use crate::nbt::{Tag, List, Array};
+use crate::nbt::{Array, List, Tag};
 
 ///<a href="https://minecraft.fandom.com/wiki/Entity_format#Entity_Format">minecraft wiki</a>
 ///

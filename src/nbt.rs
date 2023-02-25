@@ -58,7 +58,7 @@ macro_rules! tags {
                 }
             }
         }
-        )?)* 
+        )?)*
     };
 }
 
@@ -68,22 +68,37 @@ impl TryFrom<Tag> for bool {
         match value {
             Tag::Byte(1) => Ok(true),
             Tag::Byte(_) => Ok(false),
-            _ => Err(Error::InvalidValue)
+            _ => Err(Error::InvalidValue),
         }
     }
 }
 
-impl <T> TryFrom<Tag> for List<T> 
-    where T: TryFrom<Tag, Error = Error>
+impl <T> TryFrom<HashMap<String, Tag>> for HashMap<String, T> 
+    where T: TryFrom<Tag, Error = crate::nbt::Error>
+{
+    type Error = crate::nbt::Error;
+    fn try_from(map: HashMap<String, Tag>) -> Result<Self, Self::Error> {
+        
+    }
+}
+
+impl<T> TryFrom<Tag> for List<T>
+where
+    T: TryFrom<Tag, Error = Error>,
 {
     type Error = Error;
     fn try_from(tag: Tag) -> Result<Self, Self::Error> {
-        let i = tag.get_as_list()?.take().into_iter().map(T::try_from).collect::<Result<_,_>>()?;
+        let i = tag
+            .get_as_list()?
+            .take()
+            .into_iter()
+            .map(T::try_from)
+            .collect::<Result<_, _>>()?;
         Ok(List(i))
     }
 }
 
-impl <T> IntoIterator for List<T> {
+impl<T> IntoIterator for List<T> {
     type IntoIter = IntoIter<T>;
     type Item = T;
     fn into_iter(self) -> Self::IntoIter {
@@ -91,7 +106,7 @@ impl <T> IntoIterator for List<T> {
     }
 }
 
-impl <A> FromIterator<A> for List<A> {
+impl<A> FromIterator<A> for List<A> {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
         Self(iter.into_iter().collect())
     }
@@ -206,25 +221,11 @@ pub struct Array<T>(Vec<T>);
 #[derive(Debug)]
 pub struct List<T>(Vec<T>);
 
-impl <T> List<T> {
+pub struct Compound<T>(HashMap<String, T>);
 
+impl<T> List<T> {
     pub fn take(self) -> Vec<T> {
         self.0
-    }
-
-}
-
-impl <T> Deref for Array<T> {
-    type Target = Vec<T>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl <T> Deref for List<T> {
-    type Target = Vec<T>;
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }
 
@@ -238,6 +239,20 @@ pub enum Error {
     MissingData(#[from] crate::nbt_data::chunk::MissingData),
     #[error(transparent)]
     ChunkStatus(#[from] crate::nbt_data::chunk::ChunkStatusError),
+}
+
+impl<T> Deref for Array<T> {
+    type Target = Vec<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> Deref for List<T> {
+    type Target = Vec<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 pub fn parse(data: &[u8]) -> Result<Tag, Error> {

@@ -6,7 +6,7 @@ use thiserror::Error;
 
 use crate::nbt::{Array, List, Tag};
 
-use super::{load::entity::EntityMissingDataError, block_entity::BlockEntity};
+use super::{block_entity::BlockEntity, load::entity::EntityMissingDataError};
 
 #[derive(jbe::Builder, Debug, Getters, CopyGetters)]
 pub struct ChunkData {
@@ -26,21 +26,21 @@ pub struct ChunkData {
     sections: List<Section>,
     #[get = "pub"]
     block_entities: Option<List<BlockEntity>>, /*#[get = "pub"]
-                                      carving_masks: Option<()>,
-                                      #[get = "pub"]
-                                      height_maps: (),
-                                      #[get = "pub"]
-                                      lights: Vec<i16>,
-                                      #[get = "pub"]
-                                      entities: Vec<()>,
-                                      #[get = "pub"]
-                                      fluid_ticks: Vec<()>,
-                                      #[get = "pub"]
-                                      block_ticks: Vec<()>,
-                                      #[get_copy = "pub"]
-                                      inhabited_time: i64,
-                                      #[get = "pub"]
-                                      post_processing: Vec<()>*/
+                                               carving_masks: Option<()>,
+                                               #[get = "pub"]
+                                               height_maps: (),
+                                               #[get = "pub"]
+                                               lights: Vec<i16>,
+                                               #[get = "pub"]
+                                               entities: Vec<()>,
+                                               #[get = "pub"]
+                                               fluid_ticks: Vec<()>,
+                                               #[get = "pub"]
+                                               block_ticks: Vec<()>,
+                                               #[get_copy = "pub"]
+                                               inhabited_time: i64,
+                                               #[get = "pub"]
+                                               post_processing: Vec<()>*/
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -92,7 +92,7 @@ pub enum ChunkStatusError {
     #[error("Unknown status")]
     UnknownStatus,
     #[error("Invalid value")]
-    InvalidValue
+    InvalidValue,
 }
 
 #[derive(Debug, Error)]
@@ -110,14 +110,18 @@ pub enum MissingData {
     #[error(transparent)]
     BlockEntityData(#[from] super::load::block_entity::BlockEntityMissingDataError),
     #[error(transparent)]
-    EntityData(#[from] EntityMissingDataError)
+    EntityData(#[from] EntityMissingDataError),
 }
 
 impl TryFrom<Tag> for ChunkStatus {
     type Error = ChunkStatusError;
 
     fn try_from(value: Tag) -> Result<Self, Self::Error> {
-        let status = match value.get_as_string().or(Err(ChunkStatusError::InvalidValue))?.as_str() {
+        let status = match value
+            .get_as_string()
+            .or(Err(ChunkStatusError::InvalidValue))?
+            .as_str()
+        {
             "empty" => Self::Empty,
             "structure_starts" => Self::StructureStarts,
             "structure_references" => Self::StructureReferences,

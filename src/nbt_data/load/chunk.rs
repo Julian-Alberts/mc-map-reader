@@ -1,9 +1,9 @@
-use std::{io::Read};
+use std::io::Read;
 
 use crate::{
     file_format::mc_region::header::ChunkInfo,
     nbt::{self, Tag},
-    nbt_data::{chunk::*},
+    nbt_data::chunk::*,
 };
 
 /// 1KiB
@@ -47,28 +47,29 @@ fn nbt_to_chunk_data(tag: Tag) -> Result<ChunkData, crate::nbt::Error> {
 impl TryFrom<Tag> for Section {
     type Error = crate::nbt::Error;
     fn try_from(section: Tag) -> Result<Self, Self::Error> {
-    let mut section_builder = SectionBuilder::default();
-    let mut section = section.get_as_map()?;
-    add_data_to_builder!(section_builder, section => [
-        "Y": set_y,
-        "block_states": set_block_states,
-        "biomes": set_biomes
-    ]);
-    Ok(section_builder.try_build().map_err(MissingData::from)?)
-}
+        let mut section_builder = SectionBuilder::default();
+        let mut section = section.get_as_map()?;
+        add_data_to_builder!(section_builder, section => [
+            "Y": set_y,
+            "block_states": set_block_states,
+            "biomes": set_biomes
+        ]);
+        Ok(section_builder.try_build().map_err(MissingData::from)?)
+    }
 }
 
 impl TryFrom<Tag> for Biomes {
     type Error = crate::nbt::Error;
     fn try_from(biomes: Tag) -> Result<Self, Self::Error> {
-    let mut bb = BiomesBuilder::default();
-    let mut biomes = biomes.get_as_map()?;
-    add_data_to_builder!(bb, biomes => [
-        "palette": set_palette,
-        "data": set_data
-    ]);
-    Ok(bb.try_build().map_err(MissingData::from)?)
-}}
+        let mut bb = BiomesBuilder::default();
+        let mut biomes = biomes.get_as_map()?;
+        add_data_to_builder!(bb, biomes => [
+            "palette": set_palette,
+            "data": set_data
+        ]);
+        Ok(bb.try_build().map_err(MissingData::from)?)
+    }
+}
 
 impl TryFrom<Tag> for BlockStates {
     type Error = crate::nbt::Error;
@@ -79,7 +80,9 @@ impl TryFrom<Tag> for BlockStates {
             "palette": set_palette,
             "data": set_data
         ]);
-        Ok(block_states_builder.try_build().map_err(MissingData::from)?)
+        Ok(block_states_builder
+            .try_build()
+            .map_err(MissingData::from)?)
     }
 }
 
@@ -94,7 +97,6 @@ impl TryFrom<Tag> for BlockState {
         ]);
         Ok(block_state_builder.try_build().map_err(MissingData::from)?)
     }
-
 }
 
 fn decompress(data: &[u8], compression: &Compression) -> crate::load::Result<Vec<u8>> {

@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::nbt_data::{entity::*, chunk::MissingData};
+use crate::nbt_data::{chunk::MissingData, entity::*};
 
 impl TryFrom<crate::nbt::Tag> for Entity {
     type Error = crate::nbt::Error;
@@ -9,10 +9,10 @@ impl TryFrom<crate::nbt::Tag> for Entity {
     }
 }
 
-fn parse_entity_from_tag(nbt_entity: crate::nbt::Tag) -> Result<Entity,crate::nbt::Error> {
+fn parse_entity_from_tag(nbt_entity: crate::nbt::Tag) -> Result<Entity, crate::nbt::Error> {
     let mut nbt_entity = nbt_entity.get_as_map()?;
     let mut entity_builder = EntityBuilder::default();
-    
+
     add_data_to_builder!(entity_builder, nbt_entity => [
         "Air": set_air,
         "CustomName": set_custom_name,
@@ -35,7 +35,10 @@ fn parse_entity_from_tag(nbt_entity: crate::nbt::Tag) -> Result<Entity,crate::nb
         "TicksFrozen": set_ticks_frozen,
         "UUID": set_uuid
     ]);
-    let entity = entity_builder.try_build().map_err(EntityMissingDataError::from).map_err(MissingData::from)?;
+    let entity = entity_builder
+        .try_build()
+        .map_err(EntityMissingDataError::from)
+        .map_err(MissingData::from)?;
     Ok(entity)
 }
 
