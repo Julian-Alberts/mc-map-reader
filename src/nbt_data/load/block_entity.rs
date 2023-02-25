@@ -7,15 +7,18 @@ use crate::{
     nbt_data::{block_entity::*, chunk::MissingData},
 };
 
-pub fn load(data: &Tag) -> crate::load::Result<BlockEntity> {
+pub fn load(data: Tag) -> crate::load::Result<BlockEntity> {
     let nbt_data = data.get_as_map()?;
-    let id = nbt_data
+    let Tag::String(id) = nbt_data
         .get("tag")
         .ok_or(BlockEntityBuilderError::UnsetId)
         .map_err(BlockEntityMissingDataError::from)
-        .map_err(MissingData::from)?
-        .get_as_string()?;
-    let mut beb = parse_generic_block_entity(nbt_data)?;
+        .map_err(MissingData::from)? else {
+            return Err(crate::nbt::Error::InvalidValue.into());
+        };
+    let id = id.clone();
+
+    let (mut beb, nbt_data) = parse_generic_block_entity(nbt_data)?;
     let ty = match id.as_str() {
         "banners" => BlockEntityType::Banner(parse_banner(nbt_data)?),
         "barrel" => BlockEntityType::Barrel(parse_barrel(nbt_data)?),
@@ -23,14 +26,14 @@ pub fn load(data: &Tag) -> crate::load::Result<BlockEntity> {
         "bed" => BlockEntityType::Bed,
         "beehive" => BlockEntityType::Beehive(parse_beehive(nbt_data)?),
         "bell" => BlockEntityType::Bell,
-        _ => BlockEntityType::Other(data.clone())
+        _ => BlockEntityType::Other(nbt_data)
     };
     beb.with_entity_type(ty);
     let be = beb.try_build().map_err(BlockEntityMissingDataError::from).map_err(MissingData::from)?;
     Ok(be)
 }
 
-fn parse_beehive(nbt_data: &HashMap<String, Tag>) -> crate::load::Result<Beehive> {
+fn parse_beehive(nbt_data: HashMap<String, Tag>) -> crate::load::Result<Beehive> {
     let mut beehive_builder = BeehiveBuilder::default();
     for (key, value) in nbt_data {
         match key.as_str() {
@@ -43,7 +46,7 @@ fn parse_beehive(nbt_data: &HashMap<String, Tag>) -> crate::load::Result<Beehive
     Ok(beehive)
 }
 
-fn parse_bees(nbt_bees: &Tag) -> crate::load::Result<Vec<BeeInHive>> {
+fn parse_bees(nbt_bees: Tag) -> crate::load::Result<Vec<BeeInHive>> {
     let nbt_bees = nbt_bees.get_as_vec_tag()?;
     let mut bees = Vec::with_capacity(nbt_bees.len());
     for nbt_bee in nbt_bees {
@@ -52,8 +55,8 @@ fn parse_bees(nbt_bees: &Tag) -> crate::load::Result<Vec<BeeInHive>> {
         for (key, value) in nbt_bee {
             match key.as_str() {
                 "EntityData" => bee_builder.with_entity_data(super::entity::parse_entity_from_tag(value)?),
-                "MinOccupationTicks" => bee_builder.with_min_occupation_ticks(*value.get_as_i32()?),
-                "TicksInHive" => bee_builder.with_ticks_in_hive(*value.get_as_i32()?),
+                "MinOccupationTicks" => bee_builder.with_min_occupation_ticks(value.get_as_i32()?),
+                "TicksInHive" => bee_builder.with_ticks_in_hive(value.get_as_i32()?),
                 _ => &mut bee_builder
             };
         }
@@ -62,14 +65,14 @@ fn parse_bees(nbt_bees: &Tag) -> crate::load::Result<Vec<BeeInHive>> {
     Ok(bees)
 }
 
-fn parse_flower_pos(nbt_flower_pos: &Tag) -> crate::load::Result<FlowerPos> {
+fn parse_flower_pos(nbt_flower_pos: Tag) -> crate::load::Result<FlowerPos> {
     let mut flower_pos_builder = FlowerPosBuilder::default();
     let nbt_flower_pos = nbt_flower_pos.get_as_map()?;
     for (key, value) in nbt_flower_pos {
         match key.as_str() {
-            "X" => flower_pos_builder.with_x(*value.get_as_i32()?),
-            "Y" => flower_pos_builder.with_y(*value.get_as_i32()?),
-            "Z" => flower_pos_builder.with_z(*value.get_as_i32()?),
+            "X" => flower_pos_builder.with_x(value.get_as_i32()?),
+            "Y" => flower_pos_builder.with_y(value.get_as_i32()?),
+            "Z" => flower_pos_builder.with_z(value.get_as_i32()?),
             _ => &mut flower_pos_builder
         };
     }
@@ -77,14 +80,14 @@ fn parse_flower_pos(nbt_flower_pos: &Tag) -> crate::load::Result<FlowerPos> {
     Ok(flower_pos)
 }
 
-fn parse_beacon(nbt_data: &HashMap<String, Tag>) -> crate::load::Result<Beacon> {
+fn parse_beacon(nbt_data: HashMap<String, Tag>) -> crate::load::Result<Beacon> {
     let mut bb = BeaconBuilder::default();
     for (key, value) in nbt_data {
         match key.as_str() {
-            "CustomName" => bb.with_custom_name(value.get_as_string()?.clone()),
-            "Lock" => bb.with_lock(value.get_as_string()?.clone()),
-            "Primary" => bb.with_primary(*value.get_as_i32()?),
-            "Secondary" => bb.with_secondary(*value.get_as_i32()?),
+            "CustomName" => bb.with_custom_name(value.get_as_string()?),
+            "Lock" => bb.with_lock(value.get_as_string()?),
+            "Primary" => bb.with_primary(value.get_as_i32()?),
+            "Secondary" => bb.with_secondary(value.get_as_i32()?),
             _ => &mut bb
         };
     }
@@ -92,28 +95,28 @@ fn parse_beacon(nbt_data: &HashMap<String, Tag>) -> crate::load::Result<Beacon> 
     Ok(b)
 }
 
-fn parse_barrel(nbt_data: &HashMap<String, Tag>) -> crate::load::Result<Barrel> {
+fn parse_barrel(nbt_data: HashMap<String, Tag>) -> crate::load::Result<Barrel> {
     let mut bb = BarrelBuilder::default();
     parse_inventory_block_entity(&mut bb, nbt_data)?;
     let b = bb.try_build().map_err(BlockEntityMissingDataError::from).map_err(MissingData::from)?;
     Ok(b)
 }
 
-fn parse_inventory_block_entity(builder: &mut impl InventoryBlockEntityBuilder, nbt_data: &HashMap<String, Tag>) -> crate::load::Result<()> {
+fn parse_inventory_block_entity(builder: &mut impl InventoryBlockEntityBuilder, nbt_data: HashMap<String, Tag>) -> crate::load::Result<()> {
     for (key, value) in nbt_data {
         match key.as_str() {
-            "CustomName" => builder.set_custom_name(value.get_as_string()?.clone()),
+            "CustomName" => builder.set_custom_name(value.get_as_string()?),
             "Items" => builder.set_items(parse_items_with_slot(value)?),
-            "Lock" => builder.set_lock(value.get_as_string()?.clone()),
-            "LootTalbe" => builder.set_loot_table(value.get_as_string()?.clone()),
-            "LootTableSeed" => builder.set_loot_table_seed(value.get_as_i64()?.clone()),
+            "Lock" => builder.set_lock(value.get_as_string()?),
+            "LootTalbe" => builder.set_loot_table(value.get_as_string()?),
+            "LootTableSeed" => builder.set_loot_table_seed(value.get_as_i64()?),
             _ => {}
         };
     }
     Ok(())
 }
 
-fn parse_items_with_slot(nbt_items: &Tag) -> crate::load::Result<Vec<ItemWithSlot>> {
+fn parse_items_with_slot(nbt_items: Tag) -> crate::load::Result<Vec<ItemWithSlot>> {
     let nbt_items = nbt_items.get_as_vec_tag()?;
     let mut items = Vec::with_capacity(nbt_items.len());
     for item in nbt_items {
@@ -122,10 +125,10 @@ fn parse_items_with_slot(nbt_items: &Tag) -> crate::load::Result<Vec<ItemWithSlo
         let mut ib = ItemBuilder::default();
         for (key, value) in item {
             match key.as_str() {
-                "Count" => {ib.with_count(*value.get_as_i8()?);},
-                "Slot" => {iwsb.with_slot(*value.get_as_i8()?);},
-                "id" => {ib.with_id(value.get_as_string()?.clone());},
-                "tag" => {ib.with_tag(value.get_as_map()?.clone());},
+                "Count" => {ib.with_count(value.get_as_i8()?);},
+                "Slot" => {iwsb.with_slot(value.get_as_i8()?);},
+                "id" => {ib.with_id(value.get_as_string()?);},
+                "tag" => {ib.with_tag(value.get_as_map()?);},
                 _ => {}
             }
         }
@@ -137,11 +140,11 @@ fn parse_items_with_slot(nbt_items: &Tag) -> crate::load::Result<Vec<ItemWithSlo
     Ok(items)
 }
 
-fn parse_banner(data: &HashMap<String, Tag>) -> crate::load::Result<Banner> {
+fn parse_banner(data: HashMap<String, Tag>) -> crate::load::Result<Banner> {
     let mut bb = BannerBuilder::default();
     for (key, value) in data {
         match key.as_str() {
-            "CustomName" => bb.with_custom_name(value.get_as_string()?.clone()),
+            "CustomName" => bb.with_custom_name(value.get_as_string()?),
             "Patterns" => bb.with_patterns(parse_banner_patterns(value)?),
             _ => &mut bb
         };
@@ -150,7 +153,7 @@ fn parse_banner(data: &HashMap<String, Tag>) -> crate::load::Result<Banner> {
     Ok(banner)
 }
 
-fn parse_banner_patterns(value: &Tag) -> crate::load::Result<Vec<BannerPattern>> {
+fn parse_banner_patterns(value: Tag) -> crate::load::Result<Vec<BannerPattern>> {
     let nbt_patterns = value.get_as_vec_tag()?;
     let mut patterns = Vec::with_capacity(nbt_patterns.len());
     for nbt_pattern in nbt_patterns {
@@ -158,8 +161,8 @@ fn parse_banner_patterns(value: &Tag) -> crate::load::Result<Vec<BannerPattern>>
         let mut pb = BannerPatternBuilder::default();
         for (key, value) in nbt_pattern {
             match key.as_str() {
-                "Color" => pb.with_color(*value.get_as_i32()?),
-                "Pattern" => pb.with_pattern(value.get_as_string()?.clone()),
+                "Color" => pb.with_color(value.get_as_i32()?),
+                "Pattern" => pb.with_pattern(value.get_as_string()?),
                 _ => &mut pb
             };
         }
@@ -168,19 +171,23 @@ fn parse_banner_patterns(value: &Tag) -> crate::load::Result<Vec<BannerPattern>>
     Ok(patterns)
 }
 
-fn parse_generic_block_entity(nbt_data: &HashMap<String, Tag>) -> crate::load::Result<BlockEntityBuilder> {
+fn parse_generic_block_entity(nbt_data: HashMap<String, Tag>) -> crate::load::Result<(BlockEntityBuilder, HashMap<String, Tag>)> {
     let mut beb = BlockEntityBuilder::default();
+    let mut remaining_nbt_data = HashMap::new();
     for (key, value) in nbt_data {
         match key.as_str() {
-            "id" => beb.with_id(value.get_as_string()?.clone()),
-            "keepPacked" => beb.with_keep_packed(*value.get_as_i8()? == 1),
-            "x" => beb.with_x(*value.get_as_i32()?),
-            "y" => beb.with_y(*value.get_as_i32()?),
-            "z" => beb.with_z(*value.get_as_i32()?),
-            _ => &mut beb
+            "id" => beb.with_id(value.get_as_string()?),
+            "keepPacked" => beb.with_keep_packed(value.get_as_i8()? == 1),
+            "x" => beb.with_x(value.get_as_i32()?),
+            "y" => beb.with_y(value.get_as_i32()?),
+            "z" => beb.with_z(value.get_as_i32()?),
+            _ => {
+                remaining_nbt_data.insert(key, value);
+                &mut beb
+            }
         };
     }
-    Ok(beb)
+    Ok((beb, remaining_nbt_data))
 }
 
 #[derive(Debug, Error)]

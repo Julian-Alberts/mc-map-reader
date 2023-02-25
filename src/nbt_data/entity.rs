@@ -7,7 +7,7 @@ use crate::nbt::Tag;
 
 ///<a href="https://minecraft.fandom.com/wiki/Entity_format#Entity_Format">minecraft wiki</a>
 ///
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Entity {
     air: i16,
     custom_name: Option<String>,

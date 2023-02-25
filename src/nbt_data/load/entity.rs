@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use crate::nbt_data::entity::*;
 
-pub(crate) fn parse_entity_from_tag(value: &crate::nbt::Tag) -> crate::load::Result<Entity> {
+pub(crate) fn parse_entity_from_tag(value: crate::nbt::Tag) -> crate::load::Result<Entity> {
     todo!()
 }
 

@@ -8,7 +8,7 @@ use crate::{
     nbt_data::{chunk::BlockState, entity::Entity},
 };
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct BlockEntity {
     id: String,
     keep_packed: bool,
@@ -18,7 +18,7 @@ pub struct BlockEntity {
     entity_type: BlockEntityType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum BlockEntityType {
     Banner(Banner),
     Barrel(Barrel),
@@ -53,22 +53,22 @@ pub enum BlockEntityType {
     Smoker(Smoker),
     StructureBlock(StructureBlock),
     TrappedChest(TrappedChest),
-    Other(Tag),
+    Other(HashMap<String, Tag>),
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Banner {
     custom_name: Option<String>,
     patterns: Vec<BannerPattern>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct BannerPattern {
     color: i32,
     pattern: String,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Barrel {
     custom_name: Option<String>,
     items: Vec<ItemWithSlot>,
@@ -77,20 +77,20 @@ pub struct Barrel {
     loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Item {
     id: String,
     tag: Option<HashMap<String, Tag>>,
     count: i8,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct ItemWithSlot {
     slot: i8,
     item: Item,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Beacon {
     custom_name: Option<String>,
     lock: Option<String>,
@@ -99,27 +99,27 @@ pub struct Beacon {
     secondary: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Beehive {
     bees: Vec<BeeInHive>,
     flower_pos: FlowerPos,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct BeeInHive {
     entity_data: Entity,
     min_occupation_ticks: i32,
     ticks_in_hive: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct FlowerPos {
     x: i32,
     y: i32,
     z: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct BlastFurnace {
     burn_time: i16,
     cook_time: i16,
@@ -130,7 +130,7 @@ pub struct BlastFurnace {
     recipes_used: HashMap<String, i32>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct BrewingStand {
     brew_time: i16,
     custom_name: Option<String>,
@@ -139,20 +139,20 @@ pub struct BrewingStand {
     lock: Option<String>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Campfire {
     cooking_times: Vec<i32>,
     cooking_total_times: Vec<i32>,
     items: Vec<ItemWithSlot>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct ChiseledBookshelf {
     items: Vec<ItemWithSlot>,
     last_interacted_slot: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Chest {
     custom_name: Option<String>,
     items: Vec<ItemWithSlot>,
@@ -161,12 +161,12 @@ pub struct Chest {
     loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Comparator {
     output_signal: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct CommandBlock {
     auto: bool,
     command: String,
@@ -180,12 +180,12 @@ pub struct CommandBlock {
     update_last_execution: bool,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Conduit {
     target: Vec<i32>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Dispenser {
     custom_name: Option<String>,
     items: Vec<ItemWithSlot>,
@@ -194,7 +194,7 @@ pub struct Dispenser {
     loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Dropper {
     custom_name: Option<String>,
     items: Vec<ItemWithSlot>,
@@ -203,26 +203,26 @@ pub struct Dropper {
     loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct EnchantingTable {
     custom_name: Option<String>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct EndGateway {
     age: i64,
     exact_teleport: bool,
     exit_portal: ExitPortal,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct ExitPortal {
     x: i32,
     y: i32,
     z: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Furnace {
     burn_time: i16,
     cook_time: i16,
@@ -233,7 +233,7 @@ pub struct Furnace {
     recipes_used: HashMap<String, i32>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Hopper {
     custom_name: Option<String>,
     items: Vec<ItemWithSlot>,
@@ -243,7 +243,7 @@ pub struct Hopper {
     transfer_cooldown: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Jigsaw {
     final_state: String,
     join: String,
@@ -252,7 +252,7 @@ pub struct Jigsaw {
     target: String,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Jukebox {
     is_playing: bool,
     record_item: Item,
@@ -260,18 +260,18 @@ pub struct Jukebox {
     tick_count: i64,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Lectern {
     book: Item,
     page: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct MobSpawner {
     spawner: Spawner,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Spawner {
     delay: i16,
     max_nearby_entities: i16,
@@ -284,20 +284,20 @@ pub struct Spawner {
     spawn_range: i16,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct PotentialSpawn {
     weight: i32,
     data: HashMap<String, Tag>,
     custom_spawn_rules: Option<CustomSpawnRules>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct CustomSpawnRules {
     block_light_limit: i32,
     sky_light_limit: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Piston {
     block_state: BlockState,
     extending: bool,
@@ -306,7 +306,7 @@ pub struct Piston {
     source: bool,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct ShulkerBox {
     custom_name: Option<String>,
     items: Vec<ItemWithSlot>,
@@ -315,7 +315,7 @@ pub struct ShulkerBox {
     loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Sign {
     glowing_text: bool,
     color: String,
@@ -325,32 +325,32 @@ pub struct Sign {
     text4: String,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Skull {
     note_block_sound: Option<String>,
     extra_type: String,
     skull_owner: Option<SkullOwner>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct SkullOwner {
     id: Vec<i32>,
     name: Option<String>,
     properties: Vec<SkullOwnerProperties>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct SkullOwnerProperties {
     textures: Vec<SkullOwnerTextures>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct SkullOwnerTextures {
     value: String,
     signature: Option<String>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Smoker {
     burn_time: i16,
     cook_time: i16,
@@ -361,14 +361,14 @@ pub struct Smoker {
     recipes_used: HashMap<String, i32>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct SoulCampfire {
     cooking_times: Vec<i32>,
     cooking_total_times: Vec<i32>,
     items: Vec<ItemWithSlot>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct StructureBlock {
     author: String,
     ignore_entities: bool,
@@ -389,7 +389,7 @@ pub struct StructureBlock {
     size_z: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct TrappedChest {
     custom_name: Option<String>,
     items: Vec<ItemWithSlot>,

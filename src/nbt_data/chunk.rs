@@ -77,7 +77,7 @@ pub struct Biomes {
     data: Option<Vec<i64>>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder)]
 pub struct BlockState {
     name: String,
     properties: Option<HashMap<String, crate::nbt::Tag>>,

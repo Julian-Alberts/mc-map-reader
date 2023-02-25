@@ -13,7 +13,7 @@ macro_rules! tags {
         )?
         description: $description:literal
     }),*) => {
-        #[derive(Debug, Clone)]
+        #[derive(Debug)]
         pub enum Tag {
             $(
                 #[doc=$description]
@@ -37,7 +37,7 @@ macro_rules! tags {
             }
 
             $($(
-            pub fn $getter(&self) -> Result<&$ty, Error> {
+            pub fn $getter(self) -> Result<$ty, Error> {
                 if let Self::$tag_type(v) = self {
                     Ok(v)
                 } else {
