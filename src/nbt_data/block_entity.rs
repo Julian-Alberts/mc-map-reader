@@ -53,6 +53,7 @@ pub enum BlockEntityType {
     Smoker(Smoker),
     StructureBlock(StructureBlock),
     TrappedChest(TrappedChest),
+    Other(Tag),
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
@@ -395,4 +396,42 @@ pub struct TrappedChest {
     lock: Option<String>,
     loot_table: Option<String>,
     loot_table_seed: Option<i64>,
+}
+
+macro_rules! impl_IBE_for_builder {
+    ($ty:ty) => {
+        impl InventoryBlockEntityBuilder for $ty {
+    
+            fn set_custom_name(&mut self, custom_name: String) {
+                self.with_custom_name(custom_name);
+            }
+            
+            fn set_items(&mut self, items: Vec<ItemWithSlot>) {
+                self.with_items(items);
+            }
+            
+            fn set_lock(&mut self, lock: String) {
+                self.with_lock(lock);
+            }
+        
+            fn set_loot_table(&mut self, loot_table: String) {
+                self.with_loot_table(loot_table);
+            }
+        
+            fn set_loot_table_seed(&mut self, loot_table_seed: i64) {
+                self.with_loot_table_seed(loot_table_seed);
+            }
+        
+        }
+    };
+}
+
+impl_IBE_for_builder!(BarrelBuilder);
+
+pub trait InventoryBlockEntityBuilder {
+    fn set_custom_name(&mut self, custom_name: String);
+    fn set_items(&mut self, items: Vec<ItemWithSlot>);
+    fn set_lock(&mut self, lock: String);
+    fn set_loot_table(&mut self, loot_table: String);
+    fn set_loot_table_seed(&mut self, loot_table_seed: i64);
 }

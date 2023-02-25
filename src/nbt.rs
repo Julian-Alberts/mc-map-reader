@@ -141,7 +141,7 @@ tags![
     tag_type: IntArray,
     payload: Vec<i32>,
     converter: convert_to_vec_i32,
-    getter: get__as_vec_i32,
+    getter: get_as_vec_i32,
     description: "Used to mark the end of compound tags. This tag does not have a name, so it is only ever a single byte 0. It may also be the type of empty List tags."
 },
 {

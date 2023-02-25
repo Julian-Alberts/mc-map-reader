@@ -56,7 +56,7 @@ fn nbt_to_chunk_data(tag: Tag) -> crate::load::Result<ChunkData> {
             _ => {}
         }
     }
-    Ok(cdb.try_build().unwrap())
+    Ok(cdb.try_build().map_err(MissingData::from)?)
 }
 
 fn nbt_to_sections(nbt_sections: &Tag) -> crate::load::Result<Vec<Section>> {
