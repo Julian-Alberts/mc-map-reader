@@ -69,8 +69,4 @@ pub enum Error {
     ZlibDecode(#[from] std::io::Error),
     #[error(transparent)]
     NBT(#[from] crate::nbt::Error),
-    #[error(transparent)]
-    ChunkStatus(#[from] crate::nbt_data::chunk::ChunkStatusError),
-    #[error(transparent)]
-    MissingData(#[from] crate::nbt_data::chunk::MissingData),
 }

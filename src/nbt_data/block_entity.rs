@@ -403,23 +403,23 @@ macro_rules! impl_IBE_for_builder {
         impl InventoryBlockEntityBuilder for $ty {
     
             fn set_custom_name(&mut self, custom_name: String) {
-                self.with_custom_name(custom_name);
+                self.set_custom_name(custom_name)
             }
             
             fn set_items(&mut self, items: Vec<ItemWithSlot>) {
-                self.with_items(items);
+                self.set_items(items)
             }
             
             fn set_lock(&mut self, lock: String) {
-                self.with_lock(lock);
+                self.set_lock(lock)
             }
         
             fn set_loot_table(&mut self, loot_table: String) {
-                self.with_loot_table(loot_table);
+                self.set_loot_table(loot_table)
             }
         
             fn set_loot_table_seed(&mut self, loot_table_seed: i64) {
-                self.with_loot_table_seed(loot_table_seed);
+                self.set_loot_table_seed(loot_table_seed)
             }
         
         }

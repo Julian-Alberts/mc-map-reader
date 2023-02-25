@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Deref, vec::IntoIter};
 
 use thiserror::Error;
 
@@ -47,7 +47,54 @@ macro_rules! tags {
             )?)*
         }
 
+        $($(
+        impl TryFrom<Tag> for $ty {
+            type Error = Error;
+            fn try_from(value: Tag) -> Result<$ty, Self::Error> {
+                if let Tag::$tag_type(v) = value {
+                    Ok(v)
+                } else {
+                    Err(Error::InvalidValue)
+                }
+            }
+        }
+        )?)* 
     };
+}
+
+impl TryFrom<Tag> for bool {
+    type Error = Error;
+    fn try_from(value: Tag) -> Result<bool, Self::Error> {
+        match value {
+            Tag::Byte(1) => Ok(true),
+            Tag::Byte(_) => Ok(false),
+            _ => Err(Error::InvalidValue)
+        }
+    }
+}
+
+impl <T> TryFrom<Tag> for List<T> 
+    where T: TryFrom<Tag, Error = Error>
+{
+    type Error = Error;
+    fn try_from(tag: Tag) -> Result<Self, Self::Error> {
+        let i = tag.get_as_list()?.take().into_iter().map(T::try_from).collect::<Result<_,_>>()?;
+        Ok(List(i))
+    }
+}
+
+impl <T> IntoIterator for List<T> {
+    type IntoIter = IntoIter<T>;
+    type Item = T;
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl <A> FromIterator<A> for List<A> {
+    fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
+        Self(iter.into_iter().collect())
+    }
 }
 
 tags![
@@ -107,9 +154,9 @@ tags![
 {
     id: 7,
     tag_type: ByteArray,
-    payload: Vec<i8>,
-    converter: convert_to_vec_i8,
-    getter: get_as_vec_i8,
+    payload: Array<i8>,
+    converter: convert_to_i8_array,
+    getter: get_as_i8_array,
     description: "Used to mark the end of compound tags. This tag does not have a name, so it is only ever a single byte 0. It may also be the type of empty List tags."
 },
 {
@@ -123,9 +170,9 @@ tags![
 {
     id: 9,
     tag_type: List,
-    payload: Vec<Tag>,
-    converter: convert_to_vec_tag,
-    getter: get_as_vec_tag,
+    payload: List<Tag>,
+    converter: convert_to_list,
+    getter: get_as_list,
     description: "Used to mark the end of compound tags. This tag does not have a name, so it is only ever a single byte 0. It may also be the type of empty List tags."
 },
 {
@@ -139,20 +186,47 @@ tags![
 {
     id: 11,
     tag_type: IntArray,
-    payload: Vec<i32>,
-    converter: convert_to_vec_i32,
-    getter: get_as_vec_i32,
+    payload: Array<i32>,
+    converter: convert_to_32_array,
+    getter: get_as_i32_array,
     description: "Used to mark the end of compound tags. This tag does not have a name, so it is only ever a single byte 0. It may also be the type of empty List tags."
 },
 {
     id: 12,
     tag_type: LongArray,
-    payload: Vec<i64>,
-    converter: convert_to_vec_i64,
-    getter: get_as_vec_i64,
+    payload: Array<i64>,
+    converter: convert_to_i64_array,
+    getter: get_as_i64_array,
     description: "Used to mark the end of compound tags. This tag does not have a name, so it is only ever a single byte 0. It may also be the type of empty List tags."
 }
 ];
+
+#[derive(Debug)]
+pub struct Array<T>(Vec<T>);
+#[derive(Debug)]
+pub struct List<T>(Vec<T>);
+
+impl <T> List<T> {
+
+    pub fn take(self) -> Vec<T> {
+        self.0
+    }
+
+}
+
+impl <T> Deref for Array<T> {
+    type Target = Vec<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl <T> Deref for List<T> {
+    type Target = Vec<T>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 #[derive(Debug, Error)]
 pub enum Error {
@@ -160,6 +234,10 @@ pub enum Error {
     UnknownTagId(u8),
     #[error("Invalid Value")]
     InvalidValue,
+    #[error(transparent)]
+    MissingData(#[from] crate::nbt_data::chunk::MissingData),
+    #[error(transparent)]
+    ChunkStatus(#[from] crate::nbt_data::chunk::ChunkStatusError),
 }
 
 pub fn parse(data: &[u8]) -> Result<Tag, Error> {
@@ -233,13 +311,13 @@ fn convert_to_f64(data: &[u8], offset: &mut usize) -> Result<f64, Error> {
     Ok(result)
 }
 
-fn convert_to_vec_i8(data: &[u8], offset: &mut usize) -> Result<Vec<i8>, Error> {
+fn convert_to_i8_array(data: &[u8], offset: &mut usize) -> Result<Array<i8>, Error> {
     let len = convert_to_i32(data, offset)? as usize;
     let mut result = Vec::with_capacity(len);
     for _ in 0..len {
         result.push(convert_to_i8(data, offset)?)
     }
-    Ok(result)
+    Ok(Array(result))
 }
 
 fn convert_to_string(data: &[u8], offset: &mut usize) -> Result<String, Error> {
@@ -249,14 +327,14 @@ fn convert_to_string(data: &[u8], offset: &mut usize) -> Result<String, Error> {
     String::from_utf8(str_data).or(Err(Error::InvalidValue))
 }
 
-fn convert_to_vec_tag(data: &[u8], offset: &mut usize) -> Result<Vec<Tag>, Error> {
+fn convert_to_list(data: &[u8], offset: &mut usize) -> Result<List<Tag>, Error> {
     let item_type = convert_to_i8(data, offset)? as u8;
     let len = convert_to_i32(data, offset)? as usize;
     let mut result = Vec::with_capacity(len);
     for _ in 0..len {
         result.push(Tag::new(item_type, data, offset)?);
     }
-    Ok(result)
+    Ok(List(result))
 }
 
 fn convert_to_map(data: &[u8], offset: &mut usize) -> Result<HashMap<String, Tag>, Error> {
@@ -274,20 +352,20 @@ fn convert_to_map(data: &[u8], offset: &mut usize) -> Result<HashMap<String, Tag
     Ok(map)
 }
 
-fn convert_to_vec_i32(data: &[u8], offset: &mut usize) -> Result<Vec<i32>, Error> {
+fn convert_to_32_array(data: &[u8], offset: &mut usize) -> Result<Array<i32>, Error> {
     let len = convert_to_i32(data, offset)? as usize;
     let mut result = Vec::with_capacity(len);
     for _ in 0..len {
         result.push(convert_to_i32(data, offset)?)
     }
-    Ok(result)
+    Ok(Array(result))
 }
 
-fn convert_to_vec_i64(data: &[u8], offset: &mut usize) -> Result<Vec<i64>, Error> {
+fn convert_to_i64_array(data: &[u8], offset: &mut usize) -> Result<Array<i64>, Error> {
     let len = convert_to_i32(data, offset)? as usize;
     let mut result = Vec::with_capacity(len);
     for _ in 0..len {
         result.push(convert_to_i64(data, offset)?)
     }
-    Ok(result)
+    Ok(Array(result))
 }

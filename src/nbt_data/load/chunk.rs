@@ -1,9 +1,9 @@
-use std::{collections::HashMap, io::Read};
+use std::{io::Read};
 
 use crate::{
     file_format::mc_region::header::ChunkInfo,
     nbt::{self, Tag},
-    nbt_data::chunk::*,
+    nbt_data::{chunk::*},
 };
 
 /// 1KiB
@@ -19,138 +19,82 @@ pub fn load_chunk(raw: &[u8], chunk_info: &ChunkInfo) -> crate::load::Result<Chu
 
     let data = decompress(data, &compression)?;
     let tag = crate::nbt::parse(data.as_slice())?;
-    nbt_to_chunk_data(tag)
+    let chunk_data = nbt_to_chunk_data(tag)?;
+    Ok(chunk_data)
 }
 
-fn nbt_to_chunk_data(tag: Tag) -> crate::load::Result<ChunkData> {
+fn nbt_to_chunk_data(tag: Tag) -> Result<ChunkData, crate::nbt::Error> {
     let mut cdb = ChunkDataBuilder::default();
-    let root = if let Tag::Compound(root) = tag {
+    let mut root = if let Tag::Compound(root) = tag {
         root
     } else {
-        return Err(crate::Error::NBT(nbt::Error::InvalidValue));
+        return Err(nbt::Error::InvalidValue);
     };
 
-    for (key, value) in root.into_iter() {
-        match key.as_str() {
-            "DataVersion" => {
-                cdb.with_data_version(value.get_as_i32()?);
-            }
-            "xPos" => {
-                cdb.with_x_pos(value.get_as_i32()?);
-            }
-            "yPos" => {
-                cdb.with_y_pos(value.get_as_i32()?);
-            }
-            "zPos" => {
-                cdb.with_z_pos(value.get_as_i32()?);
-            }
-            "Status" => {
-                cdb.with_status(value.get_as_string()?.as_str().try_into()?);
-            }
-            "LastUpdate" => {
-                cdb.with_last_update(value.get_as_i64()?);
-            }
-            "sections" => {
-                cdb.with_sections(nbt_to_sections(value)?);
-            }
-            _ => {}
-        }
-    }
+    add_data_to_builder!(cdb, root => [
+        "DataVersion": set_data_version,
+        "xPos": set_x_pos,
+        "yPos": set_y_pos,
+        "zPos": set_z_pos,
+        "Status": set_status,
+        "LastUpdate": set_last_update,
+        "sections": set_sections,
+        "block_entities": set_block_entities
+    ]);
     Ok(cdb.try_build().map_err(MissingData::from)?)
 }
 
-fn nbt_to_sections(nbt_sections: Tag) -> crate::load::Result<Vec<Section>> {
-    let Tag::List(nbt_sections) = nbt_sections else {
-        return Err(nbt::Error::InvalidValue.into());
-    };
-    let mut sections = Vec::with_capacity(nbt_sections.len());
-    for section in nbt_sections.into_iter() {
-        let Tag::Compound(section) = section else {
-            return Err(nbt::Error::InvalidValue.into());
-        };
-        sections.push(nbt_to_section(section)?)
-    }
-    Ok(sections)
-}
-
-fn nbt_to_section(section: HashMap<String, Tag>) -> crate::load::Result<Section> {
+impl TryFrom<Tag> for Section {
+    type Error = crate::nbt::Error;
+    fn try_from(section: Tag) -> Result<Self, Self::Error> {
     let mut section_builder = SectionBuilder::default();
-    for (key, value) in section {
-        match key.as_str() {
-            "Y" => section_builder.with_y(value.get_as_i8()?),
-            "block_states" => section_builder.with_block_states(nbt_to_block_states(value)?),
-            "biomes" => section_builder.with_biomes(nbt_to_biomes(value)?),
-            _ => &mut section_builder,
-        };
-    }
+    let mut section = section.get_as_map()?;
+    add_data_to_builder!(section_builder, section => [
+        "Y": set_y,
+        "block_states": set_block_states,
+        "biomes": set_biomes
+    ]);
     Ok(section_builder.try_build().map_err(MissingData::from)?)
 }
+}
 
-fn nbt_to_biomes(biomes: Tag) -> crate::load::Result<Biomes> {
-    let Tag::Compound(biomes) = biomes else {
-        return Err(nbt::Error::InvalidValue.into())
-    };
+impl TryFrom<Tag> for Biomes {
+    type Error = crate::nbt::Error;
+    fn try_from(biomes: Tag) -> Result<Self, Self::Error> {
     let mut bb = BiomesBuilder::default();
-    for (key, value) in biomes {
-        match key.as_str() {
-            "palette" => bb.with_palette(nbt_to_biome_palette(value)?),
-            "data" => bb.with_data(value.get_as_vec_i64()?),
-            _ => &mut bb,
-        };
-    }
+    let mut biomes = biomes.get_as_map()?;
+    add_data_to_builder!(bb, biomes => [
+        "palette": set_palette,
+        "data": set_data
+    ]);
     Ok(bb.try_build().map_err(MissingData::from)?)
-}
+}}
 
-fn nbt_to_biome_palette(nbt_palette: Tag) -> crate::load::Result<Vec<String>> {
-    let Tag::List(nbt_palette) = nbt_palette else {
-        return Err(nbt::Error::InvalidValue.into())
-    };
-    let list = nbt_palette
-        .into_iter()
-        .map(Tag::get_as_string)
-        .collect::<Result<_, _>>()?;
-    Ok(list)
-}
-
-fn nbt_to_block_states(block_states: Tag) -> crate::load::Result<BlockStates> {
-    let Tag::Compound(block_states) = block_states else {
-        return Err(nbt::Error::InvalidValue.into())
-    };
-    let mut block_state_builder = BlockStatesBuilder::default();
-    for (key, value) in block_states {
-        match key.as_str() {
-            "palette" => block_state_builder.with_palette(nbt_to_block_state_palette(value)?),
-            "data" => block_state_builder.with_data(value.get_as_vec_i64()?),
-            _ => &mut block_state_builder,
-        };
+impl TryFrom<Tag> for BlockStates {
+    type Error = crate::nbt::Error;
+    fn try_from(block_states: Tag) -> Result<Self, Self::Error> {
+        let mut block_states = block_states.get_as_map()?;
+        let mut block_states_builder = BlockStatesBuilder::default();
+        add_data_to_builder!(block_states_builder, block_states => [
+            "palette": set_palette,
+            "data": set_data
+        ]);
+        Ok(block_states_builder.try_build().map_err(MissingData::from)?)
     }
-    Ok(block_state_builder.try_build().map_err(MissingData::from)?)
 }
 
-fn nbt_to_block_state_palette(nbt_palette: Tag) -> crate::load::Result<Vec<BlockState>> {
-    let Tag::List(nbt_palette) = nbt_palette else {
-        return Err(nbt::Error::InvalidValue.into());
-    };
-    let mut palette = Vec::with_capacity(nbt_palette.len());
-    for palette_item in nbt_palette {
-        palette.push(nbt_to_block_state_palette_item(palette_item)?)
+impl TryFrom<Tag> for BlockState {
+    type Error = crate::nbt::Error;
+    fn try_from(palette_item: Tag) -> Result<Self, Self::Error> {
+        let mut palette_item = palette_item.get_as_map()?;
+        let mut block_state_builder = BlockStateBuilder::default();
+        add_data_to_builder!(block_state_builder, palette_item => [
+            "Name": set_name,
+            "Properties": set_properties
+        ]);
+        Ok(block_state_builder.try_build().map_err(MissingData::from)?)
     }
-    Ok(palette)
-}
 
-fn nbt_to_block_state_palette_item(palette_item: Tag) -> crate::load::Result<BlockState> {
-    let Tag::Compound(palette_item) = palette_item else {
-        return Err(nbt::Error::InvalidValue.into())
-    };
-    let mut block_state_builder = BlockStateBuilder::default();
-    for (key, value) in palette_item {
-        match key.as_str() {
-            "Name" => block_state_builder.with_name(value.get_as_string()?),
-            "Properties" => block_state_builder.with_properties(value.get_as_map()?),
-            _ => &mut block_state_builder,
-        };
-    }
-    Ok(block_state_builder.try_build().map_err(MissingData::from)?)
 }
 
 fn decompress(data: &[u8], compression: &Compression) -> crate::load::Result<Vec<u8>> {

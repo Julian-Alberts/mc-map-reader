@@ -4,6 +4,10 @@ use getset::{CopyGetters, Getters};
 use jbe::Builder;
 use thiserror::Error;
 
+use crate::nbt::{Array, List, Tag};
+
+use super::{load::entity::EntityMissingDataError, block_entity::BlockEntity};
+
 #[derive(jbe::Builder, Debug, Getters, CopyGetters)]
 pub struct ChunkData {
     #[get_copy = "pub"]
@@ -19,9 +23,9 @@ pub struct ChunkData {
     #[get_copy = "pub"]
     last_update: i64,
     #[get = "pub"]
-    sections: Vec<Section>,
+    sections: List<Section>,
     #[get = "pub"]
-    block_entities: Vec<BlockEntity>, /*#[get = "pub"]
+    block_entities: Option<List<BlockEntity>>, /*#[get = "pub"]
                                       carving_masks: Option<()>,
                                       #[get = "pub"]
                                       height_maps: (),
@@ -61,20 +65,20 @@ pub struct Section {
     y: i8,
     block_states: BlockStates,
     biomes: Biomes,
-    block_light: Option<Vec<i8>>,
-    sky_light: Option<Vec<i8>>,
+    block_light: Option<Array<i8>>,
+    sky_light: Option<Array<i8>>,
 }
 
 #[derive(Debug, Builder)]
 pub struct BlockStates {
-    palette: Vec<BlockState>,
-    data: Option<Vec<i64>>,
+    palette: List<BlockState>,
+    data: Option<Array<i64>>,
 }
 
 #[derive(Debug, Builder)]
 pub struct Biomes {
-    palette: Vec<String>,
-    data: Option<Vec<i64>>,
+    palette: List<String>,
+    data: Option<Array<i64>>,
 }
 
 #[derive(Debug, Builder)]
@@ -83,13 +87,12 @@ pub struct BlockState {
     properties: Option<HashMap<String, crate::nbt::Tag>>,
 }
 
-#[derive(Debug)]
-pub struct BlockEntity {}
-
 #[derive(Debug, Error)]
 pub enum ChunkStatusError {
     #[error("Unknown status")]
     UnknownStatus,
+    #[error("Invalid value")]
+    InvalidValue
 }
 
 #[derive(Debug, Error)]
@@ -106,13 +109,15 @@ pub enum MissingData {
     BiomesData(#[from] BiomesBuilderError),
     #[error(transparent)]
     BlockEntityData(#[from] super::load::block_entity::BlockEntityMissingDataError),
+    #[error(transparent)]
+    EntityData(#[from] EntityMissingDataError)
 }
 
-impl TryFrom<&str> for ChunkStatus {
+impl TryFrom<Tag> for ChunkStatus {
     type Error = ChunkStatusError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        let status = match value {
+    fn try_from(value: Tag) -> Result<Self, Self::Error> {
+        let status = match value.get_as_string().or(Err(ChunkStatusError::InvalidValue))?.as_str() {
             "empty" => Self::Empty,
             "structure_starts" => Self::StructureStarts,
             "structure_references" => Self::StructureReferences,

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use getset::{CopyGetters, Getters};
 use jbe::Builder;
 
-use crate::nbt::Tag;
+use crate::nbt::{Tag, List, Array};
 
 ///<a href="https://minecraft.fandom.com/wiki/Entity_format#Entity_Format">minecraft wiki</a>
 ///
@@ -16,16 +16,17 @@ pub struct Entity {
     fire: i16,
     glowing: bool,
     has_visual_fire: bool,
-    id: String,
+    id: Option<String>,
     invulnerable: bool,
-    motion: Vec<f64>,
+    motion: List<f64>,
     no_gravity: bool,
-    passengers: Vec<Entity>,
+    on_ground: bool,
+    passengers: List<Entity>,
     portal_colldown: i32,
-    pos: Vec<f32>,
-    rotation: Vec<f32>,
+    pos: List<f32>,
+    rotation: List<f32>,
     silent: bool,
     tags: Option<HashMap<String, Tag>>,
-    ticks_frozen: i32,
-    uuid: Vec<i32>,
+    ticks_frozen: Option<i32>,
+    uuid: Array<i32>,
 }
