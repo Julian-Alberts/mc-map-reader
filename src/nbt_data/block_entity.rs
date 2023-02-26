@@ -4,7 +4,7 @@ use getset::{CopyGetters, Getters};
 use jbe::Builder;
 
 use crate::{
-    nbt::{List, Tag},
+    nbt::{List, Tag, Array},
     nbt_data::{chunk::BlockState, entity::Entity},
 };
 
@@ -50,8 +50,10 @@ pub enum BlockEntityType {
     MobSpawner(MobSpawner),
     Piston(Piston),
     ShulkerBox(ShulkerBox),
+    Sign(Sign),
     Skull(Skull),
     Smoker(Smoker),
+    SoulCampfire(SoulCampfire),
     StructureBlock(StructureBlock),
     TrappedChest(TrappedChest),
     Other(HashMap<String, Tag>),
@@ -136,27 +138,27 @@ pub struct BrewingStand {
     brew_time: i16,
     custom_name: Option<String>,
     fuel: i8,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Campfire {
-    cooking_times: Vec<i32>,
-    cooking_total_times: Vec<i32>,
-    items: Vec<ItemWithSlot>,
+    cooking_times: Array<i32>,
+    cooking_total_times: Array<i32>,
+    items: List<ItemWithSlot>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct ChiseledBookshelf {
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     last_interacted_slot: i32,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Chest {
     custom_name: Option<String>,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
     loot_table: Option<String>,
     loot_table_seed: Option<i64>,
@@ -183,13 +185,13 @@ pub struct CommandBlock {
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Conduit {
-    target: Vec<i32>,
+    target: Array<i32>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Dispenser {
     custom_name: Option<String>,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
     loot_table: Option<String>,
     loot_table_seed: Option<i64>,
@@ -198,7 +200,7 @@ pub struct Dispenser {
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Dropper {
     custom_name: Option<String>,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
     loot_table: Option<String>,
     loot_table_seed: Option<i64>,
@@ -229,7 +231,7 @@ pub struct Furnace {
     cook_time: i16,
     cook_time_total: i16,
     custom_name: Option<String>,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
     recipes_used: HashMap<String, i32>,
 }
@@ -237,7 +239,7 @@ pub struct Furnace {
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Hopper {
     custom_name: Option<String>,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
     loot_table: Option<String>,
     loot_table_seed: Option<i64>,
@@ -247,7 +249,7 @@ pub struct Hopper {
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Jigsaw {
     final_state: String,
-    join: String,
+    joint: String,
     name: String,
     pool: String,
     target: String,
@@ -281,7 +283,7 @@ pub struct Spawner {
     required_player_range: i16,
     spawn_count: i16,
     spawn_data: HashMap<String, Tag>,
-    spawn_potentials: Vec<PotentialSpawn>,
+    spawn_potentials: List<PotentialSpawn>,
     spawn_range: i16,
 }
 
@@ -310,7 +312,7 @@ pub struct Piston {
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct ShulkerBox {
     custom_name: Option<String>,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
     loot_table: Option<String>,
     loot_table_seed: Option<i64>,
@@ -335,14 +337,14 @@ pub struct Skull {
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct SkullOwner {
-    id: Vec<i32>,
+    id: Array<i32>,
     name: Option<String>,
-    properties: Vec<SkullOwnerProperties>,
+    properties: List<SkullOwnerProperties>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct SkullOwnerProperties {
-    textures: Vec<SkullOwnerTextures>,
+    textures: List<SkullOwnerTextures>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
@@ -357,16 +359,16 @@ pub struct Smoker {
     cook_time: i16,
     cook_time_total: i16,
     custom_name: Option<String>,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
     recipes_used: HashMap<String, i32>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct SoulCampfire {
-    cooking_times: Vec<i32>,
-    cooking_total_times: Vec<i32>,
-    items: Vec<ItemWithSlot>,
+    cooking_times: Array<i32>,
+    cooking_total_times: Array<i32>,
+    items: List<ItemWithSlot>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters)]
@@ -393,7 +395,7 @@ pub struct StructureBlock {
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct TrappedChest {
     custom_name: Option<String>,
-    items: Vec<ItemWithSlot>,
+    items: List<ItemWithSlot>,
     lock: Option<String>,
     loot_table: Option<String>,
     loot_table_seed: Option<i64>,
@@ -460,7 +462,15 @@ macro_rules! impl_CBEB_for_builder {
 }
 
 impl_IBE_for_builder!(BarrelBuilder);
+impl_IBE_for_builder!(ChestBuilder);
+impl_IBE_for_builder!(DispenserBuilder);
+impl_IBE_for_builder!(DropperBuilder);
+impl_IBE_for_builder!(HopperBuilder);
+impl_IBE_for_builder!(ShulkerBoxBuilder);
+impl_IBE_for_builder!(TrappedChestBuilder);
 impl_CBEB_for_builder!(BlastFurnaceBuilder);
+impl_CBEB_for_builder!(FurnaceBuilder);
+impl_CBEB_for_builder!(SmokerBuilder);
 
 pub trait InventoryBlockEntityBuilder {
     fn set_custom_name(&mut self, custom_name: String);

@@ -73,15 +73,6 @@ impl TryFrom<Tag> for bool {
     }
 }
 
-impl <T> TryFrom<HashMap<String, Tag>> for HashMap<String, T> 
-    where T: TryFrom<Tag, Error = crate::nbt::Error>
-{
-    type Error = crate::nbt::Error;
-    fn try_from(map: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        
-    }
-}
-
 impl<T> TryFrom<Tag> for List<T>
 where
     T: TryFrom<Tag, Error = Error>,
@@ -220,8 +211,6 @@ tags![
 pub struct Array<T>(Vec<T>);
 #[derive(Debug)]
 pub struct List<T>(Vec<T>);
-
-pub struct Compound<T>(HashMap<String, T>);
 
 impl<T> List<T> {
     pub fn take(self) -> Vec<T> {
