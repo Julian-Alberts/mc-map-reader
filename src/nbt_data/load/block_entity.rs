@@ -75,286 +75,7 @@ impl TryFrom<Tag> for BlockEntity {
     }
 }
 
-impl TryFrom<Tag> for Beehive {
-    type Error = crate::nbt::Error;
-    fn try_from(value: Tag) -> Result<Self, Self::Error> {
-        value.get_as_map()?.try_into()
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for Beehive {
-    type Error = crate::nbt::Error;
-    fn try_from(mut nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut beehive_builder = BeehiveBuilder::default();
-        add_data_to_builder!(beehive_builder, nbt_data => [
-            "Bees": set_bees,
-            "FlowerPos": set_flower_pos
-        ]);
-        let beehive = beehive_builder
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(beehive)
-    }
-}
-
-impl TryFrom<Tag> for BeeInHive {
-    type Error = crate::nbt::Error;
-    fn try_from(nbt_bee: Tag) -> Result<Self, Self::Error> {
-        let nbt_bee = nbt_bee.get_as_map()?;
-        let mut bee_builder = BeeInHiveBuilder::default();
-        for (key, value) in nbt_bee {
-            match key.as_str() {
-                "EntityData" => bee_builder.with_entity_data(value.try_into()?),
-                "MinOccupationTicks" => bee_builder.with_min_occupation_ticks(value.get_as_i32()?),
-                "TicksInHive" => bee_builder.with_ticks_in_hive(value.get_as_i32()?),
-                _ => &mut bee_builder,
-            };
-        }
-        bee_builder
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)
-            .map_err(crate::nbt::Error::from)
-    }
-}
-
-impl TryFrom<Tag> for FlowerPos {
-    type Error = crate::nbt::Error;
-    fn try_from(nbt_flower_pos: Tag) -> Result<Self, Self::Error> {
-        let mut flower_pos_builder = FlowerPosBuilder::default();
-        let mut nbt_flower_pos = nbt_flower_pos.get_as_map()?;
-        add_data_to_builder!(flower_pos_builder, nbt_flower_pos => [
-            "X": set_x,
-            "Y": set_y,
-            "Z": set_z
-        ]);
-        let flower_pos = flower_pos_builder
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(flower_pos)
-    }
-}
-
-impl TryFrom<Tag> for Beacon {
-    type Error = crate::nbt::Error;
-    fn try_from(value: Tag) -> Result<Self, Self::Error> {
-        value.get_as_map()?.try_into()
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for Beacon {
-    type Error = crate::nbt::Error;
-    fn try_from(mut nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut bb = BeaconBuilder::default();
-        add_data_to_builder!(bb, nbt_data => [
-            "CustomName": set_custom_name,
-            "Lock": set_lock,
-            "Primary": set_primary,
-            "Secondary": set_secondary
-        ]);
-        let b = bb
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(b)
-    }
-}
-
-impl TryFrom<Tag> for Barrel {
-    type Error = crate::nbt::Error;
-    fn try_from(value: Tag) -> Result<Self, Self::Error> {
-        value.get_as_map()?.try_into()
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for Barrel {
-    type Error = crate::nbt::Error;
-    fn try_from(nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut bb = BarrelBuilder::default();
-        parse_inventory_block_entity(&mut bb, nbt_data)?;
-        let b = bb
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(b)
-    }
-}
-
-impl TryFrom<Tag> for ItemWithSlot {
-    type Error = crate::nbt::Error;
-    fn try_from(item: Tag) -> Result<Self, Self::Error> {
-        let mut item = item.get_as_map()?;
-        let mut iwsb = ItemWithSlotBuilder::default();
-
-        add_data_to_builder!(iwsb, item => [
-            "Slot": set_slot
-        ]);
-        iwsb.set_item(item.try_into()?);
-        iwsb.try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)
-            .map_err(crate::nbt::Error::from)
-    }
-}
-
-impl TryFrom<Tag> for Item {
-    type Error = crate::nbt::Error;
-    fn try_from(item: Tag) -> Result<Self, Self::Error> {
-        item.get_as_map()?.try_into()
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for Item {
-    type Error = crate::nbt::Error;
-    fn try_from(mut item: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut ib = ItemBuilder::default();
-        add_data_to_builder!(ib, item => [
-            "Count": set_count,
-            "id": set_id,
-            "tag": set_tag
-        ]);
-        ib.try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)
-            .map_err(crate::nbt::Error::from)
-    }
-}
-
-impl TryFrom<Tag> for Banner {
-    type Error = crate::nbt::Error;
-    fn try_from(banner: Tag) -> Result<Self, Self::Error> {
-        banner.get_as_map()?.try_into()
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for Banner {
-    type Error = crate::nbt::Error;
-    fn try_from(mut banner: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut bb = BannerBuilder::default();
-        add_data_to_builder!(bb, banner => [
-            "CustomName": set_custom_name,
-            "Patterns": set_patterns
-        ]);
-        let banner = bb
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(banner)
-    }
-}
-
-impl TryFrom<Tag> for BannerPattern {
-    type Error = crate::nbt::Error;
-    fn try_from(nbt_pattern: Tag) -> Result<Self, Self::Error> {
-        let mut nbt_pattern = nbt_pattern.get_as_map()?;
-        let mut pb = BannerPatternBuilder::default();
-        add_data_to_builder!(pb, nbt_pattern => [
-            "Color": set_color,
-            "Pattern": set_pattern
-        ]);
-        pb.try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)
-            .map_err(crate::nbt::Error::from)
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for BlastFurnace {
-    type Error = crate::nbt::Error;
-    fn try_from(nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut bb = BlastFurnaceBuilder::default();
-        parse_cooking_block_entity(&mut bb, nbt_data)?;
-        let b = bb
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(b)
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for BrewingStand {
-    type Error = crate::nbt::Error;
-    fn try_from(mut nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut brewing_stand_builder = BrewingStandBuilder::default();
-        add_data_to_builder!(brewing_stand_builder, nbt_data => [
-            "BrewTime": set_brew_time,
-            "CustomName": set_custom_name,
-            "Fuel": set_fuel,
-            "Items": set_items,
-            "Lock": set_lock
-        ]);
-        let b = brewing_stand_builder
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(b)
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for Campfire {
-    type Error = crate::nbt::Error;
-    fn try_from(mut nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut campfireBuilder = CampfireBuilder::default();
-        add_data_to_builder!(campfireBuilder, nbt_data => [
-            "CookingTimes": set_cooking_times,
-            "CookingTotalTimes": set_cooking_total_times,
-            "Items": set_items
-        ]);
-        let c = campfireBuilder
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(c)
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for ChiseledBookshelf {
-    type Error = crate::nbt::Error;
-    fn try_from(mut nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut chiseled_bookshelf_builder = ChiseledBookshelfBuilder::default();
-        add_data_to_builder!(chiseled_bookshelf_builder, nbt_data => [
-            "Items": set_items,
-            "last_interacted_slot": set_last_interacted_slot
-        ]);
-        let c = chiseled_bookshelf_builder
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(c)
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for Chest {
-    type Error = crate::nbt::Error;
-    fn try_from(nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut chest_builder = ChestBuilder::default();
-        parse_inventory_block_entity(&mut chest_builder, nbt_data)?;
-        let c = chest_builder
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(c)
-    }
-}
-
-impl TryFrom<HashMap<String, Tag>> for Comparator {
-    type Error = crate::nbt::Error;
-    fn try_from(mut nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut comparator_builder = ComparatorBuilder::default();
-        add_data_to_builder!(comparator_builder, nbt_data => [
-            "OutputSignal": set_output_signal
-        ]);
-        let c = comparator_builder
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(c)
-    }
-}
-
-macro_rules! try_from_hash_map_for_block_entity {
+macro_rules! try_from_tag {
     ($name:ident, $builder:ident => [$(
         $key:literal: $setter:ident
     ),*]) => {
@@ -398,7 +119,78 @@ macro_rules! try_from_hash_map_for_block_entity {
     };
 }
 
-try_from_hash_map_for_block_entity!(CommandBlock, CommandBlockBuilder => [
+try_from_tag!(Beehive, BeehiveBuilder => [
+    "Bees": set_bees,
+    "FlowerPos": set_flower_pos
+]);
+try_from_tag!(BeeInHive, BeeInHiveBuilder => [
+    "EntityData": set_entity_data,
+    "MinOccupationTicks": set_min_occupation_ticks,
+    "TicksInHive": set_ticks_in_hive
+]);
+try_from_tag!(FlowerPos, FlowerPosBuilder => [
+    "X": set_x,
+    "Y": set_y,
+    "Z": set_z
+]);
+try_from_tag!(Beacon, BeaconBuilder => [
+    "CustomName": set_custom_name,
+    "Lock": set_lock,
+    "Primary": set_primary,
+    "Secondary": set_secondary
+]);
+try_from_tag!(Barrel, BarrelBuilder => parse_inventory_block_entity);
+impl TryFrom<Tag> for ItemWithSlot {
+    type Error = crate::nbt::Error;
+    fn try_from(item: Tag) -> Result<Self, Self::Error> {
+        let mut item = item.get_as_map()?;
+        let mut iwsb = ItemWithSlotBuilder::default();
+
+        add_data_to_builder!(iwsb, item => [
+            "Slot": set_slot
+        ]);
+        iwsb.set_item(item.try_into()?);
+        iwsb.try_build()
+            .map_err(BlockEntityMissingDataError::from)
+            .map_err(MissingData::from)
+            .map_err(crate::nbt::Error::from)
+    }
+}
+try_from_tag!(Item, ItemBuilder => [
+    "Count": set_count,
+    "id": set_id,
+    "tag": set_tag
+]);
+try_from_tag!(Banner, BannerBuilder => [
+    "CustomName": set_custom_name,
+    "Patterns": set_patterns
+]);
+try_from_tag!(BannerPattern, BannerPatternBuilder => [
+    "Color": set_color,
+    "Pattern": set_pattern
+]);
+try_from_tag!(BlastFurnace, BlastFurnaceBuilder => parse_cooking_block_entity);
+try_from_tag!(BrewingStand, BrewingStandBuilder => [
+    "BrewTime": set_brew_time,
+    "CustomName": set_custom_name,
+    "Fuel": set_fuel,
+    "Items": set_items,
+    "Lock": set_lock
+]);
+try_from_tag!(Campfire, CampfireBuilder => [
+    "CookingTimes": set_cooking_times,
+    "CookingTotalTimes": set_cooking_total_times,
+    "Items": set_items
+]);
+try_from_tag!(ChiseledBookshelf, ChiseledBookshelfBuilder => [
+    "Items": set_items,
+    "last_interacted_slot": set_last_interacted_slot
+]);
+try_from_tag!(Chest, ChestBuilder => parse_inventory_block_entity);
+try_from_tag!(Comparator, ComparatorBuilder => [
+    "OutputSignal": set_output_signal
+]);
+try_from_tag!(CommandBlock, CommandBlockBuilder => [
     "auto": set_auto,
     "Command": set_command,
     "conditionMet": set_condition_met,
@@ -409,40 +201,40 @@ try_from_hash_map_for_block_entity!(CommandBlock, CommandBlockBuilder => [
     "SuccessCount": set_success_count,
     "UpdateLastExecution": set_update_last_execution
 ]);
-try_from_hash_map_for_block_entity!(Conduit, ConduitBuilder => [
+try_from_tag!(Conduit, ConduitBuilder => [
     "Target": set_target
 ]);
-try_from_hash_map_for_block_entity!(Dispenser, DispenserBuilder => parse_inventory_block_entity);
-try_from_hash_map_for_block_entity!(Dropper, DropperBuilder => parse_inventory_block_entity);
-try_from_hash_map_for_block_entity!(EnchantingTable, EnchantingTableBuilder => [
+try_from_tag!(Dispenser, DispenserBuilder => parse_inventory_block_entity);
+try_from_tag!(Dropper, DropperBuilder => parse_inventory_block_entity);
+try_from_tag!(EnchantingTable, EnchantingTableBuilder => [
     "CustomName": set_custom_name
 ]);
-try_from_hash_map_for_block_entity!(EndGateway, EndGatewayBuilder => [
+try_from_tag!(EndGateway, EndGatewayBuilder => [
     "Age": set_age,
     "ExactTeleport": set_exact_teleport,
     "ExitPortal": set_exit_portal
 ]);
-try_from_hash_map_for_block_entity!(ExitPortal, ExitPortalBuilder => [
+try_from_tag!(ExitPortal, ExitPortalBuilder => [
     "X": set_x,
     "Y": set_y,
     "Z": set_z
 ]);
-try_from_hash_map_for_block_entity!(Furnace, FurnaceBuilder => parse_cooking_block_entity);
-try_from_hash_map_for_block_entity!(Hopper, HopperBuilder => parse_inventory_block_entity);
-try_from_hash_map_for_block_entity!(Jigsaw, JigsawBuilder => [
+try_from_tag!(Furnace, FurnaceBuilder => parse_cooking_block_entity);
+try_from_tag!(Hopper, HopperBuilder => parse_inventory_block_entity);
+try_from_tag!(Jigsaw, JigsawBuilder => [
     "final_state": set_final_state,
     "joint": set_joint,
     "name": set_name,
     "pool": set_pool,
     "target": set_target
 ]);
-try_from_hash_map_for_block_entity!(Jukebox, JukeboxBuilder => [
+try_from_tag!(Jukebox, JukeboxBuilder => [
     "IsPlaying": set_is_playing,
     "RecordItem": set_record_item,
     "RecordStartTick": set_record_start_tick,
     "TickCount": set_tick_count
 ]);
-try_from_hash_map_for_block_entity!(Lectern, LecternBuilder => [
+try_from_tag!(Lectern, LecternBuilder => [
     "Book": set_book,
     "Page": set_page
 ]);
@@ -458,7 +250,7 @@ impl TryFrom<HashMap<String, Tag>> for MobSpawner {
         Ok(c)
     }
 }
-try_from_hash_map_for_block_entity!(Spawner, SpawnerBuilder => [
+try_from_tag!(Spawner, SpawnerBuilder => [
     "Delay": set_delay,
     "MaxNearbyEntities": set_max_nearby_entities,
     "MaxSpawnDelay": set_max_spawn_delay,
@@ -469,19 +261,19 @@ try_from_hash_map_for_block_entity!(Spawner, SpawnerBuilder => [
     "SpawnPotentials": set_spawn_potentials,
     "SpawnRange": set_spawn_range
 ]);
-try_from_hash_map_for_block_entity!(PotentialSpawn, PotentialSpawnBuilder => [
+try_from_tag!(PotentialSpawn, PotentialSpawnBuilder => [
     "weight": set_weight,
     "data": set_data
 ]);
-try_from_hash_map_for_block_entity!(Piston, PistonBuilder => [
+try_from_tag!(Piston, PistonBuilder => [
     "blockState": set_block_state,
     "extending": set_extending,
     "facing": set_facing,
     "progress": set_progress,
     "source": set_source
 ]);
-try_from_hash_map_for_block_entity!(ShulkerBox, ShulkerBoxBuilder => parse_inventory_block_entity);
-try_from_hash_map_for_block_entity!(Sign, SignBuilder => [
+try_from_tag!(ShulkerBox, ShulkerBoxBuilder => parse_inventory_block_entity);
+try_from_tag!(Sign, SignBuilder => [
     "GlowingText": set_glowing_text,
     "Color": set_color,
     "Text1": set_text1,
@@ -489,30 +281,30 @@ try_from_hash_map_for_block_entity!(Sign, SignBuilder => [
     "Text3": set_text3,
     "Text4": set_text4
 ]);
-try_from_hash_map_for_block_entity!(Skull, SkullBuilder => [
+try_from_tag!(Skull, SkullBuilder => [
     "note_block_sound": set_note_block_sound,
     "ExtraType": set_extra_type,
     "SkullOwner": set_skull_owner
 ]);
-try_from_hash_map_for_block_entity!(SkullOwner, SkullOwnerBuilder => [
+try_from_tag!(SkullOwner, SkullOwnerBuilder => [
     "Id": set_id,
     "Name": set_name,
     "Properties": set_properties
 ]);
-try_from_hash_map_for_block_entity!(SkullOwnerProperties, SkullOwnerPropertiesBuilder => [
+try_from_tag!(SkullOwnerProperties, SkullOwnerPropertiesBuilder => [
     "textures": set_textures
 ]);
-try_from_hash_map_for_block_entity!(SkullOwnerTextures, SkullOwnerTexturesBuilder => [
+try_from_tag!(SkullOwnerTextures, SkullOwnerTexturesBuilder => [
     "Value": set_value,
     "Signature": set_signature
 ]);
-try_from_hash_map_for_block_entity!(Smoker, SmokerBuilder => parse_cooking_block_entity);
-try_from_hash_map_for_block_entity!(SoulCampfire, SoulCampfireBuilder => [
+try_from_tag!(Smoker, SmokerBuilder => parse_cooking_block_entity);
+try_from_tag!(SoulCampfire, SoulCampfireBuilder => [
     "CookingTimes": set_cooking_times,
     "CookingTotalTimes": set_cooking_total_times,
     "Items": set_items
 ]);
-try_from_hash_map_for_block_entity!(StructureBlock, StructureBlockBuilder => [
+try_from_tag!(StructureBlock, StructureBlockBuilder => [
     "author": set_author,
     "ignoreEntities": set_ignore_entities,
     "integrity": set_integrity,
@@ -531,7 +323,7 @@ try_from_hash_map_for_block_entity!(StructureBlock, StructureBlockBuilder => [
     "sizeY": set_size_y,
     "sizeZ": set_size_z
 ]);
-try_from_hash_map_for_block_entity!(TrappedChest, TrappedChestBuilder => parse_inventory_block_entity);
+try_from_tag!(TrappedChest, TrappedChestBuilder => parse_inventory_block_entity);
 
 fn parse_cooking_block_entity(
     builder: &mut impl CookingBlockEntityBuilder,
