@@ -12,8 +12,12 @@ pub struct Loader;
 impl LoadMcSave<AnvilSave> for Loader {
     fn load(&self, path: &str) -> Result<AnvilSave> {
         let mut file = OpenOptions::new().read(true).write(false).open(path)?;
+        self.load_from_bytes(&mut file)
+    }
+
+    fn load_from_bytes(&self, read: &mut dyn Read) -> Result<AnvilSave> {
         let mut raw_header = [0; anvil::header::MC_REGION_HEADER_SIZE];
-        if file.read(&mut raw_header)? != anvil::header::MC_REGION_HEADER_SIZE {
+        if read.read(&mut raw_header)? != anvil::header::MC_REGION_HEADER_SIZE {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
                 anvil::header::INVALID_HEADER_MESSAGE,
@@ -22,7 +26,7 @@ impl LoadMcSave<AnvilSave> for Loader {
         }
         let header = anvil::header::McRegionHeader::from(raw_header);
         let mut raw_chunk_data = Vec::default();
-        file.read_to_end(&mut raw_chunk_data)?;
+        read.read_to_end(&mut raw_chunk_data)?;
 
         let mut chunks: [MaybeUninit<Option<ChunkData>>; 32 * 32] =
             unsafe { MaybeUninit::uninit().assume_init() };
@@ -50,15 +54,11 @@ impl LoadMcSave<AnvilSave> for Loader {
 
         Ok(AnvilSave::new(header, chunks))
     }
-
-    fn load_from_bytes(&self, _bytes: &[u8]) -> Result<AnvilSave> {
-        todo!()
-    }
 }
 
 pub trait LoadMcSave<S> {
     fn load(&self, path: &str) -> Result<S>;
-    fn load_from_bytes(&self, bytes: &[u8]) -> Result<S>;
+    fn load_from_bytes(&self, read: &mut dyn Read) -> Result<S>;
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

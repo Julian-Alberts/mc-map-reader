@@ -55,7 +55,7 @@ impl TryFrom<Tag> for BlockEntity {
             "jigsaw" => BlockEntityType::Jigsaw(nbt_data.try_into()?),
             "jukebox" => BlockEntityType::Jukebox(nbt_data.try_into()?),
             "lectern" => BlockEntityType::Lectern(nbt_data.try_into()?),
-            "mob_spawner" => BlockEntityType::MobSpawner(nbt_data.try_into()?),	
+            "mob_spawner" => BlockEntityType::MobSpawner(nbt_data.try_into()?),
             "piston" => BlockEntityType::Piston(nbt_data.try_into()?),
             "shulker_box" => BlockEntityType::ShulkerBox(nbt_data.try_into()?),
             "sign" => BlockEntityType::Sign(nbt_data.try_into()?),
@@ -338,7 +338,11 @@ fn parse_cooking_block_entity(
         "Lock": set_lock
     ]);
     if let Some(value) = nbt_data.remove("RecipesUsed") {
-        let r = value.get_as_map()?.into_iter().map(|(k,v)| v.try_into().and_then(|v|Ok((k,v)))).collect::<Result<HashMap<String, i32>,_>>()?;
+        let r = value
+            .get_as_map()?
+            .into_iter()
+            .map(|(k, v)| v.try_into().and_then(|v| Ok((k, v))))
+            .collect::<Result<HashMap<String, i32>, _>>()?;
         builder.set_recipes_used(r)
     }
     Ok(())

@@ -24,7 +24,6 @@ pub struct ChunkData {
     last_update: i64,
     #[get = "pub"]
     sections: List<Section>,
-    #[get = "pub"]
     block_entities: Option<List<BlockEntity>>, /*#[get = "pub"]
                                                carving_masks: Option<()>,
                                                #[get = "pub"]
@@ -41,6 +40,12 @@ pub struct ChunkData {
                                                inhabited_time: i64,
                                                #[get = "pub"]
                                                post_processing: Vec<()>*/
+}
+
+impl ChunkData {
+    pub fn block_entities(&self) -> Option<&List<BlockEntity>> {
+        self.block_entities.as_ref()
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -60,31 +65,65 @@ pub enum ChunkStatus {
     Full,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Section {
+    #[get_copy = "pub"]
     y: i8,
+    #[get = "pub"]
     block_states: BlockStates,
+    #[get = "pub"]
     biomes: Biomes,
     block_light: Option<Array<i8>>,
     sky_light: Option<Array<i8>>,
 }
 
-#[derive(Debug, Builder)]
+impl Section {
+    pub fn block_light(&self) -> Option<&Array<i8>> {
+        self.block_light.as_ref()
+    }
+
+    pub fn sky_light(&self) -> Option<&Array<i8>> {
+        self.sky_light.as_ref()
+    }
+}
+
+#[derive(Debug, Builder, Getters)]
 pub struct BlockStates {
+    #[get = "pub"]
     palette: List<BlockState>,
     data: Option<Array<i64>>,
 }
 
-#[derive(Debug, Builder)]
+impl BlockStates {
+    pub fn data(&self) -> Option<&Array<i64>> {
+        self.data.as_ref()
+    }
+}
+
+#[derive(Debug, Builder, Getters)]
 pub struct Biomes {
+    #[get = "pub"]
     palette: List<String>,
     data: Option<Array<i64>>,
 }
 
-#[derive(Debug, Builder)]
+impl Biomes {
+    pub fn data(&self) -> Option<&Array<i64>> {
+        self.data.as_ref()
+    }
+}
+
+#[derive(Debug, Builder, Getters)]
 pub struct BlockState {
+    #[get = "pub"]
     name: String,
     properties: Option<HashMap<String, crate::nbt::Tag>>,
+}
+
+impl BlockState {
+    pub fn properties(&self) -> Option<&HashMap<String, Tag>> {
+        self.properties.as_ref()
+    }
 }
 
 #[derive(Debug, Error)]

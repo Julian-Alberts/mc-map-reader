@@ -1,8 +1,11 @@
+use getset::Getters;
+
 use crate::nbt_data::chunk::ChunkData;
 
 pub use super::mc_region::header;
 
-#[derive(Debug)]
+#[derive(Debug, Getters)]
+#[get = "pub"]
 pub struct AnvilSave {
     header: header::McRegionHeader,
     chunks: [Option<ChunkData>; 32 * 32],
