@@ -13,7 +13,7 @@ macro_rules! tags {
         )?
         description: $description:literal
     }),*) => {
-        #[derive(Debug)]
+        #[derive(Debug, Clone)]
         pub enum Tag {
             $(
                 #[doc=$description]
@@ -207,14 +207,17 @@ tags![
 }
 ];
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Array<T>(Vec<T>);
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct List<T>(Vec<T>);
 
 impl<T> List<T> {
     pub fn take(self) -> Vec<T> {
         self.0
+    }
+    pub fn iter(&self) -> core::slice::Iter<T> {
+        self.0.iter()
     }
 }
 

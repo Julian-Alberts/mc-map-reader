@@ -15,7 +15,7 @@ impl LoadMcSave<AnvilSave> for Loader {
         self.load_from_bytes(&mut file)
     }
 
-    fn load_from_bytes(&self, read: &mut dyn Read) -> Result<AnvilSave> {
+    fn load_from_bytes(&self, mut read: impl Read) -> Result<AnvilSave> {
         let mut raw_header = [0; anvil::header::MC_REGION_HEADER_SIZE];
         if read.read(&mut raw_header)? != anvil::header::MC_REGION_HEADER_SIZE {
             return Err(std::io::Error::new(
@@ -58,7 +58,7 @@ impl LoadMcSave<AnvilSave> for Loader {
 
 pub trait LoadMcSave<S> {
     fn load(&self, path: &str) -> Result<S>;
-    fn load_from_bytes(&self, read: &mut dyn Read) -> Result<S>;
+    fn load_from_bytes(&self, read: impl Read) -> Result<S>;
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

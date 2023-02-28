@@ -113,7 +113,7 @@ impl Biomes {
     }
 }
 
-#[derive(Debug, Builder, Getters)]
+#[derive(Debug, Builder, Getters, Clone)]
 pub struct BlockState {
     #[get = "pub"]
     name: String,
