@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 pub fn get_region_files_in_area(
     world_directory: &Path,
+    dimension_directory: Option<&Path>,
     chunk1_x: i64,
     chunk1_z: i64,
     chunk2_x: i64,
@@ -31,6 +32,9 @@ pub fn get_region_files_in_area(
         .into_iter()
         .map(|(x, z)| {
             let mut region_file = PathBuf::from(world_directory);
+            if let Some(dimension) = dimension_directory {
+                region_file.push(dimension)
+            }
             region_file.push(format!("region/r.{x}.{z}.mca"));
             region_file
         })
@@ -38,8 +42,11 @@ pub fn get_region_files_in_area(
         .collect()
 }
 
-pub fn get_region_files(world_dir: &Path) -> std::io::Result<Vec<PathBuf>> {
+pub fn get_region_files(world_dir: &Path,dimension_directory: Option<&Path>) -> std::io::Result<Vec<PathBuf>> {
     let mut region_dir = PathBuf::from(world_dir);
+    if let Some(dimension) = dimension_directory {
+        region_dir.push(dimension)
+    }
     region_dir.push("region");
     std::fs::read_dir(region_dir)?
         .map(|entry| entry.map(|e| e.path()))

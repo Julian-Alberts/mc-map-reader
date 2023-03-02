@@ -1,4 +1,4 @@
-use std::{path::Path, fs::File, ops::Deref};
+use std::{path::{Path, PathBuf}, fs::File, ops::Deref};
 
 use mc_map_reader_lib::{LoadMcSave, nbt_data::chunk::ChunkData};
 use wildmatch::WildMatch;
@@ -10,7 +10,9 @@ pub mod config;
 pub fn main(world_dir: &Path, args: &SearchEntity) {
     let wildcards = args.entity_ids.as_ref();
     let wildcards = compile_wildcards(wildcards.unwrap_or(&vec![String::from("*")]).as_slice());
-    let regions = mc_map_reader_lib::files::get_region_files(world_dir).expect("Could not read region directory");
+    let dim: Option<PathBuf> = args.dimension.into();
+    let dim = dim.as_ref().map(PathBuf::as_path);
+    let regions = mc_map_reader_lib::files::get_region_files(world_dir, dim).expect("Could not read region directory");
 
     let search_fn = if args.block_entity {
         &search_block_entity

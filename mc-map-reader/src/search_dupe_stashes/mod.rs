@@ -19,10 +19,10 @@ use crate::{
 pub fn main(world_dir: &Path, data: crate::arguments::SearchDupeStashes, config: Config) {
     let region_groups = if let Some(area) = data.area {
         mc_map_reader_lib::files::get_region_files_in_area(
-            world_dir, area.x1, area.z1, area.x2, area.z2,
+            world_dir, None, area.x1, area.z1, area.x2, area.z2,
         )
     } else {
-        mc_map_reader_lib::files::get_region_files(world_dir)
+        mc_map_reader_lib::files::get_region_files(world_dir, None)
             .expect("Could not read region directory")
     };
     let mut thread_count = region_groups.len() / 24;
