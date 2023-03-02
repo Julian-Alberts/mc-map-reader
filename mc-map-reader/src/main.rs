@@ -4,10 +4,7 @@ mod find_inventories;
 mod quadtree;
 mod search_dupe_stashes;
 
-use std::{
-    fs::File,
-    io::Read,
-};
+use std::{fs::File, io::Read};
 
 use arguments::Action;
 use clap::Parser;

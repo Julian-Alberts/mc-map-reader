@@ -1,30 +1,30 @@
-use std::{path::PathBuf, fs::File};
+use std::{fs::File, path::PathBuf};
 
-use serde::{Deserialize};
+use serde::Deserialize;
 use thiserror::Error;
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Config {
-    search_pube_stashes: Option<SearchDupeStashesConfig>
+    search_pube_stashes: Option<SearchDupeStashesConfig>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct SearchDupeStashesConfig {
     pub items: Vec<Item>,
-    pub scan_containers: Vec<ScanContainers>
+    pub scan_containers: Vec<ScanContainers>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Item {
     id: String,
     warning_threshold: Option<usize>,
-    alarm_threshold: Option<usize>
+    alarm_threshold: Option<usize>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct ScanContainers {
     id: String,
-    tag: Vec<String>
+    tag: Vec<String>,
 }
 
 impl TryFrom<PathBuf> for Config {
@@ -38,7 +38,8 @@ impl TryFrom<PathBuf> for Config {
 
 impl Default for Config {
     fn default() -> Self {
-        serde_json::from_str(include_str!("../default_config.json")).expect("Invalid default config")
+        serde_json::from_str(include_str!("../default_config.json"))
+            .expect("Invalid default config")
     }
 }
 
@@ -47,5 +48,5 @@ pub enum ConfigLoadError {
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
-    JSON(#[from] serde_json::Error)
+    JSON(#[from] serde_json::Error),
 }

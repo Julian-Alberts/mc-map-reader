@@ -1,7 +1,7 @@
 mod data;
 
-use std::{collections::HashMap, fs::OpenOptions, path::Path};
 use data::*;
+use std::{collections::HashMap, fs::OpenOptions, path::Path};
 
 use mc_map_reader_lib::{
     nbt_data::{
@@ -12,11 +12,12 @@ use mc_map_reader_lib::{
 };
 
 use crate::{
+    config::Config,
     quadtree::{Bounds, QuadTree},
-    read_file, config::Config,
+    read_file,
 };
 
-pub fn main(world_dir: &Path, data: crate::arguments::SearchDupeStashes, config: Config) {
+pub fn main(world_dir: &Path, data: crate::arguments::SearchDupeStashes, _config: Config) {
     let region_groups = if let Some(area) = data.area {
         mc_map_reader_lib::files::get_region_files_in_area(
             world_dir, None, area.x1, area.z1, area.x2, area.z2,
@@ -68,7 +69,7 @@ pub fn main(world_dir: &Path, data: crate::arguments::SearchDupeStashes, config:
                 inv
             })
     });
-    
+
     if inventories.is_empty() {
         return;
     }

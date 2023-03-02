@@ -15,7 +15,7 @@ pub struct Args {
 #[derive(Debug, Subcommand)]
 pub enum Action {
     SearchDupeStashes(SearchDupeStashes),
-    FindInventories(crate::find_inventories::config::SearchEntity)
+    FindInventories(crate::find_inventories::config::SearchEntity),
 }
 
 #[derive(Debug, Parser)]

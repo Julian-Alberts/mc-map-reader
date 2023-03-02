@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use crate::quadtree::{Bounded, Bounds};
 
-
 #[derive(Debug)]
 pub struct FoundInventory {
     pub inventory_type: String,
