@@ -7,7 +7,7 @@ use clap::{command, Parser, Subcommand};
 pub struct Args {
     #[command(subcommand)]
     pub action: Option<Action>,
-    pub config_file: Option<PathBuf>,
+    //pub config_file: Option<PathBuf>,
     /// Path to the Minecraft Save
     pub save_directory: PathBuf,
 }
@@ -15,6 +15,7 @@ pub struct Args {
 #[derive(Debug, Subcommand)]
 pub enum Action {
     SearchDupeStashes(SearchDupeStashes),
+    FindInventories(crate::find_inventories::config::SearchEntity)
 }
 
 #[derive(Debug, Parser)]

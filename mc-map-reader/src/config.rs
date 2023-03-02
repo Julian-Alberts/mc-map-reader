@@ -10,7 +10,8 @@ pub struct Config {
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct SearchDupeStashesConfig {
-    pub items: Vec<Item>
+    pub items: Vec<Item>,
+    pub scan_containers: Vec<ScanContainers>
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -18,6 +19,12 @@ pub struct Item {
     id: String,
     warning_threshold: Option<usize>,
     alarm_threshold: Option<usize>
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct ScanContainers {
+    id: String,
+    tag: Vec<String>
 }
 
 impl TryFrom<PathBuf> for Config {
