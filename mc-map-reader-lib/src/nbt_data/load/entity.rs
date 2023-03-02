@@ -42,7 +42,7 @@ fn parse_entity_from_tag(nbt_entity: crate::nbt::Tag) -> Result<Entity, crate::n
     Ok(entity)
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum EntityMissingDataError {
     #[error(transparent)]
     BlockEntity(#[from] EntityBuilderError),

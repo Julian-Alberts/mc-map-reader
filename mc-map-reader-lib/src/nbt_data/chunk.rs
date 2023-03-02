@@ -126,7 +126,7 @@ impl BlockState {
     }
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum ChunkStatusError {
     #[error("Unknown status")]
     UnknownStatus,
@@ -134,7 +134,7 @@ pub enum ChunkStatusError {
     InvalidValue,
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum MissingData {
     #[error(transparent)]
     SectionData(#[from] SectionBuilderError),

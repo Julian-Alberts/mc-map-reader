@@ -7,6 +7,7 @@ use clap::{command, Parser, Subcommand};
 pub struct Args {
     #[command(subcommand)]
     pub action: Option<Action>,
+    pub config_file: Option<PathBuf>,
     /// Path to the Minecraft Save
     pub save_directory: PathBuf,
 }
@@ -19,7 +20,7 @@ pub enum Action {
 #[derive(Debug, Parser)]
 pub struct SearchDupeStashes {
     /// An area of chunks
-    #[arg(value_parser=parse_area)]
+    #[arg(short, long, value_parser=parse_area)]
     pub area: Option<Area>,
 }
 

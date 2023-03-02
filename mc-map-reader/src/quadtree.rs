@@ -75,6 +75,7 @@ enum Quadrant {
     BR,
     BL,
 }
+use Quadrant::*;
 
 impl<'a, T: Bounded> QuadTree<'a, T> {
     /// Constructs a new quadtree containing the specified bounds.
@@ -83,7 +84,7 @@ impl<'a, T: Bounded> QuadTree<'a, T> {
             capacity: 4,
             max_depth: 10,
             depth: 0,
-            bounds: bounds,
+            bounds,
             elements: Vec::new(),
             children: None,
         }
@@ -136,7 +137,7 @@ impl<'a, T: Bounded> QuadTree<'a, T> {
         QueryItems {
             qt: self,
             index: 0,
-            element: element,
+            element,
             next_qts: Vec::new(),
         }
     }
@@ -264,13 +265,10 @@ impl<'a, T: Bounded> QuadTree<'a, T> {
 impl<'a, T: Bounded> QuadTree<'a, T> {
     fn len(&self) -> usize {
         let mut count = self.elements.len();
-        match self.children {
-            Some(ref children) => {
-                for child in children.iter() {
-                    count += child.len();
-                }
+        if let Some(ref children) = self.children {
+            for child in children.iter() {
+                count += child.len();
             }
-            None => {}
         };
         count
     }
@@ -279,21 +277,16 @@ impl<'a, T: Bounded> QuadTree<'a, T> {
 impl<'a, T: Bounded> QuadTree<'a, T> {
     fn clear(&mut self) {
         self.elements.clear();
-        match self {
-            QuadTree {
-                children: Some(_), ..
-            } => {
-                match self.children {
-                    Some(ref mut children) => {
-                        for child in children.iter_mut() {
-                            child.clear();
-                        }
-                    }
-                    None => {}
+        if let QuadTree {
+            children: Some(_), ..
+        } = self
+        {
+            if let Some(ref mut children) = self.children {
+                for child in children.iter_mut() {
+                    child.clear();
                 }
-                self.children = None;
             }
-            _ => {}
+            self.children = None;
         }
     }
 }
@@ -306,14 +299,11 @@ impl<'a, T: Bounded + fmt::Debug> fmt::Debug for QuadTree<'a, T> {
 
         self.elements.fmt(f)?;
 
-        match self.children {
-            Some(ref children) => {
-                for child in children.iter() {
-                    write!(f, "\n");
-                    child.fmt(f);
-                }
+        if let Some(ref children) = self.children {
+            for child in children.iter() {
+                writeln!(f)?;
+                child.fmt(f)?;
             }
-            None => {}
         };
         Ok(())
     }
@@ -340,7 +330,7 @@ impl<'a, T: Bounded> Iterator for Items<'a, T> {
         let mut node = self.root;
         for quadrant in self.quadrants.iter() {
             match &node.children {
-                &Some(ref children) => node = &*children[*quadrant as usize],
+                Some(children) => node = &*children[*quadrant as usize],
                 &None => unreachable!(),
             }
         }

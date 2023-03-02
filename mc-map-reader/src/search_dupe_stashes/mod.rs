@@ -1,19 +1,22 @@
+mod data;
+
 use std::{collections::HashMap, fs::OpenOptions, path::Path};
+use data::*;
 
 use mc_map_reader_lib::{
     nbt_data::{
-        block_entity::{self, BlockEntity, BlockEntityType, InventoryBlock},
+        block_entity::{BlockEntity, BlockEntityType, InventoryBlock, Item, ShulkerBox},
         chunk::ChunkData,
     },
     LoadMcSave,
 };
 
 use crate::{
-    quadtree::{Bounded, Bounds, QuadTree},
-    read_file,
+    quadtree::{Bounds, QuadTree},
+    read_file, config::Config,
 };
 
-pub fn search_dupe_stashes(world_dir: &Path, data: crate::arguments::SearchDupeStashes) {
+pub fn main(world_dir: &Path, data: crate::arguments::SearchDupeStashes, config: Config) {
     let region_groups = if let Some(area) = data.area {
         mc_map_reader_lib::files::get_region_files_in_area(
             world_dir, area.x1, area.z1, area.x2, area.z2,
@@ -22,7 +25,11 @@ pub fn search_dupe_stashes(world_dir: &Path, data: crate::arguments::SearchDupeS
         mc_map_reader_lib::files::get_region_files(world_dir)
             .expect("Could not read region directory")
     };
-    let region_groups = region_groups.chunks(region_groups.len() / 24);
+    let mut thread_count = region_groups.len() / 24;
+    if thread_count < 1 {
+        thread_count = 1
+    }
+    let region_groups = region_groups.chunks(thread_count);
     let inventories = std::thread::scope(|s| {
         let mut thread_handler = Vec::with_capacity(4);
         for regions in region_groups {
@@ -61,6 +68,11 @@ pub fn search_dupe_stashes(world_dir: &Path, data: crate::arguments::SearchDupeS
                 inv
             })
     });
+    
+    if inventories.is_empty() {
+        return;
+    }
+
     let (x1, z1, x2, z2) = inventories.iter().fold(
         (i32::MAX, i32::MAX, i32::MIN, i32::MIN),
         |(mut x1, mut z1, mut x2, mut z2), inv| {
@@ -71,7 +83,7 @@ pub fn search_dupe_stashes(world_dir: &Path, data: crate::arguments::SearchDupeS
             (x1, z1, x2, z2)
         },
     );
-    assert!(x1 <= x2 && z1 <= z2);
+    assert!(x1 <= x2 && z1 <= z2, "{x1} <= {x2} && {z1} <= {z2}");
     let x_direction = x2 - x1;
     let z_direction = z2 - z1;
     assert!(x_direction >= 0 && z_direction >= 0);
@@ -124,37 +136,47 @@ fn search_inventory_block(
             let item = item.item();
             item_map
                 .entry(item.id().to_owned())
-                .and_modify(|count| *count += item.count() as i16)
-                .or_insert(item.count() as i16);
+                .and_modify(|item_entry: &mut FoundItem| item_entry.count += item.count() as i16)
+                .or_insert(FoundItem {
+                    id: item.id().to_owned(),
+                    count: item.count() as i16,
+                });
+            if item.id().starts_with("minecraft") && item.id().ends_with("shulker_box") {
+                search_subinventory(item, &mut item_map)
+            }
             item_map
         })
     } else {
         HashMap::default()
     };
-
     Some(FoundInventory {
         inventory_type: base_entity.id().clone(),
-        item_counts: items,
+        items,
         x,
         z: y,
     })
 }
 
-#[derive(Debug)]
-pub struct FoundInventory {
-    inventory_type: String,
-    x: i32,
-    z: i32,
-    item_counts: HashMap<String, i16>,
-}
-
-impl Bounded for FoundInventory {
-    fn bounds(&self) -> Bounds {
-        Bounds {
-            x: self.x as f32,
-            y: self.z as f32,
-            width: 1.,
-            height: 1.,
-        }
+fn search_subinventory(item: &Item, item_map: &mut HashMap<String, FoundItem>) {
+    let Some (tag) = item.tag() else {
+        return;
+    };
+    let Some (block_entity_tag) = tag.get("BlockEntityTag").cloned() else {
+        return;
+    };
+    let Ok(inventory) = ShulkerBox::try_from(block_entity_tag) else {
+        return;
+    };
+    if let Some(items) = inventory.items() {
+        items.iter().for_each(|item| {
+            let item = item.item();
+            item_map
+                .entry(item.id().to_owned())
+                .and_modify(|item_entry: &mut FoundItem| item_entry.count += item.count() as i16)
+                .or_insert(FoundItem {
+                    id: item.id().to_owned(),
+                    count: item.count() as i16,
+                });
+        })
     }
 }

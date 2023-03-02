@@ -13,7 +13,7 @@ macro_rules! tags {
         )?
         description: $description:literal
     }),*) => {
-        #[derive(Debug, Clone)]
+        #[derive(Debug, Clone, PartialEq)]
         pub enum Tag {
             $(
                 #[doc=$description]
@@ -207,9 +207,9 @@ tags![
 }
 ];
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Array<T>(Vec<T>);
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct List<T>(Vec<T>);
 
 impl<T> List<T> {
@@ -221,7 +221,7 @@ impl<T> List<T> {
     }
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum Error {
     #[error("Unknown Tag ID: {0}")]
     UnknownTagId(u8),
@@ -329,7 +329,7 @@ fn convert_to_i8_array(data: &[u8], offset: &mut usize) -> Result<Array<i8>, Err
 
 fn convert_to_string(data: &[u8], offset: &mut usize) -> Result<String, Error> {
     let len = convert_to_i16(data, offset)? as usize;
-    let str_data = data[*offset..len + *offset].iter().map(|i| *i).collect();
+    let str_data = data[*offset..len + *offset].to_vec();
     *offset += len;
     String::from_utf8(str_data).or(Err(Error::InvalidValue))
 }

@@ -9,3 +9,8 @@ edition = "2021"
 mc-map-reader-lib = { path="../mc-map-reader-lib" }
 clap = { version = "4.1.6", features = ["derive"] }
 futures = "0.3.26"
+serde = { version = "1.0.152", features = ["derive"] }
+serde_json = "1.0.93"
+thiserror = "1.0.38"
+pest_derive = "2.5.5"
+pest = "2.5.5"

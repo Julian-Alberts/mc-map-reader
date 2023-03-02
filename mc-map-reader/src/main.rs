@@ -1,6 +1,7 @@
 mod arguments;
+mod config;
 mod quadtree;
-mod subcommand;
+mod search_dupe_stashes;
 
 use std::{
     fs::{File, OpenOptions},
@@ -10,17 +11,31 @@ use std::{
 
 use arguments::{Action, Area};
 use clap::Parser;
+use config::Config;
 use mc_map_reader_lib::{file_format::anvil::AnvilSave, LoadMcSave};
 
 use crate::arguments::Args;
 
 fn main() {
     let args = Args::parse();
+    let config = if let Some(config) = args.config_file {
+        match Config::try_from(config) {
+            Ok(c) => c,
+            Err(e) => {
+                eprintln!("{e}");
+                return;
+            }
+        }
+    } else {
+        Config::default()
+    };
     match args.action {
         Some(Action::SearchDupeStashes(data)) => {
-            subcommand::search_dupe_stashes(args.save_directory.as_path(), data)
+            search_dupe_stashes::main(args.save_directory.as_path(), data, config)
         }
-        None => {}
+        None => {
+            println!("done")
+        }
     }
 }
 

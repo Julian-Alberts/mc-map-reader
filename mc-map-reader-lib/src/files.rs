@@ -1,7 +1,4 @@
-use std::{
-    fmt::format,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 pub fn get_region_files_in_area(
     world_directory: &Path,

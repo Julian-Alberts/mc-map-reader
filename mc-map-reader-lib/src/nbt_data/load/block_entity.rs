@@ -16,7 +16,7 @@ impl TryFrom<Tag> for BlockEntity {
         .ok_or(BlockEntityBuilderError::UnsetId)
         .map_err(BlockEntityMissingDataError::from)
         .map_err(MissingData::from)? else {
-            return Err(crate::nbt::Error::InvalidValue.into());
+            return Err(crate::nbt::Error::InvalidValue);
         };
         let id = id.clone();
         let mut beb = BlockEntityBuilder::default();
@@ -75,50 +75,6 @@ impl TryFrom<Tag> for BlockEntity {
             .map_err(MissingData::from)?;
         Ok(be)
     }
-}
-
-macro_rules! try_from_tag {
-    ($name:ident, $builder:ident => [$(
-        $key:literal: $setter:ident
-    ),*]) => {
-        impl TryFrom<Tag> for $name {
-            type Error = crate::nbt::Error;
-            fn try_from(nbt_data: Tag) -> Result<Self, Self::Error> {
-                let nbt_data = nbt_data.get_as_map()?;
-                Self::try_from(nbt_data)
-            }
-        }
-        impl TryFrom<HashMap<String, Tag>> for $name {
-            type Error = crate::nbt::Error;
-            fn try_from(mut nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-                let mut builder = $builder::default();
-                add_data_to_builder!(builder, nbt_data => [
-                    $(
-                        $key: $setter
-                    ),*
-                ]);
-                let b = builder
-                    .try_build()
-                    .map_err(BlockEntityMissingDataError::from)
-                    .map_err(MissingData::from)?;
-                Ok(b)
-            }
-        }
-    };
-    ($name:ident, $builder:ident => $fn:ident) => {
-        impl TryFrom<HashMap<String, Tag>> for $name {
-            type Error = crate::nbt::Error;
-            fn try_from(nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-                let mut builder = $builder::default();
-                $fn(&mut builder, nbt_data)?;
-                let b = builder
-                    .try_build()
-                    .map_err(BlockEntityMissingDataError::from)
-                    .map_err(MissingData::from)?;
-                Ok(b)
-            }
-        }
-    };
 }
 
 try_from_tag!(Beehive, BeehiveBuilder => [
@@ -343,7 +299,7 @@ fn parse_cooking_block_entity(
         let r = value
             .get_as_map()?
             .into_iter()
-            .map(|(k, v)| v.try_into().and_then(|v| Ok((k, v))))
+            .map(|(k, v)| v.try_into().map(|v| (k, v)))
             .collect::<Result<HashMap<String, i32>, _>>()?;
         builder.set_recipes_used(r)
     }
@@ -364,7 +320,7 @@ fn parse_inventory_block_entity(
     Ok(())
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, PartialEq, Eq)]
 pub enum BlockEntityMissingDataError {
     #[error(transparent)]
     BlockEntity(#[from] BlockEntityBuilderError),
