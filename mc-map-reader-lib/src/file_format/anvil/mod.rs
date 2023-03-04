@@ -8,11 +8,11 @@ pub use super::mc_region::header;
 #[get = "pub"]
 pub struct AnvilSave {
     header: header::McRegionHeader,
-    chunks: [Option<ChunkData>; 32 * 32],
+    chunks: Vec<ChunkData>,
 }
 
 impl AnvilSave {
-    pub fn new(header: header::McRegionHeader, chunks: [Option<ChunkData>; 32 * 32]) -> Self {
+    pub fn new(header: header::McRegionHeader, chunks: Vec<ChunkData>) -> Self {
         Self { header, chunks }
     }
 }

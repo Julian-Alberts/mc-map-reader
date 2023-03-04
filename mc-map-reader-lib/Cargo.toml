@@ -9,9 +9,11 @@ edition = "2021"
 compress = "0.2.1"
 getset = "0.1.2"
 jbe = { version = "0.1.0", path = "../../JBE" }
+rayon = "1.7.0"
 thiserror = "1.0.38"
 
 [features]
 chunk_section = []
 block_entity = []
+parallel = []
 default = ["chunk_section", "block_entity"]

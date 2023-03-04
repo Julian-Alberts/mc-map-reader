@@ -33,7 +33,6 @@ pub fn main(world_dir: &Path, args: &SearchEntity) {
         region
             .chunks()
             .iter()
-            .filter_map(Option::as_ref)
             .for_each(|chunk| search_fn(chunk, &wildcards))
     })
 }

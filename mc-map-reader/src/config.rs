@@ -24,7 +24,7 @@ pub struct Item {
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct ScanContainers {
     id: String,
-    tag: Vec<String>,
+    tag: Option<Vec<String>>,
 }
 
 impl TryFrom<PathBuf> for Config {

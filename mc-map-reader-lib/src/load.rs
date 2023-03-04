@@ -1,5 +1,6 @@
 use std::{fs::OpenOptions, io::Read, mem::MaybeUninit};
 
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use thiserror::Error;
 
 use crate::{
@@ -28,22 +29,13 @@ impl LoadMcSave<AnvilSave> for Loader {
         let mut raw_chunk_data = Vec::default();
         read.read_to_end(&mut raw_chunk_data)?;
 
-        let mut chunks: [MaybeUninit<Option<ChunkData>>; 32 * 32] =
-            unsafe { MaybeUninit::uninit().assume_init() };
-        for chunk in &mut chunks {
-            chunk.write(None);
-        }
-        let mut chunks: [Option<ChunkData>; 32 * 32] = unsafe { std::mem::transmute(chunks) };
-
-        for (index, chunk) in header
+        let chunks = header
             .get_chunk_info()
-            .iter()
-            .enumerate()
-            .filter_map(|(index, ci)| ci.as_ref().map(|ci| (index, ci)))
-        {
-            let c = nbt_data::load::chunk::load_chunk(&raw_chunk_data, chunk)?;
-            chunks[index] = Some(c);
-        }
+            .par_iter()
+            .filter_map(|ci| ci.as_ref())
+            .map(|chunk| {
+                nbt_data::load::chunk::load_chunk(&raw_chunk_data, chunk)
+            }).collect::<Result<_>>()?;
 
         Ok(AnvilSave::new(header, chunks))
     }

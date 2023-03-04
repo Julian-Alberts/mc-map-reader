@@ -51,7 +51,6 @@ pub fn main(world_dir: &Path, data: crate::arguments::SearchDupeStashes, _config
                     region
                         .chunks()
                         .iter()
-                        .filter_map(|c| c.as_ref())
                         .map(search_dupe_stashes_in_chunk)
                         .fold(inventories, |mut invnentories, mut new| {
                             invnentories.append(&mut new);
