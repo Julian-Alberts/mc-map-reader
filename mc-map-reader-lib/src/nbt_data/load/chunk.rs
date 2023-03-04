@@ -38,12 +38,13 @@ fn nbt_to_chunk_data(tag: Tag) -> Result<ChunkData, crate::nbt::Error> {
         "zPos": set_z_pos,
         "Status": set_status,
         "LastUpdate": set_last_update,
-        "sections": set_sections,
-        "block_entities": set_block_entities
+        "sections": set_sections feature = "chunk_section",
+        "block_entities": set_block_entities feature = "block_entities"
     ]);
     Ok(cdb.try_build().map_err(MissingData::from)?)
 }
 
+#[cfg(feature = "chunk_section")]
 impl TryFrom<Tag> for Section {
     type Error = crate::nbt::Error;
     fn try_from(section: Tag) -> Result<Self, Self::Error> {
@@ -71,6 +72,7 @@ impl TryFrom<Tag> for Biomes {
     }
 }
 
+#[cfg(feature = "chunk_section")]
 impl TryFrom<Tag> for BlockStates {
     type Error = crate::nbt::Error;
     fn try_from(block_states: Tag) -> Result<Self, Self::Error> {
@@ -86,6 +88,7 @@ impl TryFrom<Tag> for BlockStates {
     }
 }
 
+#[cfg(feature = "chunk_section")]
 impl TryFrom<Tag> for BlockState {
     type Error = crate::nbt::Error;
     fn try_from(palette_item: Tag) -> Result<Self, Self::Error> {

@@ -51,16 +51,20 @@ macro_rules! try_from_tag {
 
 macro_rules! add_data_to_builder {
     ($builder:ident, $nbt:ident => [$(
-        $key:literal: $setter:ident
+        $key:literal: $setter:ident $(feature = $feature:literal)?
     ),*]) => {
         $(
-            if let Some(value) = $nbt.remove($key) {
-                $builder.$setter(value.try_into()?)
+            $(#[cfg(feature = $feature)])? 
+            {
+                if let Some(value) = $nbt.remove($key) {
+                    $builder.$setter(value.try_into()?)
+                }
             }
         )*
     };
 }
 
+#[cfg(feature = "block_entity")]
 pub mod block_entity;
 pub mod chunk;
 pub mod entity;

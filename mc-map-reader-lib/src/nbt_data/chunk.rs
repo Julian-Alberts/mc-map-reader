@@ -6,7 +6,9 @@ use thiserror::Error;
 
 use crate::nbt::{Array, List, Tag};
 
-use super::{block_entity::BlockEntity, load::entity::EntityMissingDataError};
+#[cfg(feature = "block_entity")]
+use super::block_entity::BlockEntity;
+use super::load::entity::EntityMissingDataError;
 
 #[derive(jbe::Builder, Debug, Getters, CopyGetters)]
 pub struct ChunkData {
@@ -22,8 +24,10 @@ pub struct ChunkData {
     status: ChunkStatus,
     #[get_copy = "pub"]
     last_update: i64,
+    #[cfg(feature = "chunk_section")]
     #[get = "pub"]
     sections: List<Section>,
+    #[cfg(feature = "block_entity")]
     block_entities: Option<List<BlockEntity>>, /*#[get = "pub"]
                                                carving_masks: Option<()>,
                                                #[get = "pub"]
@@ -42,6 +46,7 @@ pub struct ChunkData {
                                                post_processing: Vec<()>*/
 }
 
+#[cfg(feature = "block_entity")]
 impl ChunkData {
     pub fn block_entities(&self) -> Option<&List<BlockEntity>> {
         self.block_entities.as_ref()
@@ -65,6 +70,7 @@ pub enum ChunkStatus {
     Full,
 }
 
+#[cfg(feature = "chunk_section")]
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Section {
     #[get_copy = "pub"]
@@ -77,6 +83,7 @@ pub struct Section {
     sky_light: Option<Array<i8>>,
 }
 
+#[cfg(feature = "chunk_section")]
 impl Section {
     pub fn block_light(&self) -> Option<&Array<i8>> {
         self.block_light.as_ref()
@@ -87,6 +94,7 @@ impl Section {
     }
 }
 
+#[cfg(feature = "chunk_section")]
 #[derive(Debug, Builder, Getters)]
 pub struct BlockStates {
     #[get = "pub"]
@@ -94,6 +102,7 @@ pub struct BlockStates {
     data: Option<Array<i64>>,
 }
 
+#[cfg(feature = "chunk_section")]
 impl BlockStates {
     pub fn data(&self) -> Option<&Array<i64>> {
         self.data.as_ref()
@@ -113,6 +122,7 @@ impl Biomes {
     }
 }
 
+#[cfg(feature = "chunk_section")]
 #[derive(Debug, Builder, Getters, Clone)]
 pub struct BlockState {
     #[get = "pub"]
@@ -120,6 +130,7 @@ pub struct BlockState {
     properties: Option<HashMap<String, crate::nbt::Tag>>,
 }
 
+#[cfg(feature = "chunk_section")]
 impl BlockState {
     pub fn properties(&self) -> Option<&HashMap<String, Tag>> {
         self.properties.as_ref()
@@ -136,16 +147,20 @@ pub enum ChunkStatusError {
 
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum MissingData {
+    #[cfg(feature = "chunk_section")]
     #[error(transparent)]
     SectionData(#[from] SectionBuilderError),
+    #[cfg(feature = "chunk_section")]
     #[error(transparent)]
     BlockStatesData(#[from] BlockStatesBuilderError),
+    #[cfg(feature = "chunk_section")]
     #[error(transparent)]
     BlockStateData(#[from] BlockStateBuilderError),
     #[error(transparent)]
     ChunkData(#[from] ChunkDataBuilderError),
     #[error(transparent)]
     BiomesData(#[from] BiomesBuilderError),
+    #[cfg(feature = "block_entity")]
     #[error(transparent)]
     BlockEntityData(#[from] super::load::block_entity::BlockEntityMissingDataError),
     #[error(transparent)]
