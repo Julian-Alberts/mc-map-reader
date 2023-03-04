@@ -399,6 +399,7 @@ dependencies = [
  "mc-map-reader-lib",
  "pest",
  "pest_derive",
+ "rayon",
  "serde",
  "serde_json",
  "thiserror",

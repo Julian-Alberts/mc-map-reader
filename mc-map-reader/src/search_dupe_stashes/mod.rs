@@ -1,6 +1,7 @@
 mod data;
 
 use data::*;
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use std::{collections::HashMap, fs::OpenOptions, path::Path};
 
 use mc_map_reader_lib::{
@@ -26,48 +27,25 @@ pub fn main(world_dir: &Path, data: crate::arguments::SearchDupeStashes, _config
         mc_map_reader_lib::files::get_region_files(world_dir, None)
             .expect("Could not read region directory")
     };
-    let mut thread_count = region_groups.len() / 24;
-    if thread_count < 1 {
-        thread_count = 1
-    }
-    let region_groups = region_groups.chunks(thread_count);
-    let inventories = std::thread::scope(|s| {
-        let mut thread_handler = Vec::with_capacity(4);
-        for regions in region_groups {
-            let thread = s.spawn(move || {
-                regions.iter().fold(Vec::new(), |inventories, region| {
-                    let data = match OpenOptions::new().read(true).open(region) {
-                        Ok(file) => read_file(file),
-                        Err(e) => panic!("{e}"),
-                    };
-                    let data = match data {
-                        Ok(data) => data,
-                        Err(e) => panic!("{e}"),
-                    };
-                    let region = match mc_map_reader_lib::Loader.load_from_bytes(&data[..]) {
-                        Ok(data) => data,
-                        Err(e) => panic!("{e}"),
-                    };
-                    region
-                        .chunks()
-                        .iter()
-                        .map(search_dupe_stashes_in_chunk)
-                        .fold(inventories, |mut invnentories, mut new| {
-                            invnentories.append(&mut new);
-                            invnentories
-                        })
-                })
-            });
-            thread_handler.push(thread)
-        }
-        thread_handler
-            .into_iter()
-            .map(|j| j.join().expect("PANIC!!!"))
-            .fold(Vec::new(), |mut inv, mut new| {
-                inv.append(&mut new);
-                inv
+    let inventories = region_groups
+        .into_par_iter()
+        .map(|region| OpenOptions::new().read(true).open(region).unwrap())
+        .map(read_file)
+        .map(Result::unwrap)
+        .map(|data| mc_map_reader_lib::Loader.load_from_bytes(&data[..]).unwrap())
+        .map(|region| {
+            region
+            .chunks()
+            .iter()
+            .map(search_dupe_stashes_in_chunk)
+            .fold(Vec::default(), |mut invnentories, mut new| {
+                invnentories.append(&mut new);
+                invnentories
             })
-    });
+        }).collect::<Vec<_>>().into_iter().fold(Vec::default(), |mut all, mut new| {
+            all.append(&mut new);
+            all
+        });
 
     if inventories.is_empty() {
         return;

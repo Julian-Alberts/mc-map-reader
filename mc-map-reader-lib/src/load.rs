@@ -33,9 +33,8 @@ impl LoadMcSave<AnvilSave> for Loader {
             .get_chunk_info()
             .par_iter()
             .filter_map(|ci| ci.as_ref())
-            .map(|chunk| {
-                nbt_data::load::chunk::load_chunk(&raw_chunk_data, chunk)
-            }).collect::<Result<_>>()?;
+            .map(|chunk| nbt_data::load::chunk::load_chunk(&raw_chunk_data, chunk))
+            .collect::<Result<_>>()?;
 
         Ok(AnvilSave::new(header, chunks))
     }

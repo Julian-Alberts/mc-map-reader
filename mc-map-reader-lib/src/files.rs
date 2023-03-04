@@ -42,7 +42,10 @@ pub fn get_region_files_in_area(
         .collect()
 }
 
-pub fn get_region_files(world_dir: &Path,dimension_directory: Option<&Path>) -> std::io::Result<Vec<PathBuf>> {
+pub fn get_region_files(
+    world_dir: &Path,
+    dimension_directory: Option<&Path>,
+) -> std::io::Result<Vec<PathBuf>> {
     let mut region_dir = PathBuf::from(world_dir);
     if let Some(dimension) = dimension_directory {
         region_dir.push(dimension)
