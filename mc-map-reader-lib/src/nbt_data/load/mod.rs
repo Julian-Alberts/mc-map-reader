@@ -1,5 +1,3 @@
-use crate::nbt::Tag;
-
 macro_rules! try_from_tag {
     ($name:ident, $builder:ident => [$(
         $key:literal: $setter:ident
@@ -22,13 +20,13 @@ macro_rules! try_from_tag {
             }
         }
     };
-    ($name:ident, $builder:ident => $fn:ident) => {
+    ($name:ident, $builder:ident => $build_fn:ident) => {
         try_from_tag!(from_tag $name);
         impl TryFrom<HashMap<String, Tag>> for $name {
             type Error = crate::nbt::Error;
             fn try_from(nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
                 let mut builder = $builder::default();
-                $fn(&mut builder, nbt_data)?;
+                $build_fn(&mut builder, nbt_data)?;
                 let b = builder
                     .try_build()
                     .map_err(BlockEntityMissingDataError::from)
@@ -46,9 +44,6 @@ macro_rules! try_from_tag {
             }
         }
     };
-    (NBTObject $name:ident) => {
-
-    }
 }
 
 macro_rules! add_data_to_builder {
@@ -70,7 +65,3 @@ macro_rules! add_data_to_builder {
 pub mod block_entity;
 pub mod chunk;
 pub mod entity;
-
-trait NBTObject {
-    fn get(&self, key: String) -> Option<Tag>;
-}

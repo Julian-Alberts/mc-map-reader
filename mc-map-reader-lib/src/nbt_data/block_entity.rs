@@ -855,7 +855,7 @@ macro_rules! impl_IBE_for_builder {
 }
 
 macro_rules! impl_CBEB_for_builder {
-    ($ty:ty) => {
+    ($ty:ty, $res:ty) => {
         impl CookingBlockEntityBuilder for $ty {
             fn set_burn_time(&mut self, burn_time: i16) {
                 self.set_burn_time(burn_time)
@@ -885,6 +885,30 @@ macro_rules! impl_CBEB_for_builder {
                 self.set_recipes_used(recipes_used)
             }
         }
+
+        impl CookingBlockEntity for $res {
+            fn burn_time(&self) -> i16 {
+                self.burn_time()
+            }
+            fn cook_time(&self) -> i16 {
+                self.cook_time()
+            }
+            fn cook_time_total(&self) -> i16 {
+                self.cook_time_total()
+            }
+            fn custom_name(&self) -> Option<&String> {
+                self.custom_name()
+            }
+            fn items(&self) -> Option<&List<ItemWithSlot>> {
+                self.items()
+            }
+            fn lock(&self) -> Option<&String> {
+                self.lock()
+            }
+            fn recipes_used(&self) -> &HashMap<String, i32> {
+                self.recipes_used()
+            }
+        }
     };
 }
 
@@ -895,9 +919,9 @@ impl_IBE_for_builder!(DropperBuilder, Dropper);
 impl_IBE_for_builder!(HopperBuilder, Hopper);
 impl_IBE_for_builder!(ShulkerBoxBuilder, ShulkerBox);
 impl_IBE_for_builder!(TrappedChestBuilder, TrappedChest);
-impl_CBEB_for_builder!(BlastFurnaceBuilder);
-impl_CBEB_for_builder!(FurnaceBuilder);
-impl_CBEB_for_builder!(SmokerBuilder);
+impl_CBEB_for_builder!(BlastFurnaceBuilder, BlastFurnace);
+impl_CBEB_for_builder!(FurnaceBuilder, Furnace);
+impl_CBEB_for_builder!(SmokerBuilder, Smoker);
 
 pub trait InventoryBlock {
     fn custom_name(&self) -> Option<&String>;
@@ -914,6 +938,15 @@ pub trait InventoryBlockEntityBuilder {
     fn set_loot_table_seed(&mut self, loot_table_seed: i64);
 }
 
+pub trait CookingBlockEntity {
+    fn burn_time(&self) -> i16;
+    fn cook_time(&self) -> i16;
+    fn cook_time_total(&self) -> i16;
+    fn custom_name(&self) -> Option<&String>;
+    fn items(&self) -> Option<&List<ItemWithSlot>>;
+    fn lock(&self) -> Option<&String>;
+    fn recipes_used(&self) -> &HashMap<String, i32>;
+}
 pub trait CookingBlockEntityBuilder {
     fn set_burn_time(&mut self, burn_time: i16);
     fn set_cook_time(&mut self, cook_time: i16);

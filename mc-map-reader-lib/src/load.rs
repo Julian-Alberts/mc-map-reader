@@ -1,11 +1,11 @@
-use std::{fs::OpenOptions, io::Read, mem::MaybeUninit};
+use std::{fs::OpenOptions, io::Read};
 
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use thiserror::Error;
 
 use crate::{
     file_format::anvil::{self, AnvilSave},
-    nbt_data::{self, chunk::ChunkData},
+    nbt_data,
 };
 
 pub struct Loader;
