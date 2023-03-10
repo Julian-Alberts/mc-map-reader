@@ -1,28 +1,14 @@
 {
     "search_pube_stashes": {
         "items": [{
-            "id": "minecraft:diamond",
+            "filter": {
+                "id": "minecraft:*",
+                "nbt": [{
+                    "key": "value"
+                }]
+            },
             "warning_threshold": 100000,
             "alarm_threshold": 50000
-        },{
-            "id": "minecraft:diamond_block",
-            "warning_threshold": 5000,
-            "alarm_threshold": 10000
-        }],
-        "scan_containers": [{
-            "id": "minecraft:barrel"
-        },{
-            "id": "minecraft:chest"
-        },{
-            "id": "minecraft:dispenser"
-        },{
-            "id": "minecraft:dropper"
-        },{
-            "id": "minecraft:hopper"
-        },{
-            "id": "minecraft:*shulker_box"
-        },{
-            "id": "minecraft:trapped_chest"
         }]
     }
 }

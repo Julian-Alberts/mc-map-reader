@@ -1,3 +1,5 @@
+pub mod args;
+pub mod config;
 mod data;
 
 use data::*;
@@ -18,7 +20,9 @@ use crate::{
     read_file,
 };
 
-pub fn main(world_dir: &Path, data: crate::arguments::SearchDupeStashes, _config: Config) {
+use self::config::SearchDupeStashesConfig;
+
+pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let region_groups = if let Some(area) = data.area {
         mc_map_reader_lib::files::get_region_files_in_area(
             world_dir, None, area.x1, area.z1, area.x2, area.z2,
@@ -27,22 +31,30 @@ pub fn main(world_dir: &Path, data: crate::arguments::SearchDupeStashes, _config
         mc_map_reader_lib::files::get_region_files(world_dir, None)
             .expect("Could not read region directory")
     };
+    let config = config.search_pube_stashes.unwrap_or_default();
     let inventories = region_groups
         .into_par_iter()
         .map(|region| OpenOptions::new().read(true).open(region).unwrap())
         .map(read_file)
         .map(Result::unwrap)
-        .map(|data| mc_map_reader_lib::Loader.load_from_bytes(&data[..]).unwrap())
+        .map(|data| {
+            mc_map_reader_lib::Loader
+                .load_from_bytes(&data[..])
+                .unwrap()
+        })
         .map(|region| {
             region
-            .chunks()
-            .iter()
-            .map(search_dupe_stashes_in_chunk)
-            .fold(Vec::default(), |mut invnentories, mut new| {
-                invnentories.append(&mut new);
-                invnentories
-            })
-        }).collect::<Vec<_>>().into_iter().fold(Vec::default(), |mut all, mut new| {
+                .chunks()
+                .iter()
+                .map(|c| search_dupe_stashes_in_chunk(c, &config))
+                .fold(Vec::default(), |mut invnentories, mut new| {
+                    invnentories.append(&mut new);
+                    invnentories
+                })
+        })
+        .collect::<Vec<_>>()
+        .into_iter()
+        .fold(Vec::default(), |mut all, mut new| {
             all.append(&mut new);
             all
         });
@@ -80,30 +92,41 @@ pub fn main(world_dir: &Path, data: crate::arguments::SearchDupeStashes, _config
     println!("{inventories:#?}")
 }
 
-fn search_dupe_stashes_in_chunk(chunk: &ChunkData) -> Vec<FoundInventory> {
+fn search_dupe_stashes_in_chunk<'a, 'b>(
+    chunk: &ChunkData,
+    config: &'b SearchDupeStashesConfig,
+) -> Vec<FoundInventory<'a>> 
+    where 'b: 'a
+{
     let Some(block_entities) = chunk.block_entities() else {
         return Vec::default()
     };
 
     block_entities
         .iter()
-        .filter_map(|block_entity| match block_entity.entity_type() {
-            BlockEntityType::Barrel(block) => search_inventory_block(block, block_entity),
-            BlockEntityType::Chest(block) => search_inventory_block(block, block_entity),
-            BlockEntityType::Dispenser(block) => search_inventory_block(block, block_entity),
-            BlockEntityType::Dropper(block) => search_inventory_block(block, block_entity),
-            BlockEntityType::Hopper(block) => search_inventory_block(block, block_entity),
-            BlockEntityType::ShulkerBox(block) => search_inventory_block(block, block_entity),
-            BlockEntityType::TrappedChest(block) => search_inventory_block(block, block_entity),
-            _ => None,
+        .filter_map(|block_entity| {
+            let inventory: &dyn InventoryBlock = match block_entity.entity_type() {
+                BlockEntityType::Barrel(block) => block,
+                BlockEntityType::Chest(block) => block,
+                BlockEntityType::Dispenser(block) => block,
+                BlockEntityType::Dropper(block) => block,
+                BlockEntityType::Hopper(block) => block,
+                BlockEntityType::ShulkerBox(block) => block,
+                BlockEntityType::TrappedChest(block) => block,
+                _ => return None,
+            };
+            search_inventory_block(inventory, block_entity, config)
         })
         .collect::<Vec<_>>()
 }
 
-fn search_inventory_block(
+fn search_inventory_block<'a, 'b>(
     inventory: &dyn InventoryBlock,
     base_entity: &BlockEntity,
-) -> Option<FoundInventory> {
+    config: &'b SearchDupeStashesConfig,
+) -> Option<FoundInventory<'a>> 
+    where 'b: 'a
+{
     if inventory.loot_table().is_some() || inventory.loot_table_seed().is_some() {
         return None;
     }
@@ -111,16 +134,9 @@ fn search_inventory_block(
     let y = base_entity.y();
     let items = if let Some(items) = inventory.items() {
         items.iter().fold(HashMap::default(), |mut item_map, item| {
-            let item = item.item();
-            item_map
-                .entry(item.id().to_owned())
-                .and_modify(|item_entry: &mut FoundItem| item_entry.count += item.count() as i16)
-                .or_insert(FoundItem {
-                    id: item.id().to_owned(),
-                    count: item.count() as i16,
-                });
-            if item.id().starts_with("minecraft") && item.id().ends_with("shulker_box") {
-                search_subinventory(item, &mut item_map)
+            add_item_to_map(item, &mut item_map, config);
+            if item_is_shulker_box(item.item().id()) {
+                search_subinventory(item.item(), &mut item_map, config)
             }
             item_map
         })
@@ -135,7 +151,14 @@ fn search_inventory_block(
     })
 }
 
-fn search_subinventory(item: &Item, item_map: &mut HashMap<String, FoundItem>) {
+#[inline]
+fn item_is_shulker_box(id: &str) -> bool {
+    id.starts_with("minecraft:") && id.ends_with("shulker_box")
+}
+
+fn search_subinventory<'a, 'b>(item: &Item, item_map: &mut HashMap<usize, FoundItem<'a>>, config: &'b SearchDupeStashesConfig) 
+    where 'b: 'a
+{
     let Some (tag) = item.tag() else {
         return;
     };
@@ -147,14 +170,24 @@ fn search_subinventory(item: &Item, item_map: &mut HashMap<String, FoundItem>) {
     };
     if let Some(items) = inventory.items() {
         items.iter().for_each(|item| {
-            let item = item.item();
-            item_map
-                .entry(item.id().to_owned())
-                .and_modify(|item_entry: &mut FoundItem| item_entry.count += item.count() as i16)
-                .or_insert(FoundItem {
-                    id: item.id().to_owned(),
-                    count: item.count() as i16,
-                });
+            add_item_to_map(item, item_map, config)
         })
     }
 }
+
+fn add_item_to_map<'a, 'b>(item: &mc_map_reader_lib::nbt_data::block_entity::ItemWithSlot, item_map: &mut HashMap<usize, FoundItem<'a>>, config: &'b SearchDupeStashesConfig) 
+    where 'b: 'a
+{
+    let item = item.item();
+    let Some(item_config) = config.items.iter().find(|item_config| item_config.filter.matches(item)) else {
+        return
+    };
+    item_map
+        .entry(item_config as *const _ as usize)
+        .and_modify(|item_entry: &mut FoundItem| item_entry.count += item.count() as i16)
+        .or_insert(FoundItem {
+            item_config,
+            count: item.count() as i16,
+        });
+}
+

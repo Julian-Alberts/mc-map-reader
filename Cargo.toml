@@ -1,2 +1,7 @@
 [workspace]
 members = ["mc-map-reader-lib", "mc-map-reader"]
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
