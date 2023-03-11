@@ -1,23 +1,31 @@
+use std::collections::HashMap;
+
 use serde::Deserialize;
 
 type Nbt = serde_json::value::Map<String, serde_json::Value>;
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct SearchDupeStashesConfig {
-    pub items: Vec<Item>,
+    pub groups: HashMap<String, Group>,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct Group {
+    pub item: Item,
+    pub threshold: Option<usize>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Item {
-    pub filter: Filter,
-    pub warning_threshold: Option<usize>,
-    pub alarm_threshold: Option<usize>,
+    pub id: Option<Wildcard>,
+    pub nbt: Option<Nbt>,
+    #[serde(default="default_multiplier")]
+    pub multiplier: usize,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
-pub struct Filter {
-    pub with_id: Option<Wildcard>,
-    pub with_nbt: Option<Nbt>,
+#[inline]
+const fn default_multiplier() -> usize {
+    1
 }
 
 #[derive(Debug, PartialEq)]
@@ -25,16 +33,7 @@ pub struct Wildcard(wildmatch::WildMatch);
 
 impl Default for SearchDupeStashesConfig {
     fn default() -> Self {
-        Self {
-            items: vec![Item {
-                filter: Filter { 
-                    with_id: Some(Wildcard::from("*")),
-                    with_nbt: None,
-                },
-                warning_threshold: Some(50000),
-                alarm_threshold: Some(50000 * 2),
-            }],
-        }
+        serde_json::from_str(include_str!("../../default-search-dupe-stashes-config.json")).expect("Invalid default config")
     }
 }
 
@@ -54,21 +53,21 @@ impl<'de> Deserialize<'de> for Wildcard {
     }
 }
 
-impl Filter {
+impl Item {
     
     pub fn matches(&self, item: &mc_map_reader_lib::nbt_data::block_entity::Item) -> bool {
         self.matches_id(item) && self.matches_nbt(item)
     }
 
     fn matches_id(&self, item: &mc_map_reader_lib::nbt_data::block_entity::Item) -> bool {
-        let Some(id) = &self.with_id else {
+        let Some(id) = &self.id else {
             return true
         };
         id.0.matches(item.id())
     }
 
     fn matches_nbt(&self, item: &mc_map_reader_lib::nbt_data::block_entity::Item) -> bool {
-        let Some(required_nbt) = &self.with_nbt else {
+        let Some(required_nbt) = &self.nbt else {
             return true
         };
         let item_nbt = if let Some(item_nbt) = item.tag() {

@@ -2,19 +2,17 @@ use std::collections::HashMap;
 
 use crate::quadtree::{Bounded, Bounds};
 
-use super::config::Item;
-
 #[derive(Debug)]
 pub struct FoundInventory<'a> {
     pub inventory_type: String,
     pub x: i32,
     pub z: i32,
-    pub items: HashMap<usize, FoundItem<'a>>,
+    pub items: HashMap<String, FoundItem<'a>>,
 }
 
 #[derive(Debug)]
 pub struct FoundItem<'a> {
-    pub item_config: &'a Item,
+    pub group_key: &'a String,
     pub count: i16,
 }
 

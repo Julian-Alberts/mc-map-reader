@@ -1,0 +1,25 @@
+{
+    "groups": {
+        "diamond": {
+            "items": [{
+                "id": "minecraft:diamond"
+            },{
+                "id": "minecraft:diamond_block",
+                "multiplier": 9
+            }],
+            "threshold": 50000
+        },
+        "gold": {
+            "items": [{
+                "id": "minecraft:gold_nugget"
+            },{
+                "id": "minecraft:gold_ingot",
+                "multiplier": 9
+            },{
+                "id": "minecraft:gold_block",
+                "multiplier": 81
+            }],
+            "threshold": 400000
+        }
+    }
+}

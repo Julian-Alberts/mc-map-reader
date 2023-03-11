@@ -156,7 +156,7 @@ fn item_is_shulker_box(id: &str) -> bool {
     id.starts_with("minecraft:") && id.ends_with("shulker_box")
 }
 
-fn search_subinventory<'a, 'b>(item: &Item, item_map: &mut HashMap<usize, FoundItem<'a>>, config: &'b SearchDupeStashesConfig) 
+fn search_subinventory<'a, 'b>(item: &Item, item_map: &mut HashMap<String, FoundItem<'a>>, config: &'b SearchDupeStashesConfig) 
     where 'b: 'a
 {
     let Some (tag) = item.tag() else {
@@ -175,18 +175,18 @@ fn search_subinventory<'a, 'b>(item: &Item, item_map: &mut HashMap<usize, FoundI
     }
 }
 
-fn add_item_to_map<'a, 'b>(item: &mc_map_reader_lib::nbt_data::block_entity::ItemWithSlot, item_map: &mut HashMap<usize, FoundItem<'a>>, config: &'b SearchDupeStashesConfig) 
+fn add_item_to_map<'a, 'b>(item: &mc_map_reader_lib::nbt_data::block_entity::ItemWithSlot, item_map: &mut HashMap<String, FoundItem<'a>>, config: &'b SearchDupeStashesConfig) 
     where 'b: 'a
 {
     let item = item.item();
-    let Some(item_config) = config.items.iter().find(|item_config| item_config.filter.matches(item)) else {
+    let Some((group_key, _)) = config.groups.iter().find(|(_, item_config)| item_config.item.matches(item)) else {
         return
     };
     item_map
-        .entry(item_config as *const _ as usize)
+        .entry(group_key.clone())
         .and_modify(|item_entry: &mut FoundItem| item_entry.count += item.count() as i16)
         .or_insert(FoundItem {
-            item_config,
+            group_key,
             count: item.count() as i16,
         });
 }

@@ -1,10 +1,11 @@
 mod arguments;
 mod config;
 mod find_inventories;
+mod paths;
 mod quadtree;
 mod search_dupe_stashes;
 
-use std::{fs::File, io::Read};
+use std::{fs::File, io::Read, path::PathBuf};
 
 use arguments::Action;
 use clap::Parser;
@@ -14,26 +15,19 @@ use crate::arguments::Args;
 
 fn main() {
     let args = Args::parse();
-    /*let config = if let Some(config) = args.config_file {
-        match Config::try_from(config) {
-            Ok(c) => c,
-            Err(e) => {
-                eprintln!("{e}");
-                return;
-            }
-        }
+    let config = if let Some(config_file) = args.config_file {
+        Config::try_from(config_file).expect("Failed to load config")
     } else {
-        Config::default()
-    };*/
+        let path: PathBuf = paths::Files::ConfigFile.into();
+        Config::try_from(path).unwrap_or_default()
+    };
+
     match args.action {
-        Some(Action::SearchDupeStashes(data)) => {
-            search_dupe_stashes::main(args.save_directory.as_path(), data, Config::default())
+        Action::SearchDupeStashes(data) => {
+            search_dupe_stashes::main(args.save_directory.as_path(), data, config)
         }
-        Some(Action::FindInventories(sub_args)) => {
+        Action::FindInventories(sub_args) => {
             find_inventories::main(args.save_directory.as_path(), &sub_args)
-        }
-        None => {
-            println!("done")
         }
     }
 }
