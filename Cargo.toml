@@ -1,5 +1,5 @@
 [workspace]
-members = ["mc-map-reader-lib", "mc-map-reader"]
+members = ["mc-map-tools", "mc-map-reader"]
 
 [profile.release]
 strip = true

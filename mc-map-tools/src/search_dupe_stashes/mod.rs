@@ -6,7 +6,7 @@ use data::*;
 use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 use std::{collections::HashMap, fs::OpenOptions, path::Path};
 
-use mc_map_reader_lib::{
+use mc_map_reader::{
     nbt_data::{
         block_entity::{BlockEntity, BlockEntityType, InventoryBlock, Item, ShulkerBox},
         chunk::ChunkData,
@@ -24,11 +24,11 @@ use self::config::SearchDupeStashesConfig;
 
 pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let region_groups = if let Some(area) = data.area {
-        mc_map_reader_lib::files::get_region_files_in_area(
+        mc_map_reader::files::get_region_files_in_area(
             world_dir, None, area.x1, area.z1, area.x2, area.z2,
         )
     } else {
-        mc_map_reader_lib::files::get_region_files(world_dir, None)
+        mc_map_reader::files::get_region_files(world_dir, None)
             .expect("Could not read region directory")
     };
     let config = config.search_pube_stashes.unwrap_or_default();
@@ -38,7 +38,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         .map(read_file)
         .map(Result::unwrap)
         .map(|data| {
-            mc_map_reader_lib::Loader
+            mc_map_reader::Loader
                 .load_from_bytes(&data[..])
                 .unwrap()
         })
@@ -175,7 +175,7 @@ fn search_subinventory<'a, 'b>(item: &Item, item_map: &mut HashMap<String, Found
     }
 }
 
-fn add_item_to_map<'a, 'b>(item: &mc_map_reader_lib::nbt_data::block_entity::ItemWithSlot, item_map: &mut HashMap<String, FoundItem<'a>>, config: &'b SearchDupeStashesConfig) 
+fn add_item_to_map<'a, 'b>(item: &mc_map_reader::nbt_data::block_entity::ItemWithSlot, item_map: &mut HashMap<String, FoundItem<'a>>, config: &'b SearchDupeStashesConfig) 
     where 'b: 'a
 {
     let item = item.item();

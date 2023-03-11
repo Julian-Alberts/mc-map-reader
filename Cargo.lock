@@ -377,26 +377,26 @@ dependencies = [
 name = "mc-map-reader"
 version = "0.1.0"
 dependencies = [
- "clap",
- "dirs",
- "futures",
- "mc-map-reader-lib",
- "rayon",
- "serde",
- "serde_json",
- "thiserror",
- "wildmatch",
-]
-
-[[package]]
-name = "mc-map-reader-lib"
-version = "0.1.0"
-dependencies = [
  "compress",
  "getset",
  "jbe",
  "rayon",
  "thiserror",
+]
+
+[[package]]
+name = "mc-map-tools"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "dirs",
+ "futures",
+ "mc-map-reader",
+ "rayon",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "wildmatch",
 ]
 
 [[package]]

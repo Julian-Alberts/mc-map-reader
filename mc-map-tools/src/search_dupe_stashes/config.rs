@@ -55,18 +55,18 @@ impl<'de> Deserialize<'de> for Wildcard {
 
 impl Item {
     
-    pub fn matches(&self, item: &mc_map_reader_lib::nbt_data::block_entity::Item) -> bool {
+    pub fn matches(&self, item: &mc_map_reader::nbt_data::block_entity::Item) -> bool {
         self.matches_id(item) && self.matches_nbt(item)
     }
 
-    fn matches_id(&self, item: &mc_map_reader_lib::nbt_data::block_entity::Item) -> bool {
+    fn matches_id(&self, item: &mc_map_reader::nbt_data::block_entity::Item) -> bool {
         let Some(id) = &self.id else {
             return true
         };
         id.0.matches(item.id())
     }
 
-    fn matches_nbt(&self, item: &mc_map_reader_lib::nbt_data::block_entity::Item) -> bool {
+    fn matches_nbt(&self, item: &mc_map_reader::nbt_data::block_entity::Item) -> bool {
         let Some(required_nbt) = &self.nbt else {
             return true
         };
@@ -80,9 +80,9 @@ impl Item {
 
 }
 
-fn filter_nbt_eq_to_item_nbt(required_nbt: &serde_json::Map<String, serde_json::Value>, item_nbt: &std::collections::HashMap<String, mc_map_reader_lib::nbt::Tag>) -> bool {
+fn filter_nbt_eq_to_item_nbt(required_nbt: &serde_json::Map<String, serde_json::Value>, item_nbt: &std::collections::HashMap<String, mc_map_reader::nbt::Tag>) -> bool {
     use serde_json::Value as JsonValue;
-    use mc_map_reader_lib::nbt::Tag as NbtValue;
+    use mc_map_reader::nbt::Tag as NbtValue;
     required_nbt.iter().all(|(required_key, required_value)| {
         let item_value = item_nbt.get(required_key);
 

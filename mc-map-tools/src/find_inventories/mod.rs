@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use mc_map_reader_lib::{nbt_data::chunk::ChunkData, LoadMcSave};
+use mc_map_reader::{nbt_data::chunk::ChunkData, LoadMcSave};
 use wildmatch::WildMatch;
 
 use self::config::SearchEntity;
@@ -16,7 +16,7 @@ pub fn main(world_dir: &Path, args: &SearchEntity) {
     let wildcards = compile_wildcards(wildcards.unwrap_or(&vec![String::from("*")]).as_slice());
     let dim: Option<PathBuf> = args.dimension.into();
     let dim = dim.as_deref();
-    let regions = mc_map_reader_lib::files::get_region_files(world_dir, dim)
+    let regions = mc_map_reader::files::get_region_files(world_dir, dim)
         .expect("Could not read region directory");
 
     let search_fn = if args.block_entity {
@@ -27,7 +27,7 @@ pub fn main(world_dir: &Path, args: &SearchEntity) {
 
     regions.into_iter().for_each(|r| {
         let file = File::open(r).expect("Could not open file");
-        let region = mc_map_reader_lib::Loader
+        let region = mc_map_reader::Loader
             .load_from_bytes(file)
             .expect("Error reading file");
         region
