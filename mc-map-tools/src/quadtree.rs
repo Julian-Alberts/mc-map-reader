@@ -50,7 +50,7 @@ pub struct QuadTree<'a, T> {
 }
 
 /// A bounded area represented by x, y, width, and height.
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Bounds {
     /// x coordinate
     pub x: f32,
@@ -60,6 +60,12 @@ pub struct Bounds {
     pub width: f32,
     /// height
     pub height: f32,
+}
+
+impl Bounded for Bounds {
+    fn bounds(&self) -> Bounds {
+        self.clone()
+    }
 }
 
 /// Elements of the quadtree must implement this trait.
@@ -133,7 +139,10 @@ impl<'a, T: Bounded> QuadTree<'a, T> {
     }
 
     /// Returns an iterator over elements near a given element, which may or may not be in the quadtree.
-    pub fn query(&'a self, element: &'a T) -> QueryItems<'a, T> {
+    pub fn query<B>(&'a self, element: &'a B) -> QueryItems<'a, T, B>
+    where
+        B: Bounded,
+    {
         QueryItems {
             qt: self,
             index: 0,
@@ -228,7 +237,10 @@ impl<'a, T: Bounded> QuadTree<'a, T> {
         }
     }
 
-    fn get_quadrant(&self, r: &T) -> Option<Quadrant> {
+    fn get_quadrant<B>(&self, r: &B) -> Option<Quadrant>
+    where
+        B: Bounded,
+    {
         let half_width = self.bounds.x + (self.bounds.width / 2.0);
         let half_height = self.bounds.y + (self.bounds.height / 2.0);
 
@@ -254,7 +266,10 @@ impl<'a, T: Bounded> QuadTree<'a, T> {
         }
     }
 
-    fn contains(&self, r: &T) -> bool {
+    fn contains<B>(&self, r: &B) -> bool
+    where
+        B: Bounded,
+    {
         r.bounds().x >= self.bounds.x
             && r.bounds().x + r.bounds().width < self.bounds.width
             && r.bounds().y >= self.bounds.y
@@ -317,10 +332,13 @@ pub struct Items<'a, T> {
 }
 
 /// An iterator over elements near a given query element.
-pub struct QueryItems<'a, T> {
+pub struct QueryItems<'a, T, B>
+where
+    B: Bounded,
+{
     qt: &'a QuadTree<'a, T>,
     index: usize,
-    element: &'a T,
+    element: &'a B,
     next_qts: Vec<&'a QuadTree<'a, T>>,
 }
 
@@ -368,7 +386,11 @@ impl<'a, T: Bounded> Iterator for Items<'a, T> {
     }
 }
 
-impl<'a, T: Bounded> Iterator for QueryItems<'a, T> {
+impl<'a, T, B> Iterator for QueryItems<'a, T, B>
+where
+    B: Bounded,
+    T: Bounded,
+{
     type Item = &'a T;
     fn next(&mut self) -> Option<&'a T> {
         if self.index < self.qt.elements.len() {

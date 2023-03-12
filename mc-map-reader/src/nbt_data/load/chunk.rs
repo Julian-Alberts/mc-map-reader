@@ -39,7 +39,7 @@ fn nbt_to_chunk_data(tag: Tag) -> Result<ChunkData, crate::nbt::Error> {
         "Status": set_status,
         "LastUpdate": set_last_update,
         "sections": set_sections feature = "chunk_section",
-        "block_entities": set_block_entities feature = "block_entities"
+        "block_entities": set_block_entities feature = "block_entity"
     ]);
     Ok(cdb.try_build().map_err(MissingData::from)?)
 }

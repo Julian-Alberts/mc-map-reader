@@ -19,7 +19,11 @@ fn main() {
         Config::try_from(config_file).expect("Failed to load config")
     } else {
         let path: PathBuf = paths::Files::ConfigFile.into();
-        Config::try_from(path).unwrap_or_default()
+        if path.exists() {
+            Config::try_from(path).expect("Invalid config file")
+        } else {
+            Config::default()
+        }
     };
 
     match args.action {

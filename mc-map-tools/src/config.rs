@@ -7,7 +7,7 @@ use crate::search_dupe_stashes::config::SearchDupeStashesConfig;
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Config {
-    pub search_pube_stashes: Option<SearchDupeStashesConfig>,
+    pub search_dupe_stashes: SearchDupeStashesConfig,
 }
 
 impl TryFrom<PathBuf> for Config {
@@ -21,8 +21,9 @@ impl TryFrom<PathBuf> for Config {
 
 impl Default for Config {
     fn default() -> Self {
-        serde_json::from_str(include_str!("../default_config.json"))
-            .expect("Invalid default config")
+        Self {
+            search_dupe_stashes: SearchDupeStashesConfig::default(),
+        }
     }
 }
 

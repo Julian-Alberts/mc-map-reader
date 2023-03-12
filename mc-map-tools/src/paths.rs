@@ -2,7 +2,7 @@ use std::{io::Write, path::PathBuf};
 
 pub enum Files {
     PluginSettings,
-    ConfigFile
+    ConfigFile,
 }
 
 impl Files {
@@ -11,7 +11,7 @@ impl Files {
         match self {
             Files::PluginSettings => {
                 path.push("plugins.json");
-            },
+            }
             Files::ConfigFile => {
                 path.push("config.json");
             }
@@ -52,7 +52,6 @@ fn get_config_dir() -> PathBuf {
     } else {
         dirs::config_dir().expect("$HOME is not set")
     };
-    dbg!(&home);
     home.push("ja-mc-map-tools");
     home
 }
@@ -86,7 +85,6 @@ fn init() -> std::io::Result<()> {
     create_dir_all(get_plugin_dir())?;
     create_dir_all(get_plugin_data_dir())?;
     if !Files::PluginSettings.path().exists() {
-        dbg!(Files::PluginSettings.path());
         let mut f = std::fs::OpenOptions::new()
             .write(true)
             .create(true)

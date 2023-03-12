@@ -5,15 +5,18 @@ pub struct SearchDupeStashes {
     /// An area of chunks
     #[arg(short, long, value_parser=parse_area)]
     pub area: Option<Area>,
+    /// The radius of chunks to be searched
+    #[arg(default_value = "1")]
+    pub radius: u32,
     #[command(subcommand)]
-    pub mode: SearchDupeStashesMode,
+    pub mode: Option<SearchDupeStashesMode>,
 }
 
 #[derive(Debug, clap::Subcommand)]
 pub enum SearchDupeStashesMode {
     /// Gives warnings for every group that has more items than the threshold in a area
     Absolute,
-    /// Gives warnings for every group where the groth rate of an item group is higher than the threshold in a area. 
+    /// Gives warnings for every group where the groth rate of an item group is higher than the threshold in a area.
     /// Not implemented
     GrothRate(GrothRate),
 }
