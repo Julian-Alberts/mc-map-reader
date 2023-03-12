@@ -1,5 +1,5 @@
 # mc-map-tools
-mc-map-tools is a program that is capable of reading Minecraft&trade; save games and analyzing them. It is meant for server owners and administrators. At this point, there is only a CLI Program available.
+mc-map-tools is a program that is capable of reading Minecraft save games and analyzing them. It is meant for server owners and administrators. At this point, there is only a CLI Program available.
 
 ## Features
 ### Searching for item stashes of duped items
@@ -57,6 +57,28 @@ The following example matches a diamond sword with the `Unbreakable` tag set to 
 ...
 ```
 `nbt` does not support arrays or lists.
+
+## Usage
+Every command requires a path to a Minecraft world directory. This is allways the first argument.
+| Argument | Description | Optional | Values | Default |
+| --- | --- | --- | --- | --- |
+| <SAVE_DIRECTORY> | The path to the Minecraft world directory | No | A valid path | |
+
+### search_dupe_stashes
+This command searches for item stashes of duped items.
+```bash
+mc-map-tools <SAVE_DIRECTORY> search_dupe_stashes [OPTIONS] <MODE>
+```
+
+| Option | Description | Optional | Values | Default |
+| --- | --- | --- | --- | --- |
+| -a, --area | The area to search in | Yes | A string in the format `x1,z1;x2,z2` | The entire map |
+
+| Argument | Description | Optional | Values | Default |
+| --- | --- | --- | --- | --- |
+| <MODE> | The mode used to find stashes. Currently not used | Yes | `absolute` or `groth-rate` | `absolute` |
+
+
 
 ## Installation
 

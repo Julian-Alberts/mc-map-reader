@@ -11,7 +11,10 @@ pub struct SearchDupeStashes {
 
 #[derive(Debug, clap::Subcommand)]
 pub enum SearchDupeStashesMode {
+    /// Gives warnings for every group that has more items than the threshold in a area
     Absolute,
+    /// Gives warnings for every group where the groth rate of an item group is higher than the threshold in a area. 
+    /// Not implemented
     GrothRate(GrothRate),
 }
 
