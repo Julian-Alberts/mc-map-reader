@@ -81,8 +81,8 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         y: z1 as f32,
     };
     let mut inventory_trees = HashMap::new();
-    for group in &config.groups {
-        inventory_trees.insert(&group.name, Mutex::new(QuadTree::new(bounds.clone())));
+    for (name, _) in &config.groups {
+        inventory_trees.insert(name, Mutex::new(QuadTree::new(bounds.clone())));
     }
 
     inventories.par_iter().for_each(|inv| {
@@ -99,7 +99,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let item_stashes = inventory_trees
         .into_par_iter()
         .map(|(group_key, items)| {
-            let group = config.groups.iter().find(|g| &g.name == group_key).unwrap();
+            let group = config.groups.get(group_key).unwrap();
             let threshold = group.threshold;
             let counts: Vec<_> = items
                 .iter()
@@ -240,8 +240,8 @@ fn add_item_to_map<'a, 'b>(
     config
         .groups
         .iter()
-        .filter(|group| group.matches(item))
-        .for_each(|group| {
+        .filter(|(_, group)| group.matches(item))
+        .for_each(|(group_name, group)| {
             let mult = group
                 .items
                 .iter()
@@ -249,12 +249,12 @@ fn add_item_to_map<'a, 'b>(
                 .map(|i| i.multiplier)
                 .unwrap_or(1);
             item_map
-                .entry(&group.name)
+                .entry(&group_name)
                 .and_modify(|item_entry: &mut FoundItem| {
                     item_entry.count += item.count() as usize * mult;
                 })
                 .or_insert_with(|| FoundItem {
-                    group_key: &group.name,
+                    group_key: group_name,
                     position: Position { x, y, z },
                     count: item.count() as usize * mult,
                 });

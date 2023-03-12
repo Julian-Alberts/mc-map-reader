@@ -1,15 +1,16 @@
+use std::collections::HashMap;
+
 use serde::Deserialize;
 
 type Nbt = serde_json::value::Map<String, serde_json::Value>;
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct SearchDupeStashesConfig {
-    pub groups: Vec<Group>,
+    pub groups: HashMap<String, Group>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Group {
-    pub name: String,
     pub items: Vec<Item>,
     pub threshold: usize,
 }
