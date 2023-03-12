@@ -55,7 +55,6 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
             all
         });
 
-    dbg!(&inventories);
     if inventories.is_empty() {
         return;
     }
