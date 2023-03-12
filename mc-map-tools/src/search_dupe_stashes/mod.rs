@@ -42,7 +42,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
             region
                 .chunks()
                 .iter()
-                .map(|c| search_inventories_in_chunk(c, &config))
+                .filter_map(|c| search_inventories_in_chunk(c, &config))
                 .fold(Vec::default(), |mut invnentories, mut new| {
                     invnentories.append(&mut new);
                     invnentories
@@ -131,15 +131,14 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
 fn search_inventories_in_chunk<'a, 'b>(
     chunk: &ChunkData,
     config: &'b SearchDupeStashesConfig,
-) -> Vec<FoundInventory<'a>>
+) -> Option<Vec<FoundInventory<'a>>>
 where
     'b: 'a,
 {
     let Some(block_entities) = chunk.block_entities() else {
-        return Vec::default()
-        // TODO make None
+        return None
     };
-    block_entities
+    let res = block_entities
         .iter()
         .filter_map(|block_entity| {
             let inventory: &dyn InventoryBlock = match block_entity.entity_type() {
@@ -154,7 +153,12 @@ where
             };
             search_inventory_block(inventory, block_entity, config)
         })
-        .collect::<Vec<_>>()
+        .collect::<Vec<_>>();
+    if res.is_empty() {
+        None
+    } else {
+        Some(res)
+    }
 }
 
 fn search_inventory_block<'a, 'b>(
