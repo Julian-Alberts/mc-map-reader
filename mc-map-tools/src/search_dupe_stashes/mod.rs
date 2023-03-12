@@ -3,6 +3,7 @@ pub mod config;
 mod data;
 
 use data::*;
+#[cfg(feature = "parallel")]
 use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashMap, fs::OpenOptions, path::Path, sync::Mutex};
 
@@ -32,8 +33,11 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
             .expect("Could not read region directory")
     };
     let config = config.search_dupe_stashes;
+    #[cfg(feature = "parallel")]
+    let region_groups = region_groups.into_par_iter();    
+    #[cfg(not(feature = "parallel"))]
+    let region_groups = region_groups.into_iter();
     let inventories = region_groups
-        .into_par_iter()
         .map(|region| OpenOptions::new().read(true).open(region).unwrap())
         .map(read_file)
         .map(Result::unwrap)
@@ -84,7 +88,11 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         inventory_trees.insert(name, Mutex::new(QuadTree::new(bounds.clone())));
     }
 
-    inventories.par_iter().for_each(|inv| {
+    #[cfg(feature = "parallel")]
+    let inventories = inventories.par_iter();
+    #[cfg(not(feature = "parallel"))]
+    let inventories = inventories.iter();
+    inventories.for_each(|inv| {
         inv.items.iter().for_each(|(group_key, item)| {
             let tree = inventory_trees.get(group_key).unwrap();
             let mut tree = tree.lock().unwrap();
@@ -95,8 +103,11 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         .into_iter()
         .map(|(k, v)| (k, v.into_inner().unwrap()))
         .collect::<HashMap<_, _>>();
+    #[cfg(feature = "parallel")]
+    let inventory_trees = inventory_trees.into_par_iter();
+    #[cfg(not(feature = "parallel"))]
+    let inventory_trees = inventory_trees.into_iter();
     let item_stashes = inventory_trees
-        .into_par_iter()
         .map(|(group_key, items)| {
             let group = config.groups.get(group_key).unwrap();
             let threshold = group.threshold;

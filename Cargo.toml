@@ -2,6 +2,6 @@
 members = ["mc-map-tools", "mc-map-reader"]
 
 [profile.release]
-strip = true
+#strip = true
 lto = true
 codegen-units = 1

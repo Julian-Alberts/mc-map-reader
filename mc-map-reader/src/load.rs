@@ -1,5 +1,6 @@
 use std::{fs::OpenOptions, io::Read};
 
+#[cfg(feature = "parallel")]
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use thiserror::Error;
 
@@ -29,9 +30,11 @@ impl LoadMcSave<AnvilSave> for Loader {
         let mut raw_chunk_data = Vec::default();
         read.read_to_end(&mut raw_chunk_data)?;
 
-        let chunks = header
-            .get_chunk_info()
-            .par_iter()
+        #[cfg(feature = "parallel")]
+        let chunk_info = header.get_chunk_info().par_iter();
+        #[cfg(not(feature = "parallel"))]
+        let chunk_info = header.get_chunk_info().iter();
+        let chunks = chunk_info
             .filter_map(|ci| ci.as_ref())
             .map(|chunk| nbt_data::load::chunk::load_chunk(&raw_chunk_data, chunk))
             .collect::<Result<_>>()?;
