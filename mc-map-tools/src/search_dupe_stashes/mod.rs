@@ -42,7 +42,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
             region
                 .chunks()
                 .iter()
-                .map(|c| search_dupe_stashes_in_chunk(c, &config))
+                .map(|c| search_inventories_in_chunk(c, &config))
                 .fold(Vec::default(), |mut invnentories, mut new| {
                     invnentories.append(&mut new);
                     invnentories
@@ -54,7 +54,8 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
             all.append(&mut new);
             all
         });
-
+    
+    dbg!(&inventories);
     if inventories.is_empty() {
         return;
     }
@@ -127,7 +128,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     println!("{item_stashes}")
 }
 
-fn search_dupe_stashes_in_chunk<'a, 'b>(
+fn search_inventories_in_chunk<'a, 'b>(
     chunk: &ChunkData,
     config: &'b SearchDupeStashesConfig,
 ) -> Vec<FoundInventory<'a>>
@@ -179,7 +180,7 @@ where
             item_map
         })
     } else {
-        HashMap::default()
+        return None
     };
     Some(FoundInventory {
         inventory_type: base_entity.id().clone(),
@@ -197,7 +198,7 @@ fn item_is_shulker_box(id: &str) -> bool {
 
 fn search_subinventory<'a, 'b>(
     item: &Item,
-    item_map: &mut HashMap<String, FoundItem<'a>>,
+    item_map: &mut HashMap<&'a String, FoundItem<'a>>,
     config: &'b SearchDupeStashesConfig,
     x: i32,
     y: i32,
@@ -223,7 +224,7 @@ fn search_subinventory<'a, 'b>(
 
 fn add_item_to_map<'a, 'b>(
     item: &mc_map_reader::nbt_data::block_entity::ItemWithSlot,
-    item_map: &mut HashMap<String, FoundItem<'a>>,
+    item_map: &mut HashMap<&'a String, FoundItem<'a>>,
     config: &'b SearchDupeStashesConfig,
     x: i32,
     y: i32,
@@ -232,22 +233,23 @@ fn add_item_to_map<'a, 'b>(
     'b: 'a,
 {
     let item = item.item();
-    dbg!(&item);
     config
         .groups
         .iter()
-        .filter(|group| group.items.iter().any(|i| i.matches(item)))
+        .filter(|group| group.matches(item))
         .for_each(|group| {
-            dbg!(&group.name);
+            let mult = group.items.iter().find(|i| i.matches(item)).map(|i| i.multiplier).unwrap_or(1);
             item_map
-                .entry(group.name.clone())
-                .and_modify(|item_entry: &mut FoundItem| item_entry.count += item.count() as i16)
-                .or_insert(FoundItem {
+                .entry(&group.name)
+                .and_modify(|item_entry: &mut FoundItem| {
+                    item_entry.count += item.count() as usize * mult;
+                })
+                .or_insert_with(|| FoundItem {
                     group_key: &group.name,
                     position: Position { x, y, z },
-                    count: item.count() as i16,
+                    count: item.count() as usize * mult,
                 });
-        })
+        });
 }
 
 fn count_items_in_area(radius: u32, x: i32, z: i32, inventories: &QuadTree<FoundItem>) -> usize {
@@ -259,5 +261,5 @@ fn count_items_in_area(radius: u32, x: i32, z: i32, inventories: &QuadTree<Found
         height: (radius * 2) as f32,
     };
 
-    inventories.query(&area).count()
+    inventories.query(&area).map(|i| i.count as usize).sum()
 }

@@ -57,6 +57,14 @@ impl<'de> Deserialize<'de> for Wildcard {
     }
 }
 
+impl Group {
+
+    pub fn matches(&self, item: &mc_map_reader::nbt_data::block_entity::Item) -> bool {
+        self.items.iter().any(|i| i.matches(item))
+    }
+
+}
+
 impl Item {
     pub fn matches(&self, item: &mc_map_reader::nbt_data::block_entity::Item) -> bool {
         self.matches_id(item) && self.matches_nbt(item)

@@ -8,13 +8,13 @@ pub struct FoundInventory<'a> {
     pub x: i32,
     pub y: i32,
     pub z: i32,
-    pub items: HashMap<String, FoundItem<'a>>,
+    pub items: HashMap<&'a String, FoundItem<'a>>,
 }
 
 #[derive(Debug)]
 pub struct FoundItem<'a> {
     pub group_key: &'a String,
-    pub count: i16,
+    pub count: usize,
     pub position: Position,
 }
 
