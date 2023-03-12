@@ -11,7 +11,7 @@ pub struct SearchDupeStashesConfig {
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Group {
-    pub item: Item,
+    pub items: Vec<Item>,
     pub threshold: Option<usize>,
 }
 

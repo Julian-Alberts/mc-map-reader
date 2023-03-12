@@ -179,7 +179,7 @@ fn add_item_to_map<'a, 'b>(item: &mc_map_reader::nbt_data::block_entity::ItemWit
     where 'b: 'a
 {
     let item = item.item();
-    let Some((group_key, _)) = config.groups.iter().find(|(_, item_config)| item_config.item.matches(item)) else {
+    let Some((group_key, _)) = config.groups.iter().find(|(_, item_config)| item_config.items.iter().any(|i| i.matches(item))) else {
         return
     };
     item_map
