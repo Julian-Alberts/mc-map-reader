@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use crate::search_dupe_stashes::config::SearchDupeStashesConfig;
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, PartialEq, Deserialize, Default)]
 pub struct Config {
     pub search_dupe_stashes: SearchDupeStashesConfig,
 }
@@ -19,18 +19,10 @@ impl TryFrom<PathBuf> for Config {
     }
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            search_dupe_stashes: SearchDupeStashesConfig::default(),
-        }
-    }
-}
-
 #[derive(Debug, Error)]
 pub enum ConfigLoadError {
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
-    JSON(#[from] serde_json::Error),
+    Json(#[from] serde_json::Error),
 }

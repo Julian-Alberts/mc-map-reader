@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use serde::Deserialize;
 
 type Nbt = serde_json::value::Map<String, serde_json::Value>;
@@ -58,11 +56,9 @@ impl<'de> Deserialize<'de> for Wildcard {
 }
 
 impl Group {
-
     pub fn matches(&self, item: &mc_map_reader::nbt_data::block_entity::Item) -> bool {
         self.items.iter().any(|i| i.matches(item))
     }
-
 }
 
 impl Item {
@@ -84,7 +80,7 @@ impl Item {
         let item_nbt = if let Some(item_nbt) = item.tag() {
             item_nbt
         } else {
-            return required_nbt.len() == 0;
+            return required_nbt.is_empty();
         };
         filter_nbt_eq_to_item_nbt(required_nbt, item_nbt)
     }
@@ -122,8 +118,7 @@ fn filter_nbt_eq_to_item_nbt(
             }
             (JsonValue::Number(required_value), Some(NbtValue::Double(item_value))) => {
                 required_value.is_f64()
-                    && required_value.as_f64().expect("Error converting number") as f64
-                        == *item_value
+                    && required_value.as_f64().expect("Error converting number") == *item_value
             }
             (JsonValue::Number(required_value), Some(NbtValue::Float(item_value))) => {
                 required_value.is_f64()
@@ -137,8 +132,7 @@ fn filter_nbt_eq_to_item_nbt(
             }
             (JsonValue::Number(required_value), Some(NbtValue::Long(item_value))) => {
                 required_value.is_i64()
-                    && required_value.as_i64().expect("Error converting number") as i64
-                        == *item_value
+                    && required_value.as_i64().expect("Error converting number") == *item_value
             }
             (JsonValue::Number(required_value), Some(NbtValue::Short(item_value))) => {
                 required_value.is_i64()

@@ -54,7 +54,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
             all.append(&mut new);
             all
         });
-    
+
     dbg!(&inventories);
     if inventories.is_empty() {
         return;
@@ -184,7 +184,7 @@ where
             item_map
         })
     } else {
-        return None
+        return None;
     };
     Some(FoundInventory {
         inventory_type: base_entity.id().clone(),
@@ -242,7 +242,12 @@ fn add_item_to_map<'a, 'b>(
         .iter()
         .filter(|group| group.matches(item))
         .for_each(|group| {
-            let mult = group.items.iter().find(|i| i.matches(item)).map(|i| i.multiplier).unwrap_or(1);
+            let mult = group
+                .items
+                .iter()
+                .find(|i| i.matches(item))
+                .map(|i| i.multiplier)
+                .unwrap_or(1);
             item_map
                 .entry(&group.name)
                 .and_modify(|item_entry: &mut FoundItem| {
@@ -265,5 +270,5 @@ fn count_items_in_area(radius: u32, x: i32, z: i32, inventories: &QuadTree<Found
         height: (radius * 2) as f32,
     };
 
-    inventories.query(&area).map(|i| i.count as usize).sum()
+    inventories.query(&area).map(|i| i.count).sum()
 }

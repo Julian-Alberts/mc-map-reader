@@ -22,7 +22,7 @@ pub fn main(world_dir: &Path, args: &SearchEntity) {
     let search_fn = if args.block_entity {
         &search_block_entity
     } else {
-        &search_block_entity
+        todo!()
     };
 
     regions.into_iter().for_each(|r| {
