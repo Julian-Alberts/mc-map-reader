@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use mc_map_reader::{nbt_data::chunk::ChunkData, LoadMcSave};
+use mc_map_reader::{data::chunk::ChunkData, LoadMcSave};
 use wildmatch::WildMatch;
 
 use self::config::SearchEntity;

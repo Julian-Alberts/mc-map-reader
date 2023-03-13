@@ -4,6 +4,7 @@ mod find_inventories;
 mod paths;
 mod quadtree;
 mod search_dupe_stashes;
+mod read_level_dat;
 
 use std::{fs::File, io::Read, path::PathBuf};
 
@@ -32,7 +33,8 @@ fn main() {
         }
         Action::FindInventories(sub_args) => {
             find_inventories::main(args.save_directory.as_path(), &sub_args)
-        }
+        },
+        Action::ReadLevelDat => read_level_dat::main(args.save_directory.as_path())
     }
 }
 

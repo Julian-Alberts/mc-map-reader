@@ -4,7 +4,7 @@ use thiserror::Error;
 
 use crate::{
     nbt::Tag,
-    nbt_data::{block_entity::*, chunk::MissingData},
+    data::{block_entity::*, chunk::MissingData},
 };
 
 impl TryFrom<Tag> for BlockEntity {

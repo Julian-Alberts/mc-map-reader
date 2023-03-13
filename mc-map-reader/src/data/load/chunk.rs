@@ -1,7 +1,7 @@
 use crate::{
-    file_format::mc_region::header::ChunkInfo,
+    data::file_format::anvil::ChunkInfo,
     nbt::{self, Tag},
-    nbt_data::chunk::*, compression::decompress,
+    data::chunk::*, compression::decompress,
 };
 
 /// 1KiB

@@ -228,9 +228,9 @@ pub enum Error {
     #[error("Invalid Value")]
     InvalidValue,
     #[error(transparent)]
-    MissingData(#[from] crate::nbt_data::chunk::MissingData),
+    MissingData(#[from] crate::data::chunk::MissingData),
     #[error(transparent)]
-    ChunkStatus(#[from] crate::nbt_data::chunk::ChunkStatusError),
+    ChunkStatus(#[from] crate::data::chunk::ChunkStatusError),
 }
 
 impl<T> Deref for Array<T> {
@@ -250,7 +250,7 @@ impl<T> Deref for List<T> {
 pub fn parse(data: &[u8]) -> Result<Tag, Error> {
     match data[0] {
         10 => Tag::new(10, data, &mut 3),
-        _ => panic!(),
+        out => panic!("{out}"),
     }
 }
 

@@ -14,7 +14,7 @@ macro_rules! try_from_tag {
                 ]);
                 let b = builder
                     .try_build()
-                    .map_err($crate::nbt_data::load::block_entity::BlockEntityMissingDataError::from)
+                    .map_err($crate::data::load::block_entity::BlockEntityMissingDataError::from)
                     .map_err(MissingData::from)?;
                 Ok(b)
             }

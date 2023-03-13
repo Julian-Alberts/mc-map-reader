@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::nbt_data::{chunk::MissingData, entity::*};
+use crate::data::{chunk::MissingData, entity::*};
 
 impl TryFrom<crate::nbt::Tag> for Entity {
     type Error = crate::nbt::Error;

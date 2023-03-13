@@ -1,3 +1,20 @@
+use getset::Getters;
+
+use crate::data::chunk::ChunkData;
+
+#[derive(Debug, Getters)]
+#[get = "pub"]
+pub struct AnvilSave {
+    header: McRegionHeader,
+    chunks: Vec<ChunkData>,
+}
+
+impl AnvilSave {
+    pub fn new(header: McRegionHeader, chunks: Vec<ChunkData>) -> Self {
+        Self { header, chunks }
+    }
+}
+
 const CHUNKS_PER_FILE: usize = 1024;
 const CHUNK_OFFSET_LENGTH: usize = 4;
 const CHUNK_OFFSETS_START: usize = 0;
@@ -69,3 +86,4 @@ impl ChunkInfo {
         self.timestamp
     }
 }
+

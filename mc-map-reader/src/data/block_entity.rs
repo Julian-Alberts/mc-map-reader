@@ -5,7 +5,7 @@ use jbe::Builder;
 
 use crate::{
     nbt::{Array, List, Tag},
-    nbt_data::{chunk::BlockState, entity::Entity},
+    data::{chunk::BlockState, entity::Entity},
 };
 
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
