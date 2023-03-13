@@ -53,7 +53,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Error, Debug)]
 pub enum Error {
     #[error(transparent)]
-    ZlibDecode(#[from] std::io::Error),
+    Decode(#[from] crate::compression::Error),
     #[error(transparent)]
     NBT(#[from] crate::nbt::Error),
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
 }

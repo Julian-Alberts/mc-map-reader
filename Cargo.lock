@@ -294,6 +294,7 @@ dependencies = [
  "jbe",
  "rayon",
  "thiserror",
+ "yazi",
 ]
 
 [[package]]
@@ -777,3 +778,9 @@ name = "windows_x86_64_msvc"
 version = "0.42.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "447660ad36a13288b1db4d4248e857b510e8c3a225c822ba4fb748c0aafecffd"
+
+[[package]]
+name = "yazi"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c03b3e19c937b5b9bd8e52b1c88f30cce5c0d33d676cf174866175bb794ff658"

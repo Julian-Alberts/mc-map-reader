@@ -1,9 +1,7 @@
-use std::io::Read;
-
 use crate::{
     file_format::mc_region::header::ChunkInfo,
     nbt::{self, Tag},
-    nbt_data::chunk::*,
+    nbt_data::chunk::*, compression::decompress,
 };
 
 /// 1KiB
@@ -99,36 +97,5 @@ impl TryFrom<Tag> for BlockState {
             "Properties": set_properties
         ]);
         Ok(block_state_builder.try_build().map_err(MissingData::from)?)
-    }
-}
-
-fn decompress(data: &[u8], compression: &Compression) -> crate::load::Result<Vec<u8>> {
-    let mut decompressed = Vec::new();
-    match compression {
-        Compression::GZip => unimplemented!(),
-        Compression::Zlib => {
-            compress::zlib::Decoder::new(data).read_to_end(&mut decompressed)?;
-        }
-        Compression::Uncompressed => unimplemented!(),
-        Compression::Other => unimplemented!(),
-    }
-    Ok(decompressed)
-}
-
-pub enum Compression {
-    GZip = 1,
-    Zlib = 2,
-    Uncompressed = 3,
-    Other,
-}
-
-impl From<u8> for Compression {
-    fn from(value: u8) -> Self {
-        match value {
-            1 => Self::GZip,
-            2 => Self::Zlib,
-            3 => Self::Uncompressed,
-            _ => Self::Other,
-        }
     }
 }
