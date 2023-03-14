@@ -1,9 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hash};
 
 use getset::{CopyGetters, Getters};
 use jbe::Builder;
 
 use crate::nbt::{Array, List, Tag};
+
+use super::block_entity::Item;
 
 ///<a href="https://minecraft.fandom.com/wiki/Entity_format#Entity_Format">minecraft wiki</a>
 ///
@@ -45,6 +47,54 @@ pub struct Entity {
     tags: Option<HashMap<String, Tag>>,
     ticks_frozen: Option<i32>,
     uuid: Option<Array<i32>>,
+}
+
+#[derive(Debug, Builder)]
+pub struct Mob {
+    absorption_amount: Option<f32>,
+    active_effects: Option<List<ActiveEffect>>,
+    armor_drop_chances: Option<List<f32>>,
+    armor_items: Option<List<Item>>,
+    entity: Entity,
+    attributes: Option<List<HashMap<String, Tag>>>,
+    brain: Option<HashMap<String, Tag>>,
+    can_pick_up_loot: Option<bool>,
+    death_loot_table: Option<String>,
+    death_loot_table_seed: Option<i64>,
+    death_time: Option<i16>,
+    fall_flying: Option<bool>,
+    health: Option<f32>,
+    hurt_by_timestamp: Option<i32>,
+    hurt_time: Option<i16>,
+    hand_drop_chances: Option<List<f32>>,
+    hand_items: Option<List<Item>>,
+    leash: Option<Leash>,
+    left_handed: Option<bool>,
+    no_ai: Option<bool>,
+    persistence_required: Option<bool>,
+    sleeping_x: Option<i32>,
+    sleeping_y: Option<i32>,
+    sleeping_z: Option<i32>,
+    team: Option<String>,
+}
+
+#[derive(Debug)]
+pub enum Leash {
+    Entity(Array<i32>),
+    Position {
+        x: i32,
+        y: i32,
+        z: i32,
+    },
+}
+#[derive(Debug, Builder)]
+pub struct ActiveEffect {
+    ambient: bool,
+    amplifier: i8,
+    duration: i32,
+    id: i32,
+    show_icon: bool,
+    show_particles: bool,
 }
 
 impl Entity {

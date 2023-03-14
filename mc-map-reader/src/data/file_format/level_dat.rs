@@ -5,6 +5,7 @@ use jbe::Builder;
 use crate::nbt::{List, Tag, Array};
 
 use super::player_dat::Player;
+use crate::data::dimension::Dimension;
 
 
 /// https://minecraft.fandom.com/wiki/Java_Edition_level_format#level.dat_format
@@ -28,26 +29,12 @@ pub struct LevelDat {
     difficulty: i8,
     difficulty_locked: bool,
     dimension_data: HashMap<String, HashMap<String, Tag>>,
-}
-
-/// https://minecraft.fandom.com/wiki/Java_Edition_level_format#level.dat_format
-#[derive(Debug, Builder)]
-pub struct CustomBossEvent {
-    players: List<String>,
-    color: String,
-    create_world_fog: bool,
-    darken_screen: bool,
-    max: i32,
-    value: i32,
-    name: String,
-    overlay: String,
-    play_boss_music: bool,
-    visible: bool,
     game_rules: HashMap<String, String>,
     world_gen_settings: WorldGenSettings,
     game_type: i32,
     generator_name: String,
     generator_options: HashMap<String, Tag>,
+    generator_version: i32,
     hardcore: bool,
     initialized: bool,
     last_played: i64,
@@ -74,6 +61,21 @@ pub struct CustomBossEvent {
 
 /// https://minecraft.fandom.com/wiki/Java_Edition_level_format#level.dat_format
 #[derive(Debug, Builder)]
+pub struct CustomBossEvent {
+    players: List<Array<i32>>,
+    color: String,
+    create_world_fog: bool,
+    darken_screen: bool,
+    max: i32,
+    value: i32,
+    name: String,
+    overlay: String,
+    play_boss_music: bool,
+    visible: bool,
+}
+
+/// https://minecraft.fandom.com/wiki/Java_Edition_level_format#level.dat_format
+#[derive(Debug, Builder)]
 pub struct DataPacks {
     disabled: List<String>,
     enabled: List<String>,
@@ -88,30 +90,10 @@ pub struct WorldGenSettings {
     dimensions: HashMap<String, Dimension>,
 }
 
-// https://minecraft.fandom.com/wiki/Custom_dimension
-#[derive(Debug, Builder)]
-pub struct Dimension {
-    ultrawarm: bool,
-    natural: bool,
-    coordinate_scale: f64,
-    has_skylight: bool,
-    has_ceiling: bool,
-    ambient_light: f32,
-    fixed_time: i64,
-    // TODO monster_spawn_light_level
-    monster_spawn_block_light_limit: i32,
-    piglin_safe: bool,
-    bed_works: bool,
-    respawn_anchor_works: bool,
-    has_raids: bool,
-    logical_height: i32,
-    min_y: i32,
-    height: i32,
-    infiniburn: String,
-    effects: Option<String>,
-}
-
 #[derive(Debug, Builder)]
 pub struct Version {
-    // TODO
+    id: i32,
+    name: String,
+    series: String,
+    snapshot: bool,
 }

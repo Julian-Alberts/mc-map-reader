@@ -77,78 +77,62 @@ impl TryFrom<Tag> for BlockEntity {
     }
 }
 
-try_from_tag!(Beehive, BeehiveBuilder => [
+try_from_tag_for_module![{Beehive => [
     "Bees": set_bees,
     "FlowerPos": set_flower_pos
-]);
-try_from_tag!(BeeInHive, BeeInHiveBuilder => [
+]
+},{BeeInHive => [
     "EntityData": set_entity_data,
     "MinOccupationTicks": set_min_occupation_ticks,
     "TicksInHive": set_ticks_in_hive
-]);
-try_from_tag!(FlowerPos, FlowerPosBuilder => [
+]
+},{FlowerPos => [
     "X": set_x,
     "Y": set_y,
     "Z": set_z
-]);
-try_from_tag!(Beacon, BeaconBuilder => [
+]
+},{Beacon => [
     "CustomName": set_custom_name,
     "Lock": set_lock,
     "Primary": set_primary,
     "Secondary": set_secondary
-]);
-try_from_tag!(Barrel, BarrelBuilder => parse_inventory_block_entity);
-impl TryFrom<Tag> for ItemWithSlot {
-    type Error = crate::nbt::Error;
-    fn try_from(item: Tag) -> Result<Self, Self::Error> {
-        let mut item = item.get_as_map()?;
-        let mut iwsb = ItemWithSlotBuilder::default();
-
-        add_data_to_builder!(iwsb, item => [
-            "Slot": set_slot
-        ]);
-        iwsb.set_item(item.try_into()?);
-        iwsb.try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)
-            .map_err(crate::nbt::Error::from)
-    }
-}
-try_from_tag!(Item, ItemBuilder => [
+]
+},{Barrel => parse_inventory_block_entity
+},{Item => [
     "Count": set_count,
     "id": set_id,
     "tag": set_tag
-]);
-try_from_tag!(Banner, BannerBuilder => [
+]
+},{Banner => [
     "CustomName": set_custom_name,
     "Patterns": set_patterns
-]);
-try_from_tag!(BannerPattern, BannerPatternBuilder => [
+]
+},{BannerPattern => [
     "Color": set_color,
     "Pattern": set_pattern
-]);
-try_from_tag!(BlastFurnace, BlastFurnaceBuilder => parse_cooking_block_entity);
-try_from_tag!(BrewingStand, BrewingStandBuilder => [
+]
+},{BlastFurnace => parse_cooking_block_entity
+},{BrewingStand => [
     "BrewTime": set_brew_time,
     "CustomName": set_custom_name,
     "Fuel": set_fuel,
     "Items": set_items,
     "Lock": set_lock
-]);
-try_from_tag!(Campfire, CampfireBuilder => [
+]
+},{Campfire => [
     "CookingTimes": set_cooking_times,
     "CookingTotalTimes": set_cooking_total_times,
     "Items": set_items
-]);
-try_from_tag!(ChiseledBookshelf, ChiseledBookshelfBuilder => [
+]
+},{ChiseledBookshelf => [
     "Items": set_items,
     "last_interacted_slot": set_last_interacted_slot
-]);
-try_from_tag!(Chest, ChestBuilder => parse_inventory_block_entity);
-try_from_tag!(Comparator, ComparatorBuilder => [
+]
+},{Chest => parse_inventory_block_entity
+},{Comparator => [
     "OutputSignal": set_output_signal
-]);
-try_from_tag!(CommandBlock, CommandBlockBuilder => [
+]
+},{CommandBlock => [
     "auto": set_auto,
     "Command": set_command,
     "conditionMet": set_condition_met,
@@ -158,57 +142,45 @@ try_from_tag!(CommandBlock, CommandBlockBuilder => [
     "powered": set_powered,
     "SuccessCount": set_success_count,
     "UpdateLastExecution": set_update_last_execution
-]);
-try_from_tag!(Conduit, ConduitBuilder => [
+]
+},{Conduit => [
     "Target": set_target
-]);
-try_from_tag!(Dispenser, DispenserBuilder => parse_inventory_block_entity);
-try_from_tag!(Dropper, DropperBuilder => parse_inventory_block_entity);
-try_from_tag!(EnchantingTable, EnchantingTableBuilder => [
+]
+},{Dispenser => parse_inventory_block_entity
+},{Dropper => parse_inventory_block_entity
+},{EnchantingTable => [
     "CustomName": set_custom_name
-]);
-try_from_tag!(EndGateway, EndGatewayBuilder => [
+]
+},{EndGateway => [
     "Age": set_age,
     "ExactTeleport": set_exact_teleport,
     "ExitPortal": set_exit_portal
-]);
-try_from_tag!(ExitPortal, ExitPortalBuilder => [
+]
+},{ExitPortal => [
     "X": set_x,
     "Y": set_y,
     "Z": set_z
-]);
-try_from_tag!(Furnace, FurnaceBuilder => parse_cooking_block_entity);
-try_from_tag!(Hopper, HopperBuilder => parse_inventory_block_entity);
-try_from_tag!(Jigsaw, JigsawBuilder => [
+]
+},{Furnace => parse_cooking_block_entity
+},{Hopper => parse_inventory_block_entity
+},{Jigsaw => [
     "final_state": set_final_state,
     "joint": set_joint,
     "name": set_name,
     "pool": set_pool,
     "target": set_target
-]);
-try_from_tag!(Jukebox, JukeboxBuilder => [
+]
+},{Jukebox => [
     "IsPlaying": set_is_playing,
     "RecordItem": set_record_item,
     "RecordStartTick": set_record_start_tick,
     "TickCount": set_tick_count
-]);
-try_from_tag!(Lectern, LecternBuilder => [
+]
+},{Lectern => [
     "Book": set_book,
     "Page": set_page
-]);
-impl TryFrom<HashMap<String, Tag>> for MobSpawner {
-    type Error = crate::nbt::Error;
-    fn try_from(nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut mob_spawner_builder = MobSpawnerBuilder::default();
-        mob_spawner_builder.set_spawner(nbt_data.try_into()?);
-        let c = mob_spawner_builder
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(c)
-    }
-}
-try_from_tag!(Spawner, SpawnerBuilder => [
+]
+},{Spawner => [
     "Delay": set_delay,
     "MaxNearbyEntities": set_max_nearby_entities,
     "MaxSpawnDelay": set_max_spawn_delay,
@@ -218,51 +190,51 @@ try_from_tag!(Spawner, SpawnerBuilder => [
     "SpawnData": set_spawn_data,
     "SpawnPotentials": set_spawn_potentials,
     "SpawnRange": set_spawn_range
-]);
-try_from_tag!(PotentialSpawn, PotentialSpawnBuilder => [
+]
+},{PotentialSpawn => [
     "weight": set_weight,
     "data": set_data
-]);
-try_from_tag!(Piston, PistonBuilder => [
+]
+},{Piston => [
     "blockState": set_block_state,
     "extending": set_extending,
     "facing": set_facing,
     "progress": set_progress,
     "source": set_source
-]);
-try_from_tag!(ShulkerBox, ShulkerBoxBuilder => parse_inventory_block_entity);
-try_from_tag!(Sign, SignBuilder => [
+]
+},{ShulkerBox => parse_inventory_block_entity
+},{Sign => [
     "GlowingText": set_glowing_text,
     "Color": set_color,
     "Text1": set_text1,
     "Text2": set_text2,
     "Text3": set_text3,
     "Text4": set_text4
-]);
-try_from_tag!(Skull, SkullBuilder => [
+]
+},{Skull => [
     "note_block_sound": set_note_block_sound,
     "ExtraType": set_extra_type,
     "SkullOwner": set_skull_owner
-]);
-try_from_tag!(SkullOwner, SkullOwnerBuilder => [
+]
+},{SkullOwner => [
     "Id": set_id,
     "Name": set_name,
     "Properties": set_properties
-]);
-try_from_tag!(SkullOwnerProperties, SkullOwnerPropertiesBuilder => [
+]
+},{SkullOwnerProperties => [
     "textures": set_textures
-]);
-try_from_tag!(SkullOwnerTextures, SkullOwnerTexturesBuilder => [
+]
+},{SkullOwnerTextures => [
     "Value": set_value,
     "Signature": set_signature
-]);
-try_from_tag!(Smoker, SmokerBuilder => parse_cooking_block_entity);
-try_from_tag!(SoulCampfire, SoulCampfireBuilder => [
+]
+},{Smoker => parse_cooking_block_entity
+},{SoulCampfire => [
     "CookingTimes": set_cooking_times,
     "CookingTotalTimes": set_cooking_total_times,
     "Items": set_items
-]);
-try_from_tag!(StructureBlock, StructureBlockBuilder => [
+]
+},{StructureBlock => [
     "author": set_author,
     "ignoreEntities": set_ignore_entities,
     "integrity": set_integrity,
@@ -280,8 +252,38 @@ try_from_tag!(StructureBlock, StructureBlockBuilder => [
     "sizeX": set_size_x,
     "sizeY": set_size_y,
     "sizeZ": set_size_z
-]);
-try_from_tag!(TrappedChest, TrappedChestBuilder => parse_inventory_block_entity);
+]
+},{TrappedChest => parse_inventory_block_entity}
+];
+
+impl TryFrom<HashMap<String, Tag>> for MobSpawner {
+    type Error = crate::nbt::Error;
+    fn try_from(nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
+        let mut mob_spawner_builder = MobSpawnerBuilder::default();
+        mob_spawner_builder.set_spawner(nbt_data.try_into()?);
+        let c = mob_spawner_builder
+            .try_build()
+            .map_err(BlockEntityMissingDataError::from)
+            .map_err(MissingData::from)?;
+        Ok(c)
+    }
+}
+impl TryFrom<Tag> for ItemWithSlot {
+    type Error = crate::nbt::Error;
+    fn try_from(item: Tag) -> Result<Self, Self::Error> {
+        let mut item = item.get_as_map()?;
+        let mut iwsb = ItemWithSlotBuilder::default();
+
+        add_data_to_builder!(iwsb, item => [
+            "Slot": set_slot
+        ]);
+        iwsb.set_item(item.try_into()?);
+        iwsb.try_build()
+            .map_err(BlockEntityMissingDataError::from)
+            .map_err(MissingData::from)
+            .map_err(crate::nbt::Error::from)
+    }
+}
 
 fn parse_cooking_block_entity(
     builder: &mut impl CookingBlockEntityBuilder,

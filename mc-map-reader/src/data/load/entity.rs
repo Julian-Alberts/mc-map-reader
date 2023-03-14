@@ -1,49 +1,64 @@
+use std::collections::HashMap;
+
 use thiserror::Error;
 
-use crate::data::{chunk::MissingData, entity::*};
+use crate::{data::{chunk::MissingData, entity::*}, nbt::Tag};
 
-impl TryFrom<crate::nbt::Tag> for Entity {
-    type Error = crate::nbt::Error;
-    fn try_from(nbt_entity: crate::nbt::Tag) -> Result<Self, Self::Error> {
-        parse_entity_from_tag(nbt_entity)
-    }
-}
+try_from_tag_for_module![{
+Entity => [
+    "Air": set_air,
+    "CustomName": set_custom_name,
+    "CustomNameVisible": set_custom_name_visible,
+    "FallDistance": set_fall_distance,
+    "Fire": set_fire,
+    "Glowing": set_glowing,
+    "HasVisualFire": set_has_visual_fire,
+    "id": set_id,
+    "Invulnerable": set_invulnerable,
+    "Motion": set_motion,
+    "NoGravity": set_no_gravity,
+    "OnGround": set_on_ground,
+    "Passengers": set_passengers,
+    "PortalCooldown": set_portal_colldown,
+    "Pos": set_pos,
+    "Rotation": set_rotation,
+    "Silent": set_silent,
+    "Tags": set_tags,
+    "TicksFrozen": set_ticks_frozen,
+    "UUID": set_uuid
+]}, {Mob => parse_mob}];
 
-fn parse_entity_from_tag(nbt_entity: crate::nbt::Tag) -> Result<Entity, crate::nbt::Error> {
-    let mut nbt_entity = nbt_entity.get_as_map()?;
-    let mut entity_builder = EntityBuilder::default();
-
-    add_data_to_builder!(entity_builder, nbt_entity => [
-        "Air": set_air,
-        "CustomName": set_custom_name,
-        "CustomNameVisible": set_custom_name_visible,
-        "FallDistance": set_fall_distance,
-        "Fire": set_fire,
-        "Glowing": set_glowing,
-        "HasVisualFire": set_has_visual_fire,
-        "id": set_id,
-        "Invulnerable": set_invulnerable,
-        "Motion": set_motion,
-        "NoGravity": set_no_gravity,
-        "OnGround": set_on_ground,
-        "Passengers": set_passengers,
-        "PortalCooldown": set_portal_colldown,
-        "Pos": set_pos,
-        "Rotation": set_rotation,
-        "Silent": set_silent,
-        "Tags": set_tags,
-        "TicksFrozen": set_ticks_frozen,
-        "UUID": set_uuid
+fn parse_mob(
+    builder: &mut MobBuilder,
+    mut nbt_data: HashMap<String, Tag>,
+) -> Result<(), Error> {
+    add_data_to_builder!(builder, nbt_data => [
+        "AbsorptionAmount": set_absorption_amount,
+        "ActiveEffects": set_active_effects,
+        "ArmorDropChances": set_armor_drop_chances,
+        "ArmorItems": set_armor_items,
+        "Attributes": set_attributes,
+        "Brain": set_brain,
+        "CanPickUpLoot": set_can_pick_up_loot,
+        "DeathLootTable": set_death_loot_table,
+        "DeathLootTableSeed": set_death_loot_table_seed,
+        "DeathTime": set_death_time,
+        "FallFlying": set_fall_flying,
+        "Health": set_health,
+        "HurtByTimestamp": set_hurt_by_timestamp,
+        "HurtTime": set_hurt_time,
+        "HandDropChances": set_hand_drop_chances,
+        "HandItems": set_hand_items,
+        "Leash": set_leash,
+        "LeftHanded": set_left_handed,
+        "NoAI": set_no_ai,
+        "PersistenceRequired": set_persistence_required,
+        "SleepingX": set_sleeping_x,
+        "SleepingY": set_sleeping_y,
+        "SleepingZ": set_sleeping_z,
+        "Team": set_team
     ]);
-    let entity = entity_builder
-        .try_build()
-        .map_err(EntityMissingDataError::from)
-        .map_err(MissingData::from)?;
-    Ok(entity)
+    builder.set_entity(nbt_data.try_into()?);
+    Ok(())
 }
 
-#[derive(Debug, Error, PartialEq, Eq)]
-pub enum EntityMissingDataError {
-    #[error(transparent)]
-    BlockEntity(#[from] EntityBuilderError),
-}

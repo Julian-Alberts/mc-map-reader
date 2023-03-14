@@ -8,7 +8,6 @@ use crate::nbt::{Array, List, Tag};
 
 #[cfg(feature = "block_entity")]
 use super::block_entity::BlockEntity;
-use super::load::entity::EntityMissingDataError;
 
 #[derive(jbe::Builder, Debug, Getters, CopyGetters)]
 pub struct ChunkData {
@@ -164,7 +163,7 @@ pub enum MissingData {
     #[error(transparent)]
     BlockEntityData(#[from] super::load::block_entity::BlockEntityMissingDataError),
     #[error(transparent)]
-    EntityData(#[from] EntityMissingDataError),
+    EntityData(#[from] super::load::entity::Error),
 }
 
 impl TryFrom<Tag> for ChunkStatus {

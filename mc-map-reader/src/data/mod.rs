@@ -5,3 +5,4 @@ pub mod entity;
 pub mod item;
 pub mod file_format;
 pub mod load;
+pub mod dimension;
