@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub fn main(save_directory: &Path) {
     let level = save_directory.join("level.dat");

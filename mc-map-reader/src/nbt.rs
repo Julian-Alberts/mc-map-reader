@@ -88,8 +88,9 @@ where
     }
 }
 
-impl <T> NbtData for HashMap<String, T> 
-    where T: NbtData
+impl<T> NbtData for HashMap<String, T>
+where
+    T: NbtData,
 {
     type BuildError = T::BuildError;
 }
@@ -104,7 +105,7 @@ where
             .get_as_map()?
             .into_iter()
             .map(|(k, v)| T::try_from(v).map(|v| (k, v)))
-            .collect::<Result<_,_>>()?;
+            .collect::<Result<_, _>>()?;
         Ok(values)
     }
 }

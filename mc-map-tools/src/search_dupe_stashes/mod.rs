@@ -259,7 +259,7 @@ fn add_item_to_map<'a, 'b>(
                 .map(|i| i.multiplier)
                 .unwrap_or(1);
             item_map
-                .entry(&group_name)
+                .entry(group_name)
                 .and_modify(|item_entry: &mut FoundItem| {
                     item_entry.count += item.count() as usize * mult;
                 })
