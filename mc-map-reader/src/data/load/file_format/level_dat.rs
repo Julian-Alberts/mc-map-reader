@@ -1,5 +1,9 @@
-try_from_tag_for_module![{
-    LevelDat => [
+use super::super::dimension::DimensionError;
+use super::player_dat::PlayerError;
+use crate::data::file_format::level_dat::*;
+
+try_from_tag!(
+    LevelDat, LevelDatBuilder => [
         "allowCommands": set_allow_commands,
         "BorderCenterX": set_border_center_x,
         "BorderCenterZ": set_border_center_z,
@@ -10,15 +14,15 @@ try_from_tag_for_module![{
         "BorderSizeLerpTime": set_border_size_lerp_time,
         "BorderWarningBlocks": set_border_warning_blocks,
         "clearWeatherTime": set_clear_weather_time,
-        "CustomBossEvents": set_custom_boss_events,
-        "DataPacks": set_data_packs,
+        "CustomBossEvents" as CustomBossEvent: set_custom_boss_events,
+        "DataPacks" as DataPacks: set_data_packs,
         "DataVersion": set_data_version,
         "DayTime": set_day_time,
         "Difficulty": set_difficulty,
         "DifficultyLocked": set_difficulty_locked,
         "DimensionData": set_dimension_data,
         "GameRules": set_game_rules,
-        "WorldGenSettings": set_world_gen_settings,
+        "WorldGenSettings" as WorldGenSettings: set_world_gen_settings,
         "GameType": set_game_type,
         "generatorName": set_generator_name,
         "generatorOptions": set_generator_options,
@@ -28,7 +32,7 @@ try_from_tag_for_module![{
         "LastPlayed": set_last_played,
         "LevelName": set_level_name,
         "MapFeatures": set_map_features,
-        "Player": set_player,
+        "Player" as Player: set_player,
         "raining": set_raining,
         "rainTime": set_rain_time,
         "RandomSeed": set_random_seed,
@@ -40,13 +44,16 @@ try_from_tag_for_module![{
         "thunderTime": set_thunder_time,
         "Time": set_time,
         "version": set_version,
-        "Version": set_version_info,
+        "Version" as Version: set_version_info,
         "WanderingTraderId": set_wandering_trader_id,
         "WanderingTraderSpawnChance": set_wandering_trader_spawn_chance,
         "WanderingTraderSpawnDelay": set_wandering_trader_spawn_delay,
         "WasModded": set_was_modded,
     ]
-},{ CustomBossEvent => [
+);
+
+try_from_tag!(
+CustomBossEvent, CustomBossEventBuilder => [
     "Players": set_players,
     "Color": set_color,
     "CreateWorldFog": set_create_world_fog,
@@ -57,21 +64,24 @@ try_from_tag_for_module![{
     "Overlay": set_overlay,
     "PlayBossMusic": set_play_boss_music,
     "Visible": set_visible,
-]},{
-DataPacks => [
+]);
+try_from_tag!(
+DataPacks, DataPacksBuilder => [
     "Disabled": set_disabled,
     "Enabled": set_enabled,
-]},{
-WorldGenSettings => [
+]);
+
+try_from_tag!(
+WorldGenSettings, WorldGenSettingsBuilder => [
     "bonus_chest": set_bonus_chest,
-    "dimensions": set_dimensions,
+    "dimensions" as Dimension: set_dimensions,
     "seed": set_seed,
     "generate_features": set_generate_features,
-]},{
-
-Version => [
+]);
+try_from_tag!(
+Version, VersionBuilder => [
     "Id": set_id,
     "Name": set_name,
     "Series": set_series,
     "Snapshot": set_snapshot,
-]}];
+]);

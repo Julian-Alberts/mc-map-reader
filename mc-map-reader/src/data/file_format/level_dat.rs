@@ -21,7 +21,7 @@ pub struct LevelDat {
     border_warning_blocks: f64,
     border_warning_time: i64,
     clear_weather_time: i64,
-    custom_boss_events: Vec<HashMap<String, CustomBossEvent>>,
+    custom_boss_events: List<HashMap<String, CustomBossEvent>>,
     data_packs: DataPacks,
     data_version: i32,
     day_time: i64,

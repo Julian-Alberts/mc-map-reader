@@ -602,10 +602,10 @@ pub struct Piston {
 }
 
 #[derive(Debug, Builder, Getters, Clone)]
-#[get="pub"]
+#[get = "pub"]
 pub struct PistonBlockState {
     name: String,
-    properties: HashMap<String, Tag>
+    properties: HashMap<String, Tag>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]

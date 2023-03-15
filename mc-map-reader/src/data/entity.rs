@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{collections::HashMap};
 
 use getset::{CopyGetters, Getters};
 use jbe::Builder;

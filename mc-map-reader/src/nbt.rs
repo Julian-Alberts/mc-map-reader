@@ -48,6 +48,9 @@ macro_rules! tags {
         }
 
         $($(
+        impl NbtData for $ty {
+            type BuildError = Error;
+        }
         impl TryFrom<Tag> for $ty {
             type Error = Error;
             fn try_from(value: Tag) -> Result<$ty, Self::Error> {
@@ -62,6 +65,50 @@ macro_rules! tags {
     };
 }
 
+pub trait NbtData: TryFrom<Tag, Error = Self::BuildError>
+where
+    Self::BuildError: From<Error>,
+{
+    type BuildError;
+}
+
+impl<T> TryFrom<Tag> for List<T>
+where
+    T: NbtData,
+{
+    type Error = T::BuildError;
+    fn try_from(value: Tag) -> Result<Self, Self::Error> {
+        let values = value
+            .get_as_list()?
+            .0
+            .into_iter()
+            .map(T::try_from)
+            .collect::<Result<_, _>>()?;
+        Ok(List(values))
+    }
+}
+
+impl <T> NbtData for HashMap<String, T> 
+    where T: NbtData
+{
+    type BuildError = T::BuildError;
+}
+
+impl<T> TryFrom<Tag> for HashMap<String, T>
+where
+    T: NbtData,
+{
+    type Error = T::BuildError;
+    fn try_from(value: Tag) -> Result<Self, Self::Error> {
+        let values = value
+            .get_as_map()?
+            .into_iter()
+            .map(|(k, v)| T::try_from(v).map(|v| (k, v)))
+            .collect::<Result<_,_>>()?;
+        Ok(values)
+    }
+}
+
 impl TryFrom<Tag> for bool {
     type Error = Error;
     fn try_from(value: Tag) -> Result<bool, Self::Error> {
@@ -73,7 +120,7 @@ impl TryFrom<Tag> for bool {
     }
 }
 
-impl <T> From<Vec<T>> for List<T> {
+impl<T> From<Vec<T>> for List<T> {
     fn from(value: Vec<T>) -> Self {
         Self(value)
     }

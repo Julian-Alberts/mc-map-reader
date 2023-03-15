@@ -11,7 +11,7 @@ macro_rules! try_from_tag_for_module {
 }
 
 macro_rules! try_from_tag {
-    ($name:ident, $builder:ident => [$(
+    ($name:ty, $builder:ty => [$(
         $key:literal $(as $ty:ty)?: $setter:ident $(feature = $feature:literal)?,
     )*]) => {
         try_from_tag!(error $name => [$($($ty,)?)*]);
@@ -19,7 +19,8 @@ macro_rules! try_from_tag {
         impl TryFrom<std::collections::HashMap<String, $crate::nbt::Tag>> for $name {
             type Error = paste::paste!([< $name Error >]);
             fn try_from(mut nbt_data: std::collections::HashMap<String, $crate::nbt::Tag>) -> Result<Self, Self::Error> {
-                let mut builder = $builder::default();
+                type Builder = $builder;
+                let mut builder = Builder::default();
                 add_data_to_builder!(builder, nbt_data => [
                     $(
                         $key: $setter $(feature = $feature)?,
@@ -30,21 +31,22 @@ macro_rules! try_from_tag {
                 Ok(b)
             }
         }
-        impl TryFrom<Tag> for $name {
+        impl TryFrom<$crate::nbt::Tag> for $name {
             type Error = paste::paste! { [< $name Error >] };
-            fn try_from(nbt_data: Tag) -> Result<Self, Self::Error> {
+            fn try_from(nbt_data: $crate::nbt::Tag) -> Result<Self, Self::Error> {
                 let nbt_data = nbt_data.get_as_map()?;
                 Self::try_from(nbt_data)
             }
         }
     };
-    ($name:ident, $builder:ty => $build_fn:ident [$($type:ident,)*]) => {
+    ($name:ty, $builder:ty => $build_fn:ident [$($type:ident,)*]) => {
         paste::paste! {
         impl TryFrom<HashMap<String, Tag>> for $name {
             type Error = [< $name Error >];
             fn try_from(nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
                 let mut builder = $builder::default();
-                let r:Result<(), [< $name Error >]> = $build_fn(&mut builder, nbt_data);
+                let result:Result<_, [< $name Error >]> = $build_fn(&mut builder, nbt_data);
+                result?;
                 let b = builder
                     .try_build()
                     .map_err([< $name Error >]::from)?;
@@ -62,7 +64,7 @@ macro_rules! try_from_tag {
         try_from_tag!(error $name => [$($type,)*]);
         try_from_tag!(other_impls $name);
     };
-    (error $name:ident => [$($error:ty,)*]) => {
+    (error $name:ty => [$($error:ty,)*]) => {
         paste::paste! {
             #[derive(Debug, thiserror::Error)]
             pub enum [< $name Error >] {
@@ -77,11 +79,16 @@ macro_rules! try_from_tag {
             }
         }
     };
-    (other_impls $name: ident) => {
+    (other_impls $name: ty) => {
         paste::paste!{
-        impl TryFrom<Tag> for $crate::nbt::List<$name> {
+        impl $crate::nbt::NbtData for $name {
+            type BuildError = [< $name Error >];
+        }
+        }
+        /*paste::paste!{
+        impl TryFrom<$crate::nbt::Tag> for $crate::nbt::List<$name> {
             type Error = [< $name Error >];
-            fn try_from(tag: Tag) -> Result<Self, Self::Error> {
+            fn try_from(tag: $crate::nbt::Tag) -> Result<Self, Self::Error> {
                 let i = tag
                     .get_as_list()?
                     .take()
@@ -91,7 +98,14 @@ macro_rules! try_from_tag {
                 Ok(i.into())
             }
         }
+
+        impl TryFrom<$crate::nbt::Tag> for std::collections::HashMap<String, $name> {
+            type Error = [< $name Error >];
+            fn try_from(tag: $crate::nbt::Tag) -> Result<Self, Self::Error> {
+                tag.get_as_map()?.into_iter().map(|(k,v)| (k, v.try_into())).collect::<Result<std::collections::HashMap<_,_>,_>>()
+            }
         }
+        }*/
     }
 }
 
@@ -113,5 +127,6 @@ macro_rules! add_data_to_builder {
 #[cfg(feature = "block_entity")]
 pub mod block_entity;
 pub mod chunk;
+mod dimension;
 pub mod entity;
-//pub mod file_format;
+pub mod file_format;
