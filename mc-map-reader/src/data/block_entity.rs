@@ -4,7 +4,7 @@ use getset::{CopyGetters, Getters};
 use jbe::Builder;
 
 use crate::{
-    data::{chunk::BlockState, entity::Entity},
+    data::entity::Entity,
     nbt::{Array, List, Tag},
 };
 

@@ -3,7 +3,7 @@ use super::player_dat::PlayerError;
 use crate::data::file_format::level_dat::*;
 
 try_from_tag!(
-    LevelDat, LevelDatBuilder => [
+    LevelDat => [
         "allowCommands": set_allow_commands,
         "BorderCenterX": set_border_center_x,
         "BorderCenterZ": set_border_center_z,
@@ -53,7 +53,7 @@ try_from_tag!(
 );
 
 try_from_tag!(
-CustomBossEvent, CustomBossEventBuilder => [
+CustomBossEvent => [
     "Players": set_players,
     "Color": set_color,
     "CreateWorldFog": set_create_world_fog,
@@ -66,20 +66,20 @@ CustomBossEvent, CustomBossEventBuilder => [
     "Visible": set_visible,
 ]);
 try_from_tag!(
-DataPacks, DataPacksBuilder => [
+DataPacks => [
     "Disabled": set_disabled,
     "Enabled": set_enabled,
 ]);
 
 try_from_tag!(
-WorldGenSettings, WorldGenSettingsBuilder => [
+WorldGenSettings => [
     "bonus_chest": set_bonus_chest,
     "dimensions" as Dimension: set_dimensions,
     "seed": set_seed,
     "generate_features": set_generate_features,
 ]);
 try_from_tag!(
-Version, VersionBuilder => [
+Version => [
     "Id": set_id,
     "Name": set_name,
     "Series": set_series,

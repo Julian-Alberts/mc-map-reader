@@ -84,7 +84,7 @@ where
             .into_iter()
             .map(T::try_from)
             .collect::<Result<_, _>>()?;
-        Ok(List(values))
+        Ok(values)
     }
 }
 
@@ -265,10 +265,6 @@ pub enum Error {
     UnknownTagId(u8),
     #[error("Invalid Value")]
     InvalidValue,
-    #[error(transparent)]
-    MissingData(#[from] crate::data::chunk::MissingData),
-    #[error(transparent)]
-    ChunkStatus(#[from] crate::data::chunk::ChunkStatusError),
 }
 
 impl<T> Deref for Array<T> {

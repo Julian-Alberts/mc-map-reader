@@ -32,7 +32,7 @@ pub fn load_chunk(raw: &[u8], chunk_info: &ChunkInfo) -> Result<ChunkData, LoadC
     Ok(chunk_data)
 }
 
-try_from_tag!(ChunkData, ChunkDataBuilder => [
+try_from_tag!(ChunkData => [
     "DataVersion": set_data_version,
     "xPos": set_x_pos,
     "yPos": set_y_pos,
@@ -44,25 +44,54 @@ try_from_tag!(ChunkData, ChunkDataBuilder => [
 ]);
 
 #[cfg(feature = "chunk_section")]
-try_from_tag!(Section, SectionBuilder => [
+try_from_tag!(Section => [
     "Y": set_y,
     "block_states" as BlockStates: set_block_states,
     "biomes" as Biomes: set_biomes,
 ]);
 
-try_from_tag!(Biomes, BiomesBuilder => [
+try_from_tag!(Biomes => [
     "palette": set_palette,
     "data": set_data,
 ]);
 
 #[cfg(feature = "chunk_section")]
-try_from_tag!(BlockStates, BlockStatesBuilder => [
+try_from_tag!(BlockStates => [
     "palette" as BlockState: set_palette,
     "data": set_data,
 ]);
 
 #[cfg(feature = "chunk_section")]
-try_from_tag!(BlockState, BlockStateBuilder => [
+try_from_tag!(BlockState => [
     "Name": set_name,
     "Properties": set_properties,
 ]);
+try_from_tag!(error ChunkStatus => []);
+
+impl TryFrom<crate::nbt::Tag> for ChunkStatus {
+    type Error = ChunkStatusError;
+
+    fn try_from(value: crate::nbt::Tag) -> Result<Self, Self::Error> {
+        let status = match value
+            .get_as_string()
+            .or(Err(crate::nbt::Error::InvalidValue))?
+            .as_str()
+        {
+            "empty" => Self::Empty,
+            "structure_starts" => Self::StructureStarts,
+            "structure_references" => Self::StructureReferences,
+            "biomes" => Self::Biomes,
+            "noise" => Self::Noise,
+            "surface" => Self::Surface,
+            "carvers" => Self::Carvers,
+            "liquid_carvers" => Self::LiquidCarvers,
+            "features" => Self::Features,
+            "light" => Self::Light,
+            "spawn" => Self::Spawn,
+            "heightmaps" => Self::Heightmaps,
+            "full" => Self::Full,
+            _ => return Err(crate::nbt::Error::InvalidValue.into()),
+        };
+        Ok(status)
+    }
+}

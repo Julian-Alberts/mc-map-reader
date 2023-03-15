@@ -7,7 +7,7 @@ use crate::{
     nbt::Tag,
 };
 
-try_from_tag!(BlockEntity, BlockEntityBuilder => parse_block_entity [
+try_from_tag!(BlockEntity => parse_block_entity ? [
     Banner,
     Barrel,
     Beacon,
@@ -41,64 +41,66 @@ try_from_tag!(BlockEntity, BlockEntityBuilder => parse_block_entity [
 ]);
 
 try_from_tag!(
-    Beehive, BeehiveBuilder => [
+    Beehive => [
         "Bees" as BeeInHive: set_bees,
         "FlowerPos" as FlowerPos: set_flower_pos,
     ]
 );
 
-try_from_tag!(BeeInHive, BeeInHiveBuilder => [
-    "EntityData" as Entity: set_entity_data,
+try_from_tag!(BeeInHive => [
+    "EntityData": set_entity_data,
     "MinOccupationTicks": set_min_occupation_ticks,
     "TicksInHive": set_ticks_in_hive,
+] ? [
+    Entity,
 ]);
-try_from_tag!(FlowerPos, FlowerPosBuilder => [
+try_from_tag!(FlowerPos => [
     "X": set_x,
     "Y": set_y,
     "Z": set_z,
 ]);
-try_from_tag!(Beacon, BeaconBuilder => [
+try_from_tag!(Beacon => [
         "CustomName": set_custom_name,
         "Lock": set_lock,
         "Primary": set_primary,
         "Secondary": set_secondary,
 ]);
-try_from_tag!(Barrel, BarrelBuilder => parse_inventory_block_entity [ ItemWithSlot, ]);
-try_from_tag!(Item, ItemBuilder => [
+try_from_tag!(Barrel => parse_inventory_block_entity ? [ ItemWithSlot, ]);
+try_from_tag!(Item => [
     "Count": set_count,
     "id": set_id,
     "tag": set_tag,
 ]);
-try_from_tag!(Banner, BannerBuilder => [
+try_from_tag!(Banner => [
     "CustomName": set_custom_name,
     "Patterns" as BannerPattern: set_patterns,
 ]);
-try_from_tag!(BannerPattern, BannerPatternBuilder => [
+try_from_tag!(BannerPattern => [
     "Color": set_color,
     "Pattern": set_pattern,
 ]);
-try_from_tag!(BlastFurnace, BlastFurnaceBuilder => parse_cooking_block_entity [ ItemWithSlot, ]);
-try_from_tag!(BrewingStand, BrewingStandBuilder => [
+try_from_tag!(BlastFurnace => parse_cooking_block_entity ? [ ItemWithSlot, ]);
+try_from_tag!(BrewingStand => [
     "BrewTime": set_brew_time,
     "CustomName": set_custom_name,
     "Fuel": set_fuel,
-    "Items" as ItemWithSlot: set_items,
+    "Items": set_items,
     "Lock": set_lock,
-]);
-try_from_tag!(Campfire, CampfireBuilder => [
+] ? [ ItemWithSlot, ]);
+try_from_tag!(Campfire => [
     "CookingTimes": set_cooking_times,
     "CookingTotalTimes": set_cooking_total_times,
     "Items" as ItemWithSlot: set_items,
 ]);
-try_from_tag!(ChiseledBookshelf, ChiseledBookshelfBuilder => [
+try_from_tag!(ChiseledBookshelf => [
     "Items" as ItemWithSlot: set_items,
     "last_interacted_slot": set_last_interacted_slot,
 ]);
-try_from_tag!(Chest, ChestBuilder => parse_inventory_block_entity [ ItemWithSlot, ]);
-try_from_tag!(Comparator, ComparatorBuilder => [
+try_from_tag!(Chest => parse_inventory_block_entity ? [ ItemWithSlot, ]);
+try_from_tag!(Comparator => [
     "OutputSignal": set_output_signal,
 ]);
-try_from_tag!(CommandBlock, CommandBlockBuilder => [
+try_from_tag!(CommandBlock => [
     "auto": set_auto,
     "Command": set_command,
     "conditionMet": set_condition_met,
@@ -109,44 +111,44 @@ try_from_tag!(CommandBlock, CommandBlockBuilder => [
     "SuccessCount": set_success_count,
     "UpdateLastExecution": set_update_last_execution,
 ]);
-try_from_tag!(Conduit, ConduitBuilder => [
+try_from_tag!(Conduit => [
     "Target": set_target,
 ]);
-try_from_tag!(Dispenser, DispenserBuilder => parse_inventory_block_entity [ ItemWithSlot, ]);
-try_from_tag!(Dropper, DropperBuilder => parse_inventory_block_entity [ ItemWithSlot, ]);
-try_from_tag!(EnchantingTable, EnchantingTableBuilder => [
+try_from_tag!(Dispenser => parse_inventory_block_entity ? [ ItemWithSlot, ]);
+try_from_tag!(Dropper => parse_inventory_block_entity ? [ ItemWithSlot, ]);
+try_from_tag!(EnchantingTable => [
     "CustomName": set_custom_name,
 ]);
-try_from_tag!(EndGateway, EndGatewayBuilder => [
+try_from_tag!(EndGateway => [
     "Age": set_age,
     "ExactTeleport": set_exact_teleport,
     "ExitPortal" as ExitPortal: set_exit_portal,
 ]);
-try_from_tag!(ExitPortal, ExitPortalBuilder => [
+try_from_tag!(ExitPortal => [
     "X": set_x,
     "Y": set_y,
     "Z": set_z,
 ]);
-try_from_tag!(Furnace, FurnaceBuilder => parse_cooking_block_entity [ ItemWithSlot, ]);
-try_from_tag!(Hopper, HopperBuilder => parse_inventory_block_entity [ ItemWithSlot, ]);
-try_from_tag!(Jigsaw, JigsawBuilder => [
+try_from_tag!(Furnace => parse_cooking_block_entity ? [ ItemWithSlot, ]);
+try_from_tag!(Hopper => parse_inventory_block_entity ? [ ItemWithSlot, ]);
+try_from_tag!(Jigsaw => [
     "final_state": set_final_state,
     "joint": set_joint,
     "name": set_name,
     "pool": set_pool,
     "target": set_target,
 ]);
-try_from_tag!(Jukebox, JukeboxBuilder => [
+try_from_tag!(Jukebox => [
     "IsPlaying": set_is_playing,
     "RecordItem" as Item: set_record_item,
     "RecordStartTick": set_record_start_tick,
     "TickCount": set_tick_count,
 ]);
-try_from_tag!(Lectern, LecternBuilder => [
+try_from_tag!(Lectern => [
     "Book" as Item: set_book,
     "Page": set_page,
 ]);
-try_from_tag!(Spawner, SpawnerBuilder => [
+try_from_tag!(Spawner => [
     "Delay": set_delay,
     "MaxNearbyEntities": set_max_nearby_entities,
     "MaxSpawnDelay": set_max_spawn_delay,
@@ -157,23 +159,23 @@ try_from_tag!(Spawner, SpawnerBuilder => [
     "SpawnPotentials" as PotentialSpawn: set_spawn_potentials,
     "SpawnRange": set_spawn_range,
 ]);
-try_from_tag!(PotentialSpawn, PotentialSpawnBuilder => [
+try_from_tag!(PotentialSpawn => [
     "weight": set_weight,
     "data": set_data,
 ]);
-try_from_tag!(Piston, PistonBuilder => [
+try_from_tag!(Piston => [
     "blockState" as PistonBlockState: set_block_state,
     "extending": set_extending,
     "facing": set_facing,
     "progress": set_progress,
     "source": set_source,
 ]);
-try_from_tag!(PistonBlockState, PistonBlockStateBuilder => [
+try_from_tag!(PistonBlockState => [
     "Name": set_name,
     "Properties": set_properties,
 ]);
-try_from_tag!(ShulkerBox, ShulkerBoxBuilder => parse_inventory_block_entity [ ItemWithSlot, ]);
-try_from_tag!(Sign, SignBuilder => [
+try_from_tag!(ShulkerBox => parse_inventory_block_entity ? [ ItemWithSlot, ]);
+try_from_tag!(Sign => [
     "GlowingText": set_glowing_text,
     "Color": set_color,
     "Text1": set_text1,
@@ -181,30 +183,30 @@ try_from_tag!(Sign, SignBuilder => [
     "Text3": set_text3,
     "Text4": set_text4,
 ]);
-try_from_tag!(Skull, SkullBuilder => [
+try_from_tag!(Skull => [
     "note_block_sound": set_note_block_sound,
     "ExtraType": set_extra_type,
     "SkullOwner" as SkullOwner: set_skull_owner,
 ]);
-try_from_tag!(SkullOwner, SkullOwnerBuilder => [
+try_from_tag!(SkullOwner => [
     "Id": set_id,
     "Name": set_name,
     "Properties" as SkullOwnerProperties: set_properties,
 ]);
-try_from_tag!(SkullOwnerProperties, SkullOwnerPropertiesBuilder => [
+try_from_tag!(SkullOwnerProperties => [
     "textures" as SkullOwnerTextures: set_textures,
 ]);
-try_from_tag!(SkullOwnerTextures, SkullOwnerTexturesBuilder => [
+try_from_tag!(SkullOwnerTextures => [
     "Value": set_value,
     "Signature": set_signature,
 ]);
-try_from_tag!(Smoker, SmokerBuilder => parse_cooking_block_entity [ ItemWithSlot, ]);
-try_from_tag!(SoulCampfire, SoulCampfireBuilder => [
+try_from_tag!(Smoker => parse_cooking_block_entity ? [ ItemWithSlot, ]);
+try_from_tag!(SoulCampfire => [
     "CookingTimes": set_cooking_times,
     "CookingTotalTimes": set_cooking_total_times,
     "Items" as ItemWithSlot: set_items,
 ]);
-try_from_tag!(StructureBlock, StructureBlockBuilder => [
+try_from_tag!(StructureBlock => [
     "author": set_author,
     "ignoreEntities": set_ignore_entities,
     "integrity": set_integrity,
@@ -223,9 +225,9 @@ try_from_tag!(StructureBlock, StructureBlockBuilder => [
     "sizeY": set_size_y,
     "sizeZ": set_size_z,
 ]);
-try_from_tag!(TrappedChest, TrappedChestBuilder => parse_inventory_block_entity [ ItemWithSlot, ]);
-try_from_tag!(ItemWithSlot, ItemWithSlotBuilder => parse_item_with_slot [ Item, ]);
-try_from_tag!(MobSpawner, MobSpawnerBuilder => parse_mob_spawner [ Spawner, ]);
+try_from_tag!(TrappedChest => parse_inventory_block_entity ? [ ItemWithSlot, ]);
+try_from_tag!(ItemWithSlot => parse_item_with_slot ? [ Item, ]);
+try_from_tag!(MobSpawner => parse_mob_spawner ? [ Spawner, ]);
 
 fn parse_block_entity(
     builder: &mut BlockEntityBuilder,

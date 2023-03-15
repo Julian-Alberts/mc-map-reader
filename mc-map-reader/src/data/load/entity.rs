@@ -1,7 +1,9 @@
-use crate::data::entity::*;
+use std::collections::HashMap;
+
+use crate::{data::entity::*, data::load::block_entity::ItemError, nbt::Tag};
 
 try_from_tag!(
-Entity, EntityBuilder => [
+Entity => [
     "Air": set_air,
     "CustomName": set_custom_name,
     "CustomNameVisible": set_custom_name_visible,
@@ -23,9 +25,21 @@ Entity, EntityBuilder => [
     "TicksFrozen": set_ticks_frozen,
     "UUID": set_uuid,
 ]);
-/*TODO Enable Mob
-try_from_tag!(Mob, MobBuilder => parse_mob [ Entity, ]);
-
+try_from_tag!(Mob => parse_mob ? [ 
+    Entity,
+    ActiveEffect,
+    Item,
+    Leash,
+]);
+try_from_tag!(ActiveEffect => [
+    "Ambient": set_ambient,
+    "Amplifier": set_amplifier,
+    "Duration": set_duration,
+    "Id": set_id,
+    "ShowIcon": set_show_icon,
+    "ShowParticles": set_show_particles,
+]);
+try_from_tag!(enum Leash => parse_leash);
 fn parse_mob(builder: &mut MobBuilder, mut nbt_data: HashMap<String, Tag>) -> Result<(), MobError> {
     add_data_to_builder!(builder, nbt_data => [
         "AbsorptionAmount": set_absorption_amount,
@@ -56,4 +70,12 @@ fn parse_mob(builder: &mut MobBuilder, mut nbt_data: HashMap<String, Tag>) -> Re
     builder.set_entity(nbt_data.try_into()?);
     Ok(())
 }
-*/
+fn parse_leash(mut nbt_data: HashMap<String, Tag>) -> Result<Leash, LeashError> {
+    if let Some(Tag::IntArray(uuid)) = nbt_data.remove("UUID") {
+        return Ok(Leash::Entity(uuid))
+    }
+    if let (Some(Tag::Int(x)), Some(Tag::Int(y)), Some(Tag::Int(z))) = (nbt_data.remove("X"), nbt_data.remove("Y"), nbt_data.remove("Z")) {
+        return Ok(Leash::Position { x, y, z })
+    }
+    Err(crate::nbt::Error::InvalidValue.into())
+}
