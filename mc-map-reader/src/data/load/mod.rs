@@ -119,6 +119,6 @@ macro_rules! add_data_to_builder {
 #[cfg(feature = "block_entity")]
 pub mod block_entity;
 pub mod chunk;
-mod dimension;
+pub mod dimension;
 pub mod entity;
 pub mod file_format;
