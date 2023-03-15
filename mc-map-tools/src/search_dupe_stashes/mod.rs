@@ -34,7 +34,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     };
     let config = config.search_dupe_stashes;
     #[cfg(feature = "parallel")]
-    let region_groups = region_groups.into_par_iter();    
+    let region_groups = region_groups.into_par_iter();
     #[cfg(not(feature = "parallel"))]
     let region_groups = region_groups.into_iter();
     let inventories = region_groups

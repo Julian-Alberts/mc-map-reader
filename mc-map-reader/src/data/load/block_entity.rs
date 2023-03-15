@@ -3,29 +3,249 @@ use std::collections::HashMap;
 use thiserror::Error;
 
 use crate::{
+    data::{
+        block_entity::*,
+        load::entity::EntityError
+    },
     nbt::Tag,
-    data::{block_entity::*, chunk::MissingData},
 };
 
-impl TryFrom<Tag> for BlockEntity {
-    type Error = crate::nbt::Error;
-    fn try_from(data: Tag) -> Result<Self, Self::Error> {
-        let mut nbt_data = data.get_as_map()?;
+try_from_tag!(BlockEntity, BlockEntityBuilder => parse_block_entity [
+    Banner,
+    Barrel,
+    Beacon,
+    Beehive,
+    BlastFurnace,
+    BrewingStand,
+    Campfire,
+    ChiseledBookshelf,
+    Chest,
+    Comparator,
+    CommandBlock,
+    Conduit,
+    Dispenser,
+    Dropper,
+    EnchantingTable,
+    EndGateway,
+    Furnace,
+    Hopper,
+    Jigsaw,
+    Jukebox,
+    Lectern,
+    MobSpawner,
+    Piston,
+    ShulkerBox,
+    Sign,
+    Skull,
+    Smoker,
+    SoulCampfire,
+    StructureBlock,
+    TrappedChest,
+]);
+
+try_from_tag!(
+    Beehive, BeehiveBuilder => [
+        "Bees" as BeeInHive: set_bees,
+        "FlowerPos" as FlowerPos: set_flower_pos,
+    ]
+);
+
+try_from_tag!(BeeInHive, BeeInHiveBuilder => [
+    "EntityData" as Entity: set_entity_data,
+    "MinOccupationTicks": set_min_occupation_ticks,
+    "TicksInHive": set_ticks_in_hive,
+]);
+try_from_tag!(FlowerPos, FlowerPosBuilder => [
+        "X": set_x,
+        "Y": set_y,
+        "Z": set_z,
+    ]);
+try_from_tag!(Beacon, BeaconBuilder => [
+        "CustomName": set_custom_name,
+        "Lock": set_lock,
+        "Primary": set_primary,
+        "Secondary": set_secondary,
+]);
+try_from_tag!(Barrel, BarrelBuilder => parse_inventory_block_entity []);
+try_from_tag!(Item, ItemBuilder => [
+        "Count": set_count,
+        "id": set_id,
+        "tag": set_tag,
+    ]);
+try_from_tag!(Banner, BannerBuilder => [
+        "CustomName": set_custom_name,
+        "Patterns" as BannerPattern: set_patterns,
+    ]);
+try_from_tag!(BannerPattern, BannerPatternBuilder => [
+        "Color": set_color,
+        "Pattern": set_pattern,
+    ]);
+try_from_tag!(BlastFurnace, BlastFurnaceBuilder => parse_cooking_block_entity []);
+try_from_tag!(BrewingStand, BrewingStandBuilder => [
+        "BrewTime": set_brew_time,
+        "CustomName": set_custom_name,
+        "Fuel": set_fuel,
+        "Items" as ItemWithSlot: set_items,
+        "Lock": set_lock,
+    ]);
+try_from_tag!(Campfire, CampfireBuilder => [
+        "CookingTimes": set_cooking_times,
+        "CookingTotalTimes": set_cooking_total_times,
+        "Items" as ItemWithSlot: set_items,
+    ]);
+try_from_tag!(ChiseledBookshelf, ChiseledBookshelfBuilder => [
+        "Items" as ItemWithSlot: set_items,
+        "last_interacted_slot": set_last_interacted_slot,
+    ]);
+try_from_tag!(Chest, ChestBuilder => parse_inventory_block_entity []);
+try_from_tag!(Comparator, ComparatorBuilder => [
+        "OutputSignal": set_output_signal,
+    ]);
+try_from_tag!(CommandBlock, CommandBlockBuilder => [
+        "auto": set_auto,
+        "Command": set_command,
+        "conditionMet": set_condition_met,
+        "CustomName": set_custom_name,
+        "LastExecution": set_last_execution,
+        "LastOutput": set_last_output,
+        "powered": set_powered,
+        "SuccessCount": set_success_count,
+        "UpdateLastExecution": set_update_last_execution,
+    ]);
+try_from_tag!(Conduit, ConduitBuilder => [
+        "Target": set_target,
+    ]);
+try_from_tag!(Dispenser, DispenserBuilder => parse_inventory_block_entity []);
+try_from_tag!(Dropper, DropperBuilder => parse_inventory_block_entity []);
+try_from_tag!(EnchantingTable, EnchantingTableBuilder => [
+        "CustomName": set_custom_name,
+    ]);
+try_from_tag!(EndGateway, EndGatewayBuilder => [
+        "Age": set_age,
+        "ExactTeleport": set_exact_teleport,
+        "ExitPortal" as ExitPortal: set_exit_portal,
+    ]);
+try_from_tag!(ExitPortal, ExitPortalBuilder => [
+        "X": set_x,
+        "Y": set_y,
+        "Z": set_z,
+    ]);
+try_from_tag!(Furnace, FurnaceBuilder => parse_cooking_block_entity []);
+try_from_tag!(Hopper, HopperBuilder => parse_inventory_block_entity []);
+try_from_tag!(Jigsaw, JigsawBuilder => [
+        "final_state": set_final_state,
+        "joint": set_joint,
+        "name": set_name,
+        "pool": set_pool,
+        "target": set_target,
+    ]);
+try_from_tag!(Jukebox, JukeboxBuilder => [
+        "IsPlaying": set_is_playing,
+        "RecordItem" as Item: set_record_item,
+        "RecordStartTick": set_record_start_tick,
+        "TickCount": set_tick_count,
+    ]);
+try_from_tag!(Lectern, LecternBuilder => [
+        "Book" as Item: set_book,
+        "Page": set_page,
+    ]);
+try_from_tag!(Spawner, SpawnerBuilder => [
+        "Delay": set_delay,
+        "MaxNearbyEntities": set_max_nearby_entities,
+        "MaxSpawnDelay": set_max_spawn_delay,
+        "MinSpawnDelay": set_min_spawn_delay,
+        "RequiredPlayerRange": set_required_player_range,
+        "SpawnCount": set_spawn_count,
+        "SpawnData": set_spawn_data,
+        "SpawnPotentials" as PotentialSpawn: set_spawn_potentials,
+        "SpawnRange": set_spawn_range,
+    ]);
+try_from_tag!(PotentialSpawn, PotentialSpawnBuilder => [
+        "weight": set_weight,
+        "data": set_data,
+    ]);
+try_from_tag!(Piston, PistonBuilder => [
+    "blockState" as PistonBlockState: set_block_state,
+    "extending": set_extending,
+    "facing": set_facing,
+    "progress": set_progress,
+    "source": set_source,
+]);
+try_from_tag!(PistonBlockState, PistonBlockStateBuilder => [
+    "Name": set_name,
+    "Properties": set_properties,
+]);
+try_from_tag!(ShulkerBox, ShulkerBoxBuilder => parse_inventory_block_entity []);
+try_from_tag!(Sign, SignBuilder => [
+    "GlowingText": set_glowing_text,
+    "Color": set_color,
+    "Text1": set_text1,
+    "Text2": set_text2,
+    "Text3": set_text3,
+    "Text4": set_text4,
+]);
+try_from_tag!(Skull, SkullBuilder => [
+    "note_block_sound": set_note_block_sound,
+    "ExtraType": set_extra_type,
+    "SkullOwner" as SkullOwner: set_skull_owner,
+]);
+try_from_tag!(SkullOwner, SkullOwnerBuilder => [
+    "Id": set_id,
+    "Name": set_name,
+    "Properties" as SkullOwnerProperties: set_properties,
+]);
+try_from_tag!(SkullOwnerProperties, SkullOwnerPropertiesBuilder => [
+    "textures" as SkullOwnerTextures: set_textures,
+]);
+try_from_tag!(SkullOwnerTextures, SkullOwnerTexturesBuilder => [
+    "Value": set_value,
+    "Signature": set_signature,
+]);
+try_from_tag!(Smoker, SmokerBuilder => parse_cooking_block_entity []);
+try_from_tag!(SoulCampfire, SoulCampfireBuilder => [
+    "CookingTimes": set_cooking_times,
+    "CookingTotalTimes": set_cooking_total_times,
+    "Items" as ItemWithSlot: set_items,
+]);
+try_from_tag!(StructureBlock, StructureBlockBuilder => [
+    "author": set_author,
+    "ignoreEntities": set_ignore_entities,
+    "integrity": set_integrity,
+    "metadata": set_metadata,
+    "mirror": set_mirror,
+    "mode": set_mode,
+    "name": set_name,
+    "posX": set_pos_x,
+    "posY": set_pos_y,
+    "posZ": set_pos_z,
+    "powered": set_powered,
+    "rotation": set_rotation,
+    "seed": set_seed,
+    "showboundingbox": set_show_bounding_box,
+    "sizeX": set_size_x,
+    "sizeY": set_size_y,
+    "sizeZ": set_size_z,
+]);
+try_from_tag!(TrappedChest, TrappedChestBuilder => parse_inventory_block_entity []);
+try_from_tag!(ItemWithSlot, ItemWithSlotBuilder => parse_item_with_slot [ Item, ]);
+try_from_tag!(MobSpawner, MobSpawnerBuilder => parse_mob_spawner [ Spawner, ]);
+
+fn parse_block_entity(
+    builder: &mut BlockEntityBuilder,
+    mut nbt_data: HashMap<String, Tag>
+) -> Result<(), BlockEntityError> {
         let Tag::String(id) = nbt_data
         .get("id")
-        .ok_or(BlockEntityBuilderError::UnsetId)
-        .map_err(BlockEntityMissingDataError::from)
-        .map_err(MissingData::from)? else {
-            return Err(crate::nbt::Error::InvalidValue);
+        .ok_or(BlockEntityBuilderError::UnsetId)? else {
+            return Err(crate::nbt::Error::InvalidValue.into());
         };
         let id = id.clone();
-        let mut beb = BlockEntityBuilder::default();
-        add_data_to_builder!(beb, nbt_data => [
+        add_data_to_builder!(builder, nbt_data => [
             "id": set_id,
             "keepPacked": set_keep_packed,
             "x": set_x,
             "y": set_y,
-            "z": set_z
+            "z": set_z,
         ]);
 
         let ty = match id.as_str() {
@@ -38,9 +258,7 @@ impl TryFrom<Tag> for BlockEntity {
             "minecraft:blast_furnace" => BlockEntityType::BlastFurnace(nbt_data.try_into()?),
             "minecraft:brewing_stand" => BlockEntityType::BrewingStand(nbt_data.try_into()?),
             "minecraft:campfire" => BlockEntityType::Campfire(nbt_data.try_into()?),
-            "minecraft:chiseled_bookshelf" => {
-                BlockEntityType::ChiseledBookshelf(nbt_data.try_into()?)
-            }
+            "minecraft:chiseled_bookshelf" => BlockEntityType::ChiseledBookshelf(nbt_data.try_into()?),
             "minecraft:chest" => BlockEntityType::Chest(nbt_data.try_into()?),
             "minecraft:comparator" => BlockEntityType::Comparator(nbt_data.try_into()?),
             "minecraft:command_block" => BlockEntityType::CommandBlock(nbt_data.try_into()?),
@@ -68,234 +286,38 @@ impl TryFrom<Tag> for BlockEntity {
             "minecraft:trapped_chest" => BlockEntityType::TrappedChest(nbt_data.try_into()?),
             _ => BlockEntityType::Other(nbt_data),
         };
-        beb.set_entity_type(ty);
-        let be = beb
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(be)
-    }
+        builder.set_entity_type(ty);
+        Ok(())
+    
 }
 
-try_from_tag_for_module![{Beehive => [
-    "Bees": set_bees,
-    "FlowerPos": set_flower_pos
-]
-},{BeeInHive => [
-    "EntityData": set_entity_data,
-    "MinOccupationTicks": set_min_occupation_ticks,
-    "TicksInHive": set_ticks_in_hive
-]
-},{FlowerPos => [
-    "X": set_x,
-    "Y": set_y,
-    "Z": set_z
-]
-},{Beacon => [
-    "CustomName": set_custom_name,
-    "Lock": set_lock,
-    "Primary": set_primary,
-    "Secondary": set_secondary
-]
-},{Barrel => parse_inventory_block_entity
-},{Item => [
-    "Count": set_count,
-    "id": set_id,
-    "tag": set_tag
-]
-},{Banner => [
-    "CustomName": set_custom_name,
-    "Patterns": set_patterns
-]
-},{BannerPattern => [
-    "Color": set_color,
-    "Pattern": set_pattern
-]
-},{BlastFurnace => parse_cooking_block_entity
-},{BrewingStand => [
-    "BrewTime": set_brew_time,
-    "CustomName": set_custom_name,
-    "Fuel": set_fuel,
-    "Items": set_items,
-    "Lock": set_lock
-]
-},{Campfire => [
-    "CookingTimes": set_cooking_times,
-    "CookingTotalTimes": set_cooking_total_times,
-    "Items": set_items
-]
-},{ChiseledBookshelf => [
-    "Items": set_items,
-    "last_interacted_slot": set_last_interacted_slot
-]
-},{Chest => parse_inventory_block_entity
-},{Comparator => [
-    "OutputSignal": set_output_signal
-]
-},{CommandBlock => [
-    "auto": set_auto,
-    "Command": set_command,
-    "conditionMet": set_condition_met,
-    "CustomName": set_custom_name,
-    "LastExecution": set_last_execution,
-    "LastOutput": set_last_output,
-    "powered": set_powered,
-    "SuccessCount": set_success_count,
-    "UpdateLastExecution": set_update_last_execution
-]
-},{Conduit => [
-    "Target": set_target
-]
-},{Dispenser => parse_inventory_block_entity
-},{Dropper => parse_inventory_block_entity
-},{EnchantingTable => [
-    "CustomName": set_custom_name
-]
-},{EndGateway => [
-    "Age": set_age,
-    "ExactTeleport": set_exact_teleport,
-    "ExitPortal": set_exit_portal
-]
-},{ExitPortal => [
-    "X": set_x,
-    "Y": set_y,
-    "Z": set_z
-]
-},{Furnace => parse_cooking_block_entity
-},{Hopper => parse_inventory_block_entity
-},{Jigsaw => [
-    "final_state": set_final_state,
-    "joint": set_joint,
-    "name": set_name,
-    "pool": set_pool,
-    "target": set_target
-]
-},{Jukebox => [
-    "IsPlaying": set_is_playing,
-    "RecordItem": set_record_item,
-    "RecordStartTick": set_record_start_tick,
-    "TickCount": set_tick_count
-]
-},{Lectern => [
-    "Book": set_book,
-    "Page": set_page
-]
-},{Spawner => [
-    "Delay": set_delay,
-    "MaxNearbyEntities": set_max_nearby_entities,
-    "MaxSpawnDelay": set_max_spawn_delay,
-    "MinSpawnDelay": set_min_spawn_delay,
-    "RequiredPlayerRange": set_required_player_range,
-    "SpawnCount": set_spawn_count,
-    "SpawnData": set_spawn_data,
-    "SpawnPotentials": set_spawn_potentials,
-    "SpawnRange": set_spawn_range
-]
-},{PotentialSpawn => [
-    "weight": set_weight,
-    "data": set_data
-]
-},{Piston => [
-    "blockState": set_block_state,
-    "extending": set_extending,
-    "facing": set_facing,
-    "progress": set_progress,
-    "source": set_source
-]
-},{ShulkerBox => parse_inventory_block_entity
-},{Sign => [
-    "GlowingText": set_glowing_text,
-    "Color": set_color,
-    "Text1": set_text1,
-    "Text2": set_text2,
-    "Text3": set_text3,
-    "Text4": set_text4
-]
-},{Skull => [
-    "note_block_sound": set_note_block_sound,
-    "ExtraType": set_extra_type,
-    "SkullOwner": set_skull_owner
-]
-},{SkullOwner => [
-    "Id": set_id,
-    "Name": set_name,
-    "Properties": set_properties
-]
-},{SkullOwnerProperties => [
-    "textures": set_textures
-]
-},{SkullOwnerTextures => [
-    "Value": set_value,
-    "Signature": set_signature
-]
-},{Smoker => parse_cooking_block_entity
-},{SoulCampfire => [
-    "CookingTimes": set_cooking_times,
-    "CookingTotalTimes": set_cooking_total_times,
-    "Items": set_items
-]
-},{StructureBlock => [
-    "author": set_author,
-    "ignoreEntities": set_ignore_entities,
-    "integrity": set_integrity,
-    "metadata": set_metadata,
-    "mirror": set_mirror,
-    "mode": set_mode,
-    "name": set_name,
-    "posX": set_pos_x,
-    "posY": set_pos_y,
-    "posZ": set_pos_z,
-    "powered": set_powered,
-    "rotation": set_rotation,
-    "seed": set_seed,
-    "showboundingbox": set_show_bounding_box,
-    "sizeX": set_size_x,
-    "sizeY": set_size_y,
-    "sizeZ": set_size_z
-]
-},{TrappedChest => parse_inventory_block_entity}
-];
-
-impl TryFrom<HashMap<String, Tag>> for MobSpawner {
-    type Error = crate::nbt::Error;
-    fn try_from(nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
-        let mut mob_spawner_builder = MobSpawnerBuilder::default();
-        mob_spawner_builder.set_spawner(nbt_data.try_into()?);
-        let c = mob_spawner_builder
-            .try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)?;
-        Ok(c)
-    }
+fn parse_mob_spawner(builder: &mut MobSpawnerBuilder, nbt_data: HashMap<String, Tag>) -> Result<(), MobSpawnerError> {
+    builder.set_spawner(nbt_data.try_into()?);
+    Ok(())
 }
-impl TryFrom<Tag> for ItemWithSlot {
-    type Error = crate::nbt::Error;
-    fn try_from(item: Tag) -> Result<Self, Self::Error> {
-        let mut item = item.get_as_map()?;
-        let mut iwsb = ItemWithSlotBuilder::default();
-
-        add_data_to_builder!(iwsb, item => [
-            "Slot": set_slot
-        ]);
-        iwsb.set_item(item.try_into()?);
-        iwsb.try_build()
-            .map_err(BlockEntityMissingDataError::from)
-            .map_err(MissingData::from)
-            .map_err(crate::nbt::Error::from)
-    }
+fn parse_item_with_slot(
+    builder: &mut ItemWithSlotBuilder,
+    mut nbt_data: HashMap<String, Tag>
+) -> Result<(), ItemWithSlotError> {
+    add_data_to_builder!(builder, nbt_data => [
+        "Slot": set_slot,
+    ]);
+    builder.set_item(nbt_data.try_into()?);
+    Ok(())
 }
-
-fn parse_cooking_block_entity(
+fn parse_cooking_block_entity<E>(
     builder: &mut impl CookingBlockEntityBuilder,
     mut nbt_data: HashMap<String, Tag>,
-) -> Result<(), crate::nbt::Error> {
+) -> Result<(), E> 
+    where E: From<crate::nbt::Error>
+{
     add_data_to_builder!(builder, nbt_data => [
         "BurnTime": set_burn_time,
         "CookTime": set_cook_time,
         "CookTimeTotal": set_cook_time_total,
         "CustomName": set_custom_name,
         "Items": set_items,
-        "Lock": set_lock
+        "Lock": set_lock,
     ]);
     if let Some(value) = nbt_data.remove("RecipesUsed") {
         let r = value
@@ -308,16 +330,18 @@ fn parse_cooking_block_entity(
     Ok(())
 }
 
-fn parse_inventory_block_entity(
+fn parse_inventory_block_entity<E>(
     builder: &mut impl InventoryBlockEntityBuilder,
     mut nbt_data: HashMap<String, Tag>,
-) -> Result<(), crate::nbt::Error> {
+) -> Result<(), E> 
+    where E: From<crate::nbt::Error>
+{
     add_data_to_builder!(builder, nbt_data => [
         "CustomName": set_custom_name,
         "Items": set_items,
         "Lock": set_lock,
         "LootTable": set_loot_table,
-        "LootTableSeed": set_loot_table_seed
+        "LootTableSeed": set_loot_table_seed,
     ]);
     Ok(())
 }

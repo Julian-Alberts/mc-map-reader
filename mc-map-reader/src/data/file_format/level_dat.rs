@@ -2,11 +2,10 @@ use std::collections::HashMap;
 
 use jbe::Builder;
 
-use crate::nbt::{List, Tag, Array};
+use crate::nbt::{Array, List, Tag};
 
 use super::player_dat::Player;
 use crate::data::dimension::Dimension;
-
 
 /// https://minecraft.fandom.com/wiki/Java_Edition_level_format#level.dat_format
 #[derive(Debug, Builder)]

@@ -5,8 +5,8 @@ use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use thiserror::Error;
 
 use crate::{
+    compression, data,
     data::file_format::anvil::{self, AnvilSave},
-    data, compression,
 };
 
 pub struct Loader;
@@ -37,7 +37,7 @@ impl LoadMcSave<AnvilSave> for Loader {
         let chunks = chunk_info
             .filter_map(|ci| ci.as_ref())
             .map(|chunk| data::load::chunk::load_chunk(&raw_chunk_data, chunk))
-            .collect::<Result<_>>()?;
+            .collect::<std::result::Result<_,_>>().unwrap(); //TODO Error handling
 
         Ok(AnvilSave::new(header, chunks))
     }
@@ -66,4 +66,3 @@ pub fn parse_level_dat(data: &[u8]) -> Result<crate::data::file_format::level_da
     dbg!(data);
     todo!()
 }
-

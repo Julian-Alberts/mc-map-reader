@@ -1,5 +1,3 @@
-use crate::data::file_format::level_dat::*;
-
 try_from_tag_for_module![{
     LevelDat => [
         "allowCommands": set_allow_commands,
@@ -46,7 +44,7 @@ try_from_tag_for_module![{
         "WanderingTraderId": set_wandering_trader_id,
         "WanderingTraderSpawnChance": set_wandering_trader_spawn_chance,
         "WanderingTraderSpawnDelay": set_wandering_trader_spawn_delay,
-        "WasModded": set_was_modded
+        "WasModded": set_was_modded,
     ]
 },{ CustomBossEvent => [
     "Players": set_players,
@@ -58,22 +56,22 @@ try_from_tag_for_module![{
     "Name": set_name,
     "Overlay": set_overlay,
     "PlayBossMusic": set_play_boss_music,
-    "Visible": set_visible
+    "Visible": set_visible,
 ]},{
 DataPacks => [
     "Disabled": set_disabled,
-    "Enabled": set_enabled
+    "Enabled": set_enabled,
 ]},{
 WorldGenSettings => [
     "bonus_chest": set_bonus_chest,
     "dimensions": set_dimensions,
     "seed": set_seed,
-    "generate_features": set_generate_features
+    "generate_features": set_generate_features,
 ]},{
 
 Version => [
     "Id": set_id,
     "Name": set_name,
     "Series": set_series,
-    "Snapshot": set_snapshot
+    "Snapshot": set_snapshot,
 ]}];

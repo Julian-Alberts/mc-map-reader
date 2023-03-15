@@ -4,8 +4,8 @@ use getset::{CopyGetters, Getters};
 use jbe::Builder;
 
 use crate::{
-    nbt::{Array, List, Tag},
     data::{chunk::BlockState, entity::Entity},
+    nbt::{Array, List, Tag},
 };
 
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
@@ -590,7 +590,7 @@ pub struct CustomSpawnRules {
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
 pub struct Piston {
     #[get = "pub"]
-    block_state: BlockState,
+    block_state: PistonBlockState,
     #[get_copy = "pub"]
     extending: bool,
     #[get_copy = "pub"]
@@ -599,6 +599,13 @@ pub struct Piston {
     progress: f32,
     #[get_copy = "pub"]
     source: bool,
+}
+
+#[derive(Debug, Builder, Getters, Clone)]
+#[get="pub"]
+pub struct PistonBlockState {
+    name: String,
+    properties: HashMap<String, Tag>
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]

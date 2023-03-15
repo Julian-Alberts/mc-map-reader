@@ -162,8 +162,8 @@ pub enum MissingData {
     #[cfg(feature = "block_entity")]
     #[error(transparent)]
     BlockEntityData(#[from] super::load::block_entity::BlockEntityMissingDataError),
-    #[error(transparent)]
-    EntityData(#[from] super::load::entity::Error),
+    //#[error(transparent)]
+    //EntityData(#[from] super::load::entity::Error),
 }
 
 impl TryFrom<Tag> for ChunkStatus {

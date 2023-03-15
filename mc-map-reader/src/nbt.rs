@@ -73,19 +73,9 @@ impl TryFrom<Tag> for bool {
     }
 }
 
-impl<T> TryFrom<Tag> for List<T>
-where
-    T: TryFrom<Tag, Error = Error>,
-{
-    type Error = Error;
-    fn try_from(tag: Tag) -> Result<Self, Self::Error> {
-        let i = tag
-            .get_as_list()?
-            .take()
-            .into_iter()
-            .map(T::try_from)
-            .collect::<Result<_, _>>()?;
-        Ok(List(i))
+impl <T> From<Vec<T>> for List<T> {
+    fn from(value: Vec<T>) -> Self {
+        Self(value)
     }
 }
 

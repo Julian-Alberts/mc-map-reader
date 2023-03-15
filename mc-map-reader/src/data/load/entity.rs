@@ -2,36 +2,38 @@ use std::collections::HashMap;
 
 use thiserror::Error;
 
-use crate::{data::{chunk::MissingData, entity::*}, nbt::Tag};
+use crate::{
+    data::{chunk::MissingData, entity::*},
+    nbt::Tag,
+};
 
-try_from_tag_for_module![{
-Entity => [
-    "Air": set_air,
-    "CustomName": set_custom_name,
-    "CustomNameVisible": set_custom_name_visible,
-    "FallDistance": set_fall_distance,
-    "Fire": set_fire,
-    "Glowing": set_glowing,
-    "HasVisualFire": set_has_visual_fire,
-    "id": set_id,
-    "Invulnerable": set_invulnerable,
-    "Motion": set_motion,
-    "NoGravity": set_no_gravity,
-    "OnGround": set_on_ground,
-    "Passengers": set_passengers,
-    "PortalCooldown": set_portal_colldown,
-    "Pos": set_pos,
-    "Rotation": set_rotation,
-    "Silent": set_silent,
-    "Tags": set_tags,
-    "TicksFrozen": set_ticks_frozen,
-    "UUID": set_uuid
-]}, {Mob => parse_mob}];
+try_from_tag!(
+    Entity, EntityBuilder => [
+        "Air": set_air,
+        "CustomName": set_custom_name,
+        "CustomNameVisible": set_custom_name_visible,
+        "FallDistance": set_fall_distance,
+        "Fire": set_fire,
+        "Glowing": set_glowing,
+        "HasVisualFire": set_has_visual_fire,
+        "id": set_id,
+        "Invulnerable": set_invulnerable,
+        "Motion": set_motion,
+        "NoGravity": set_no_gravity,
+        "OnGround": set_on_ground,
+        "Passengers": set_passengers,
+        "PortalCooldown": set_portal_colldown,
+        "Pos": set_pos,
+        "Rotation": set_rotation,
+        "Silent": set_silent,
+        "Tags": set_tags,
+        "TicksFrozen": set_ticks_frozen,
+        "UUID": set_uuid,
+    ]); 
+    /*TODO Enable Mob
+try_from_tag!(Mob, MobBuilder => parse_mob [ Entity, ]);
 
-fn parse_mob(
-    builder: &mut MobBuilder,
-    mut nbt_data: HashMap<String, Tag>,
-) -> Result<(), Error> {
+fn parse_mob(builder: &mut MobBuilder, mut nbt_data: HashMap<String, Tag>) -> Result<(), MobError> {
     add_data_to_builder!(builder, nbt_data => [
         "AbsorptionAmount": set_absorption_amount,
         "ActiveEffects": set_active_effects,
@@ -56,9 +58,9 @@ fn parse_mob(
         "SleepingX": set_sleeping_x,
         "SleepingY": set_sleeping_y,
         "SleepingZ": set_sleeping_z,
-        "Team": set_team
+        "Team": set_team,
     ]);
     builder.set_entity(nbt_data.try_into()?);
     Ok(())
 }
-
+*/
