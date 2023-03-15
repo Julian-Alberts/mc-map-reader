@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use getset::{CopyGetters, Getters};
 use jbe::Builder;
-use thiserror::Error;
 
 use crate::nbt::{Array, List, Tag};
 

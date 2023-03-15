@@ -25,7 +25,7 @@ Entity => [
     "TicksFrozen": set_ticks_frozen,
     "UUID": set_uuid,
 ]);
-try_from_tag!(Mob => parse_mob ? [ 
+try_from_tag!(Mob => parse_mob ? [
     Entity,
     ActiveEffect,
     Item,
@@ -72,10 +72,14 @@ fn parse_mob(builder: &mut MobBuilder, mut nbt_data: HashMap<String, Tag>) -> Re
 }
 fn parse_leash(mut nbt_data: HashMap<String, Tag>) -> Result<Leash, LeashError> {
     if let Some(Tag::IntArray(uuid)) = nbt_data.remove("UUID") {
-        return Ok(Leash::Entity(uuid))
+        return Ok(Leash::Entity(uuid));
     }
-    if let (Some(Tag::Int(x)), Some(Tag::Int(y)), Some(Tag::Int(z))) = (nbt_data.remove("X"), nbt_data.remove("Y"), nbt_data.remove("Z")) {
-        return Ok(Leash::Position { x, y, z })
+    if let (Some(Tag::Int(x)), Some(Tag::Int(y)), Some(Tag::Int(z))) = (
+        nbt_data.remove("X"),
+        nbt_data.remove("Y"),
+        nbt_data.remove("Z"),
+    ) {
+        return Ok(Leash::Position { x, y, z });
     }
     Err(crate::nbt::Error::InvalidValue.into())
 }

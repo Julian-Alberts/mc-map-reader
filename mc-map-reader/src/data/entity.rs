@@ -11,71 +11,71 @@ use super::block_entity::Item;
 ///
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
 pub struct Entity {
-    air: Option<i16>,
-    custom_name: Option<String>,
-    custom_name_visible: Option<bool>,
-    fall_distance: Option<f32>,
+    pub air: Option<i16>,
+    pub custom_name: Option<String>,
+    pub custom_name_visible: Option<bool>,
+    pub fall_distance: Option<f32>,
     #[get_copy = "pub"]
     #[builder({default 0})]
-    fire: i16,
+    pub fire: i16,
     #[get_copy = "pub"]
     #[builder({default false})]
-    glowing: bool,
+    pub glowing: bool,
     #[get_copy = "pub"]
     #[builder({default false})]
-    has_visual_fire: bool,
-    id: Option<String>,
+    pub has_visual_fire: bool,
+    pub id: Option<String>,
     #[get_copy = "pub"]
     #[builder({default false})]
-    invulnerable: bool,
-    motion: Option<List<f64>>,
+    pub invulnerable: bool,
+    pub motion: Option<List<f64>>,
     #[get_copy = "pub"]
     #[builder({default false})]
-    no_gravity: bool,
+    pub no_gravity: bool,
     #[get_copy = "pub"]
     #[builder({default true})]
-    on_ground: bool,
-    passengers: Option<List<Entity>>,
+    pub on_ground: bool,
+    pub passengers: Option<List<Entity>>,
     #[get_copy = "pub"]
     #[builder({default 0})]
-    portal_colldown: i32,
-    pos: Option<List<f32>>,
-    rotation: Option<List<f32>>,
+    pub portal_colldown: i32,
+    pub pos: Option<List<f32>>,
+    pub rotation: Option<List<f32>>,
     #[get_copy = "pub"]
     #[builder({default false})]
-    silent: bool,
-    tags: Option<HashMap<String, Tag>>,
-    ticks_frozen: Option<i32>,
-    uuid: Option<Array<i32>>,
+    pub silent: bool,
+    pub tags: Option<HashMap<String, Tag>>,
+    pub ticks_frozen: Option<i32>,
+    pub uuid: Option<Array<i32>>,
 }
 
 #[derive(Debug, Builder)]
 pub struct Mob {
-    absorption_amount: Option<f32>,
-    active_effects: Option<List<ActiveEffect>>,
-    armor_drop_chances: Option<List<f32>>,
-    armor_items: Option<List<Item>>,
-    entity: Entity,
-    attributes: Option<List<HashMap<String, Tag>>>,
-    brain: Option<HashMap<String, Tag>>,
-    can_pick_up_loot: Option<bool>,
-    death_loot_table: Option<String>,
-    death_loot_table_seed: Option<i64>,
-    death_time: Option<i16>,
-    fall_flying: Option<bool>,
-    health: Option<f32>,
-    hurt_by_timestamp: Option<i32>,
-    hurt_time: Option<i16>,
-    hand_drop_chances: Option<List<f32>>,
-    hand_items: Option<List<Item>>,
-    leash: Option<Leash>,
-    left_handed: Option<bool>,
-    no_ai: Option<bool>,
-    persistence_required: Option<bool>,
-    sleeping_x: Option<i32>,
-    sleeping_y: Option<i32>,
-    sleeping_z: Option<i32>,
-    team: Option<String>,
+    pub absorption_amount: Option<f32>,
+    pub active_effects: Option<List<ActiveEffect>>,
+    pub armor_drop_chances: Option<List<f32>>,
+    pub armor_items: Option<List<Item>>,
+    pub entity: Entity,
+    pub attributes: Option<List<HashMap<String, Tag>>>,
+    pub brain: Option<HashMap<String, Tag>>,
+    pub can_pick_up_loot: Option<bool>,
+    pub death_loot_table: Option<String>,
+    pub death_loot_table_seed: Option<i64>,
+    pub death_time: Option<i16>,
+    pub fall_flying: Option<bool>,
+    pub health: Option<f32>,
+    pub hurt_by_timestamp: Option<i32>,
+    pub hurt_time: Option<i16>,
+    pub hand_drop_chances: Option<List<f32>>,
+    pub hand_items: Option<List<Item>>,
+    pub leash: Option<Leash>,
+    pub left_handed: Option<bool>,
+    pub no_ai: Option<bool>,
+    pub persistence_required: Option<bool>,
+    pub sleeping_x: Option<i32>,
+    pub sleeping_y: Option<i32>,
+    pub sleeping_z: Option<i32>,
+    pub team: Option<String>,
 }
 
 #[derive(Debug)]
@@ -85,12 +85,12 @@ pub enum Leash {
 }
 #[derive(Debug, Builder)]
 pub struct ActiveEffect {
-    ambient: bool,
-    amplifier: i8,
-    duration: i32,
-    id: i32,
-    show_icon: bool,
-    show_particles: bool,
+    pub ambient: bool,
+    pub amplifier: i8,
+    pub duration: i32,
+    pub id: i32,
+    pub show_icon: bool,
+    pub show_particles: bool,
 }
 
 impl Entity {
