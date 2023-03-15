@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use mc_map_reader::{data::chunk::ChunkData, LoadMcSave};
+use mc_map_reader::data::chunk::ChunkData;
 use wildmatch::WildMatch;
 
 use self::config::SearchEntity;
@@ -27,9 +27,7 @@ pub fn main(world_dir: &Path, args: &SearchEntity) {
 
     regions.into_iter().for_each(|r| {
         let file = File::open(r).expect("Could not open file");
-        let region = mc_map_reader::Loader
-            .load_from_bytes(file)
-            .expect("Error reading file");
+        let region = mc_map_reader::load_region(file, None).expect("Error reading file");
         region
             .chunks()
             .iter()

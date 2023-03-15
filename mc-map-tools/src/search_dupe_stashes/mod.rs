@@ -7,12 +7,9 @@ use data::*;
 use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashMap, fs::OpenOptions, path::Path, sync::Mutex};
 
-use mc_map_reader::{
-    data::{
-        block_entity::{BlockEntity, BlockEntityType, InventoryBlock, Item, ShulkerBox},
-        chunk::ChunkData,
-    },
-    LoadMcSave,
+use mc_map_reader::data::{
+    block_entity::{BlockEntity, BlockEntityType, InventoryBlock, Item, ShulkerBox},
+    chunk::ChunkData,
 };
 
 use crate::{
@@ -41,7 +38,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         .map(|region| OpenOptions::new().read(true).open(region).unwrap())
         .map(read_file)
         .map(Result::unwrap)
-        .map(|data| mc_map_reader::Loader.load_from_bytes(&data[..]).unwrap())
+        .map(|data| mc_map_reader::load_region(&data[..], None).unwrap())
         .map(|region| {
             region
                 .chunks()
