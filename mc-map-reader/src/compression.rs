@@ -4,7 +4,7 @@ pub fn decompress(data: &[u8], compression: &Compression) -> Result<Vec<u8>, Err
     let mut decompressed = Vec::new();
     match compression {
         Compression::GZip => libflate::gzip::Decoder::new(data)?.read_to_end(&mut decompressed),
-        Compression::Zlib => libflate::zlib::Decoder::new(data)?.read_to_end(&mut decompressed),
+        Compression::Zlib => compress::zlib::Decoder::new(data).read_to_end(&mut decompressed),
         Compression::Uncompressed => unimplemented!(),
         Compression::Other => unimplemented!(),
     }?;
