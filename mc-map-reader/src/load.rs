@@ -38,7 +38,7 @@ pub enum LevelDatLoadError {
 pub fn parse_level_dat(data: &[u8]) -> std::result::Result<level_dat::LevelDat, LevelDatLoadError> {
     let data = compression::decompress(data, &compression::Compression::GZip)
         .map_err(LevelDatLoadError::Compression)?;
-    let data = crate::nbt::parse(data.as_slice())?;
+    let data = crate::nbt::parse(data.as_slice())?.get_as_map()?.remove("Data").ok_or(crate::nbt::Error::InvalidValue)?;
     LevelDat::try_from(data).map_err(LevelDatLoadError::LevelDat)
 }
 

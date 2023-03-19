@@ -13,6 +13,7 @@ try_from_tag!(
         "BorderSizeLerpTarget": set_border_size_lerp_target,
         "BorderSizeLerpTime": set_border_size_lerp_time,
         "BorderWarningBlocks": set_border_warning_blocks,
+        "BorderWarningTime": set_border_warning_time,
         "clearWeatherTime": set_clear_weather_time,
         "CustomBossEvents" as CustomBossEvent: set_custom_boss_events,
         "DataPacks" as DataPacks: set_data_packs,
