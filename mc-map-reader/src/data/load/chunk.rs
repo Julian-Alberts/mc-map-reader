@@ -11,7 +11,7 @@ use crate::data::load::block_entity::BlockEntityError;
 
 /// 1KiB
 const KIB: u32 = 1024;
-pub const CHUNK_ALLIGNMENT: u32 = KIB * 4;
+pub const CHUNK_ALIGNMENT: u32 = KIB * 4;
 
 #[derive(Debug, Error)]
 pub enum LoadChunkDataError {
@@ -22,7 +22,7 @@ pub enum LoadChunkDataError {
 }
 
 pub fn load_chunk(raw: &[u8], chunk_info: &ChunkInfo) -> Result<ChunkData, LoadChunkDataError> {
-    let offset = ((chunk_info.offset - 2) * CHUNK_ALLIGNMENT) as usize;
+    let offset = ((chunk_info.offset - 2) * CHUNK_ALIGNMENT) as usize;
     let chunk_data = &raw[offset..];
     let chunk_len = u32::from_be_bytes(chunk_data[..4].try_into().expect("Length does not match"));
     let compression = chunk_data[4].into();
