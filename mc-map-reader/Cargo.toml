@@ -15,6 +15,9 @@ paste = "1.0.12"
 rayon = { version = "1.7.0", optional = true }
 thiserror = "1.0.38"
 
+[dev-dependencies]
+test-case = "3.0.0"
+
 [features]
 chunk_section = []
 block_entity = []
