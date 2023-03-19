@@ -5,7 +5,7 @@ use jbe::Builder;
 
 use crate::nbt::{Array, List, Tag};
 
-use super::block_entity::Item;
+use super::item::Item;
 
 ///<a href="https://minecraft.fandom.com/wiki/Entity_format#Entity_Format">minecraft wiki</a>
 ///

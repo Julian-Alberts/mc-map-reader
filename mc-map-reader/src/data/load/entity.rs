@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{data::entity::*, data::load::block_entity::ItemError, nbt::Tag};
+use crate::{data::entity::*, data::load::item::ItemError, nbt::Tag};
 
 try_from_tag!(
 Entity => [

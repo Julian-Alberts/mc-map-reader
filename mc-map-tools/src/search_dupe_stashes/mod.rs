@@ -8,7 +8,8 @@ use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIter
 use std::{collections::HashMap, fs::OpenOptions, path::Path, sync::Mutex};
 
 use mc_map_reader::data::{
-    block_entity::{BlockEntity, BlockEntityType, InventoryBlock, Item, ShulkerBox},
+    block_entity::{BlockEntity, BlockEntityType, InventoryBlock, ShulkerBox},
+    item::Item,
     chunk::ChunkData,
 };
 
@@ -240,7 +241,7 @@ fn search_subinventory<'a, 'b>(
 }
 
 fn add_item_to_map<'a, 'b>(
-    item: &mc_map_reader::data::block_entity::ItemWithSlot,
+    item: &mc_map_reader::data::item::ItemWithSlot,
     item_map: &mut HashMap<&'a String, FoundItem<'a>>,
     config: &'b SearchDupeStashesConfig,
     x: i32,

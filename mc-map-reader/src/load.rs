@@ -1,18 +1,22 @@
-use std::io::Read;
 
-#[cfg(feature = "parallel")]
+#[cfg(all(feature = "parallel", feature = "region_file"))]
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use thiserror::Error;
 
 use crate::{
     compression,
-    data::file_format::anvil::{self, AnvilSave},
     data::{
         self,
         file_format::level_dat::{self, LevelDat},
     },
 };
+#[cfg(feature="region_file")]
+use {
+    crate::data::file_format::anvil::{self, AnvilSave},
+    std::io::Read
+};
 
+#[cfg(feature =  "region_file")]
 #[derive(Error, Debug)]
 pub enum RegionLoadError {
     #[error(transparent)]
@@ -42,6 +46,7 @@ pub fn parse_level_dat(data: &[u8]) -> std::result::Result<level_dat::LevelDat, 
     LevelDat::try_from(data).map_err(LevelDatLoadError::LevelDat)
 }
 
+#[cfg(feature = "region_file")]
 pub fn load_region(
     mut read: impl Read,
     ignore_saved_before: Option<i32>,

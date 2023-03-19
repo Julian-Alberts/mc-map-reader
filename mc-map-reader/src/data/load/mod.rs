@@ -1,9 +1,9 @@
 macro_rules! try_from_tag {
     ($name:ty => [$(
-        $key:literal $(as $ty:ty)?: $setter:ident $(feature = $feature:literal)?,
-    )*] $(? [ $($data_type:ty,)* ])? ) => {
+        $key:literal: $setter:ident $(feature = $feature:literal)?,
+    )*] $(? [ $($(if feature = $error_feature:literal)? $data_type:ty,)* ])? ) => {
         paste::paste!{
-        try_from_tag!(error $name => [[< $name Builder >], $($($ty,)?)* $($($data_type,)*)?]);
+        try_from_tag!(error $name => [[< $name Builder >], $($($data_type $(=> feature = $error_feature)?,)*)?]);
         try_from_tag!(other_impls $name);
         }
         impl TryFrom<std::collections::HashMap<String, $crate::nbt::Tag>> for $name {
@@ -79,13 +79,14 @@ macro_rules! try_from_tag {
             try_from_tag!(other_impls $name);
         }
     };
-    (error $name:ty => [$($error:ty,)*]) => {
+    (error $name:ty => [$($error:ty $(=> feature = $feature:literal)?,)*]) => {
         paste::paste! {
             #[derive(Debug, thiserror::Error)]
             pub enum [< $name Error >] {
                 #[error(transparent)]
                 Nbt(#[from] crate::nbt::Error),
                 $(
+                    $(#[cfg(feature = $feature)])?
                     #[error(transparent)]
                     $error(#[from] [< $error Error >])
                 ),*
@@ -118,7 +119,9 @@ macro_rules! add_data_to_builder {
 
 #[cfg(feature = "block_entity")]
 pub mod block_entity;
+#[cfg(feature = "region_file")]
 pub mod chunk;
 pub mod dimension;
 pub mod entity;
 pub mod file_format;
+pub mod item;

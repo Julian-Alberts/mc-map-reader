@@ -2,7 +2,7 @@ use jbe::Builder;
 
 use crate::{
     data::{
-        block_entity::{Item, ItemWithSlot},
+        item::{Item, ItemWithSlot},
         entity::{Entity, Mob},
     },
     nbt::{Array, List},

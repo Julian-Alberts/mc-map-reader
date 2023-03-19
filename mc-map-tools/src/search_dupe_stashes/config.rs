@@ -57,24 +57,24 @@ impl<'de> Deserialize<'de> for Wildcard {
 }
 
 impl Group {
-    pub fn matches(&self, item: &mc_map_reader::data::block_entity::Item) -> bool {
+    pub fn matches(&self, item: &mc_map_reader::data::item::Item) -> bool {
         self.items.iter().any(|i| i.matches(item))
     }
 }
 
 impl Item {
-    pub fn matches(&self, item: &mc_map_reader::data::block_entity::Item) -> bool {
+    pub fn matches(&self, item: &mc_map_reader::data::item::Item) -> bool {
         self.matches_id(item) && self.matches_nbt(item)
     }
 
-    fn matches_id(&self, item: &mc_map_reader::data::block_entity::Item) -> bool {
+    fn matches_id(&self, item: &mc_map_reader::data::item::Item) -> bool {
         let Some(id) = &self.id else {
             return true
         };
         id.0.matches(item.id())
     }
 
-    fn matches_nbt(&self, item: &mc_map_reader::data::block_entity::Item) -> bool {
+    fn matches_nbt(&self, item: &mc_map_reader::data::item::Item) -> bool {
         let Some(required_nbt) = &self.nbt else {
             return true
         };

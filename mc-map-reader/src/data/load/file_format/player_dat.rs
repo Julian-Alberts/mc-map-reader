@@ -4,7 +4,7 @@ use crate::{
     data::{
         file_format::player_dat::*,
         load::{
-            block_entity::{ItemError, ItemWithSlotError},
+            item::{ItemError, ItemWithSlotError},
             entity::{EntityError, MobError},
         },
     },

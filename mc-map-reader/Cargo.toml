@@ -16,7 +16,9 @@ rayon = { version = "1.7.0", optional = true }
 thiserror = "1.0.38"
 
 [features]
+region_file = []
 chunk_section = []
 block_entity = []
+
 parallel = ["rayon"]
-default = ["chunk_section", "block_entity"]
+default = []

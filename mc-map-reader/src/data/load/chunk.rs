@@ -4,8 +4,10 @@ use crate::{
     compression::{self, decompress},
     data::chunk::*,
     data::file_format::anvil::ChunkInfo,
-    data::load::block_entity::BlockEntityError,
 };
+
+#[cfg(feature = "block_entity")]
+use crate::data::load::block_entity::BlockEntityError;
 
 /// 1KiB
 const KIB: u32 = 1024;
@@ -37,17 +39,24 @@ try_from_tag!(ChunkData => [
     "xPos": set_x_pos,
     "yPos": set_y_pos,
     "zPos": set_z_pos,
-    "Status" as ChunkStatus: set_status,
+    "Status": set_status,
     "LastUpdate": set_last_update,
-    "sections" as Section: set_sections feature = "chunk_section",
-    "block_entities" as BlockEntity: set_block_entities feature = "block_entity",
+    "sections": set_sections feature = "chunk_section",
+    "block_entities": set_block_entities feature = "block_entity",
+] ? [
+    ChunkStatus,
+    if feature = "chunk_section" Section,
+    if feature = "block_entity" BlockEntity,
 ]);
 
 #[cfg(feature = "chunk_section")]
 try_from_tag!(Section => [
     "Y": set_y,
-    "block_states" as BlockStates: set_block_states,
-    "biomes" as Biomes: set_biomes,
+    "block_states": set_block_states,
+    "biomes": set_biomes,
+] ? [
+    BlockStates,
+    Biomes,
 ]);
 
 try_from_tag!(Biomes => [
@@ -57,8 +66,10 @@ try_from_tag!(Biomes => [
 
 #[cfg(feature = "chunk_section")]
 try_from_tag!(BlockStates => [
-    "palette" as BlockState: set_palette,
+    "palette": set_palette,
     "data": set_data,
+] ? [
+    BlockState,
 ]);
 
 #[cfg(feature = "chunk_section")]

@@ -15,15 +15,15 @@ try_from_tag!(
         "BorderWarningBlocks": set_border_warning_blocks,
         "BorderWarningTime": set_border_warning_time,
         "clearWeatherTime": set_clear_weather_time,
-        "CustomBossEvents" as CustomBossEvent: set_custom_boss_events,
-        "DataPacks" as DataPacks: set_data_packs,
+        "CustomBossEvents": set_custom_boss_events,
+        "DataPacks": set_data_packs,
         "DataVersion": set_data_version,
         "DayTime": set_day_time,
         "Difficulty": set_difficulty,
         "DifficultyLocked": set_difficulty_locked,
         "DimensionData": set_dimension_data,
         "GameRules": set_game_rules,
-        "WorldGenSettings" as WorldGenSettings: set_world_gen_settings,
+        "WorldGenSettings": set_world_gen_settings,
         "GameType": set_game_type,
         "generatorName": set_generator_name,
         "generatorOptions": set_generator_options,
@@ -33,7 +33,7 @@ try_from_tag!(
         "LastPlayed": set_last_played,
         "LevelName": set_level_name,
         "MapFeatures": set_map_features,
-        "Player" as Player: set_player,
+        "Player": set_player,
         "raining": set_raining,
         "rainTime": set_rain_time,
         "RandomSeed": set_random_seed,
@@ -45,11 +45,17 @@ try_from_tag!(
         "thunderTime": set_thunder_time,
         "Time": set_time,
         "version": set_version,
-        "Version" as Version: set_version_info,
+        "Version": set_version_info,
         "WanderingTraderId": set_wandering_trader_id,
         "WanderingTraderSpawnChance": set_wandering_trader_spawn_chance,
         "WanderingTraderSpawnDelay": set_wandering_trader_spawn_delay,
         "WasModded": set_was_modded,
+    ] ? [
+        CustomBossEvent,
+        DataPacks,
+        WorldGenSettings,
+        Player,
+        Version,
     ]
 );
 
@@ -75,9 +81,11 @@ DataPacks => [
 try_from_tag!(
 WorldGenSettings => [
     "bonus_chest": set_bonus_chest,
-    "dimensions" as Dimension: set_dimensions,
+    "dimensions": set_dimensions,
     "seed": set_seed,
     "generate_features": set_generate_features,
+] ? [
+    Dimension,
 ]);
 try_from_tag!(
 Version => [

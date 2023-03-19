@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use thiserror::Error;
-
 use crate::{
     data::{block_entity::*, load::entity::EntityError},
     nbt::Tag,
 };
+
+use crate::data::load::item::*;
 
 try_from_tag!(BlockEntity => parse_block_entity ? [
     Banner,
@@ -42,8 +42,11 @@ try_from_tag!(BlockEntity => parse_block_entity ? [
 
 try_from_tag!(
     Beehive => [
-        "Bees" as BeeInHive: set_bees,
-        "FlowerPos" as FlowerPos: set_flower_pos,
+        "Bees": set_bees,
+        "FlowerPos": set_flower_pos,
+    ] ? [
+        BeeInHive,
+        FlowerPos,
     ]
 );
 
@@ -66,14 +69,11 @@ try_from_tag!(Beacon => [
         "Secondary": set_secondary,
 ]);
 try_from_tag!(Barrel => parse_inventory_block_entity ? [ ItemWithSlot, ]);
-try_from_tag!(Item => [
-    "Count": set_count,
-    "id": set_id,
-    "tag": set_tag,
-]);
 try_from_tag!(Banner => [
     "CustomName": set_custom_name,
-    "Patterns" as BannerPattern: set_patterns,
+    "Patterns": set_patterns,
+] ? [
+    BannerPattern,
 ]);
 try_from_tag!(BannerPattern => [
     "Color": set_color,
@@ -90,11 +90,15 @@ try_from_tag!(BrewingStand => [
 try_from_tag!(Campfire => [
     "CookingTimes": set_cooking_times,
     "CookingTotalTimes": set_cooking_total_times,
-    "Items" as ItemWithSlot: set_items,
+    "Items": set_items,
+] ? [
+    ItemWithSlot,
 ]);
 try_from_tag!(ChiseledBookshelf => [
-    "Items" as ItemWithSlot: set_items,
+    "Items": set_items,
     "last_interacted_slot": set_last_interacted_slot,
+] ? [
+    ItemWithSlot,
 ]);
 try_from_tag!(Chest => parse_inventory_block_entity ? [ ItemWithSlot, ]);
 try_from_tag!(Comparator => [
@@ -122,7 +126,9 @@ try_from_tag!(EnchantingTable => [
 try_from_tag!(EndGateway => [
     "Age": set_age,
     "ExactTeleport": set_exact_teleport,
-    "ExitPortal" as ExitPortal: set_exit_portal,
+    "ExitPortal": set_exit_portal,
+] ? [
+    ExitPortal,
 ]);
 try_from_tag!(ExitPortal => [
     "X": set_x,
@@ -140,13 +146,17 @@ try_from_tag!(Jigsaw => [
 ]);
 try_from_tag!(Jukebox => [
     "IsPlaying": set_is_playing,
-    "RecordItem" as Item: set_record_item,
+    "RecordItem": set_record_item,
     "RecordStartTick": set_record_start_tick,
     "TickCount": set_tick_count,
+] ? [
+    Item,
 ]);
 try_from_tag!(Lectern => [
-    "Book" as Item: set_book,
+    "Book": set_book,
     "Page": set_page,
+] ? [
+    Item,
 ]);
 try_from_tag!(Spawner => [
     "Delay": set_delay,
@@ -156,19 +166,23 @@ try_from_tag!(Spawner => [
     "RequiredPlayerRange": set_required_player_range,
     "SpawnCount": set_spawn_count,
     "SpawnData": set_spawn_data,
-    "SpawnPotentials" as PotentialSpawn: set_spawn_potentials,
+    "SpawnPotentials": set_spawn_potentials,
     "SpawnRange": set_spawn_range,
+] ? [
+    PotentialSpawn,
 ]);
 try_from_tag!(PotentialSpawn => [
     "weight": set_weight,
     "data": set_data,
 ]);
 try_from_tag!(Piston => [
-    "blockState" as PistonBlockState: set_block_state,
+    "blockState": set_block_state,
     "extending": set_extending,
     "facing": set_facing,
     "progress": set_progress,
     "source": set_source,
+] ? [
+    PistonBlockState,
 ]);
 try_from_tag!(PistonBlockState => [
     "Name": set_name,
@@ -186,15 +200,21 @@ try_from_tag!(Sign => [
 try_from_tag!(Skull => [
     "note_block_sound": set_note_block_sound,
     "ExtraType": set_extra_type,
-    "SkullOwner" as SkullOwner: set_skull_owner,
+    "SkullOwner": set_skull_owner,
+] ? [
+    SkullOwner,
 ]);
 try_from_tag!(SkullOwner => [
     "Id": set_id,
     "Name": set_name,
-    "Properties" as SkullOwnerProperties: set_properties,
+    "Properties": set_properties,
+] ? [
+    SkullOwnerProperties,
 ]);
 try_from_tag!(SkullOwnerProperties => [
-    "textures" as SkullOwnerTextures: set_textures,
+    "textures": set_textures,
+] ? [
+    SkullOwnerTextures,
 ]);
 try_from_tag!(SkullOwnerTextures => [
     "Value": set_value,
@@ -204,7 +224,9 @@ try_from_tag!(Smoker => parse_cooking_block_entity ? [ ItemWithSlot, ]);
 try_from_tag!(SoulCampfire => [
     "CookingTimes": set_cooking_times,
     "CookingTotalTimes": set_cooking_total_times,
-    "Items" as ItemWithSlot: set_items,
+    "Items": set_items,
+] ? [
+    ItemWithSlot,
 ]);
 try_from_tag!(StructureBlock => [
     "author": set_author,
@@ -226,7 +248,6 @@ try_from_tag!(StructureBlock => [
     "sizeZ": set_size_z,
 ]);
 try_from_tag!(TrappedChest => parse_inventory_block_entity ? [ ItemWithSlot, ]);
-try_from_tag!(ItemWithSlot => parse_item_with_slot ? [ Item, ]);
 try_from_tag!(MobSpawner => parse_mob_spawner ? [ Spawner, ]);
 
 fn parse_block_entity(
@@ -296,16 +317,6 @@ fn parse_mob_spawner(
     builder.set_spawner(nbt_data.try_into()?);
     Ok(())
 }
-fn parse_item_with_slot(
-    builder: &mut ItemWithSlotBuilder,
-    mut nbt_data: HashMap<String, Tag>,
-) -> Result<(), ItemWithSlotError> {
-    add_data_to_builder!(builder, nbt_data => [
-        "Slot": set_slot,
-    ]);
-    builder.set_item(nbt_data.try_into()?);
-    Ok(())
-}
 fn parse_cooking_block_entity<E>(
     builder: &mut impl CookingBlockEntityBuilder,
     mut nbt_data: HashMap<String, Tag>,
@@ -347,92 +358,4 @@ where
         "LootTableSeed": set_loot_table_seed,
     ]);
     Ok(())
-}
-
-#[derive(Debug, Error, PartialEq, Eq)]
-pub enum BlockEntityMissingDataError {
-    #[error(transparent)]
-    BlockEntity(#[from] BlockEntityBuilderError),
-    #[error(transparent)]
-    Banner(#[from] BannerBuilderError),
-    #[error(transparent)]
-    BannerPattern(#[from] BannerPatternBuilderError),
-    #[error(transparent)]
-    Barrel(#[from] BarrelBuilderError),
-    #[error(transparent)]
-    Item(#[from] ItemBuilderError),
-    #[error(transparent)]
-    ItemWithSlot(#[from] ItemWithSlotBuilderError),
-    #[error(transparent)]
-    Beacon(#[from] BeaconBuilderError),
-    #[error(transparent)]
-    Beehive(#[from] BeehiveBuilderError),
-    #[error(transparent)]
-    FlowerPos(#[from] FlowerPosBuilderError),
-    #[error(transparent)]
-    BeeInHive(#[from] BeeInHiveBuilderError),
-    #[error(transparent)]
-    BlastFurnace(#[from] BlastFurnaceBuilderError),
-    #[error(transparent)]
-    BrewingStand(#[from] BrewingStandBuilderError),
-    #[error(transparent)]
-    Campfire(#[from] CampfireBuilderError),
-    #[error(transparent)]
-    ChiseledBookshelf(#[from] ChiseledBookshelfBuilderError),
-    #[error(transparent)]
-    Chest(#[from] ChestBuilderError),
-    #[error(transparent)]
-    Comparator(#[from] ComparatorBuilderError),
-    #[error(transparent)]
-    CommandBlock(#[from] CommandBlockBuilderError),
-    #[error(transparent)]
-    Conduit(#[from] ConduitBuilderError),
-    #[error(transparent)]
-    Dispenser(#[from] DispenserBuilderError),
-    #[error(transparent)]
-    Dropper(#[from] DropperBuilderError),
-    #[error(transparent)]
-    EnchantingTable(#[from] EnchantingTableBuilderError),
-    #[error(transparent)]
-    EndGateway(#[from] EndGatewayBuilderError),
-    #[error(transparent)]
-    ExitPortal(#[from] ExitPortalBuilderError),
-    #[error(transparent)]
-    Furnace(#[from] FurnaceBuilderError),
-    #[error(transparent)]
-    Hopper(#[from] HopperBuilderError),
-    #[error(transparent)]
-    Jigsaw(#[from] JigsawBuilderError),
-    #[error(transparent)]
-    Jukebox(#[from] JukeboxBuilderError),
-    #[error(transparent)]
-    Lectern(#[from] LecternBuilderError),
-    #[error(transparent)]
-    MobSpawner(#[from] MobSpawnerBuilderError),
-    #[error(transparent)]
-    Spawner(#[from] SpawnerBuilderError),
-    #[error(transparent)]
-    PotentialSpawn(#[from] PotentialSpawnBuilderError),
-    #[error(transparent)]
-    Piston(#[from] PistonBuilderError),
-    #[error(transparent)]
-    ShulkerBox(#[from] ShulkerBoxBuilderError),
-    #[error(transparent)]
-    Sign(#[from] SignBuilderError),
-    #[error(transparent)]
-    Skull(#[from] SkullBuilderError),
-    #[error(transparent)]
-    SkullOwner(#[from] SkullOwnerBuilderError),
-    #[error(transparent)]
-    SkullOwnerProperties(#[from] SkullOwnerPropertiesBuilderError),
-    #[error(transparent)]
-    SkullOwnerTextures(#[from] SkullOwnerTexturesBuilderError),
-    #[error(transparent)]
-    Smoker(#[from] SmokerBuilderError),
-    #[error(transparent)]
-    SoulCampfire(#[from] SoulCampfireBuilderError),
-    #[error(transparent)]
-    StructureBlock(#[from] StructureBlockBuilderError),
-    #[error(transparent)]
-    TrappedChest(#[from] TrappedChestBuilderError),
 }

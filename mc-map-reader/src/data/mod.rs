@@ -1,5 +1,6 @@
 #[cfg(feature = "block_entity")]
 pub mod block_entity;
+#[cfg(feature = "region_file")]
 pub mod chunk;
 pub mod dimension;
 pub mod entity;
