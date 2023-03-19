@@ -277,6 +277,7 @@ impl<'a, T: Bounded> QuadTree<'a, T> {
     }
 }
 
+#[cfg(test)]
 impl<'a, T: Bounded> QuadTree<'a, T> {
     fn len(&self) -> usize {
         let mut count = self.elements.len();
@@ -289,6 +290,7 @@ impl<'a, T: Bounded> QuadTree<'a, T> {
     }
 }
 
+#[cfg(test)]
 impl<'a, T: Bounded> QuadTree<'a, T> {
     fn clear(&mut self) {
         self.elements.clear();

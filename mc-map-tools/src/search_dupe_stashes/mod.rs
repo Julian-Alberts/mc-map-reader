@@ -29,6 +29,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         mc_map_reader::files::get_region_files(world_dir, None)
             .expect("Could not read region directory")
     };
+    log::debug!("Found {} region files {region_groups:#?}", region_groups.len());
     let config = config.search_dupe_stashes;
     #[cfg(feature = "parallel")]
     let region_groups = region_groups.into_par_iter();
@@ -57,8 +58,10 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         });
 
     if inventories.is_empty() {
+        log::info!("No inventories found");
         return;
     }
+    log::info!("Found {} inventories", inventories.len());
 
     let (x1, z1, x2, z2) = inventories.iter().fold(
         (i32::MAX, i32::MAX, i32::MIN, i32::MIN),
@@ -70,6 +73,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
             (x1, z1, x2, z2)
         },
     );
+    log::debug!("Bounds: ({x1}, {z1}) - ({x2}, {z2})");
     assert!(x1 <= x2 && z1 <= z2, "{x1} <= {x2} && {z1} <= {z2}");
     let x_direction = x2 - x1;
     let z_direction = z2 - z1;
@@ -161,6 +165,7 @@ where
             search_inventory_block(inventory, block_entity, config)
         })
         .collect::<Vec<_>>();
+    log::debug!("Found {} inventories in chunk", res.len());
     if res.is_empty() {
         None
     } else {
@@ -193,6 +198,7 @@ where
     } else {
         return None;
     };
+    log::debug!("Found inventory at ({x}, {y}, {z}) with {items_len} items", items_len = items.len());
     Some(FoundInventory {
         inventory_type: base_entity.id().clone(),
         items,

@@ -25,7 +25,10 @@ macro_rules! tags {
             fn new(id: u8, data: &[u8], offset: &mut usize) -> Result<Tag, Error> {
                 let tag = match id {
                     $($id => Self::$tag_type$(($converter(data, offset)?))?,)*
-                    other => return Err(Error::UnknownTagId(other))
+                    other => {
+                        log::error!("Unknown tag id: {}", other);
+                        return Err(Error::UnknownTagId(other))
+                    }
                 };
                 Ok(tag)
             }
@@ -41,6 +44,7 @@ macro_rules! tags {
                 if let Self::$tag_type(v) = self {
                     Ok(v)
                 } else {
+                    log::error!("Tried to get {} from tag of type {}", stringify!($ty), self.get_id());
                     Err(Error::InvalidValue)
                 }
             }

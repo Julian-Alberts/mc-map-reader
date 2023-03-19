@@ -14,7 +14,9 @@ thiserror = "1.0.38"
 wildmatch = "2.1.1"
 rayon = { version = "1.7.0", optional = true }
 dirs = "4.0.0"
+log = "0.4.17"
+simplelog = "0.12.1"
 
 [features]
-parallel = [ "rayon", "mc-map-reader/parallel" ]
-default = [ "parallel" ]
+parallel = ["rayon", "mc-map-reader/parallel"]
+default = ["parallel"]

@@ -3,6 +3,7 @@ use std::{io::Write, path::PathBuf};
 pub enum Files {
     PluginSettings,
     ConfigFile,
+    LogFile,
 }
 
 impl Files {
@@ -14,6 +15,9 @@ impl Files {
             }
             Files::ConfigFile => {
                 path.push("config.json");
+            }
+            Files::LogFile => {
+                path.push("error.log");
             }
         }
         path
@@ -62,28 +66,10 @@ fn get_plugin_dir() -> PathBuf {
     plugin_path
 }
 
-fn get_data_dir() -> PathBuf {
-    let mut data_dir = get_config_dir();
-    data_dir.push("data");
-    data_dir
-}
-
-fn get_plugin_data_dir() -> PathBuf {
-    let mut data_dir = get_data_dir();
-    data_dir.push("plugins");
-    data_dir
-}
-
-fn get_data_dir_for_plugin(plugin: &str) -> PathBuf {
-    let mut plugin_dir = get_plugin_data_dir();
-    plugin_dir.push(plugin);
-    plugin_dir
-}
-
+#[allow(unused)]
 fn init() -> std::io::Result<()> {
     use std::fs::create_dir_all;
     create_dir_all(get_plugin_dir())?;
-    create_dir_all(get_plugin_data_dir())?;
     if !Files::PluginSettings.path().exists() {
         let mut f = std::fs::OpenOptions::new()
             .write(true)
