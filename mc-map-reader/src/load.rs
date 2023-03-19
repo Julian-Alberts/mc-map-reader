@@ -3,12 +3,11 @@
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use thiserror::Error;
 
+use crate::data;
+#[cfg(feature="level_dat")]
 use crate::{
     compression,
-    data::{
-        self,
-        file_format::level_dat::{self, LevelDat},
-    },
+    data::file_format::level_dat::{self, LevelDat},
 };
 #[cfg(feature="region_file")]
 use {
@@ -35,10 +34,12 @@ pub enum LevelDatLoadError {
     NBT(#[from] crate::nbt::Error),
     #[error(transparent)]
     Compression(crate::compression::Error),
+    #[cfg(feature = "level_dat")]
     #[error(transparent)]
     LevelDat(#[from] data::load::file_format::level_dat::LevelDatError),
 }
 
+#[cfg(feature = "level_dat")]
 pub fn parse_level_dat(data: &[u8]) -> std::result::Result<level_dat::LevelDat, LevelDatLoadError> {
     let data = compression::decompress(data, &compression::Compression::GZip)
         .map_err(LevelDatLoadError::Compression)?;

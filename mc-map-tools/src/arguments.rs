@@ -24,6 +24,7 @@ pub enum Action {
     SearchDupeStashes(SearchDupeStashes),
     /// Find inventories of a specific type
     FindInventories(crate::find_inventories::config::SearchEntity),
+    #[cfg(feature = "experimental")]
     ReadLevelDat,
 }
 

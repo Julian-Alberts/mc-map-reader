@@ -19,6 +19,7 @@ thiserror = "1.0.38"
 region_file = []
 chunk_section = []
 block_entity = []
+level_dat = []
 
 parallel = ["rayon"]
 default = []

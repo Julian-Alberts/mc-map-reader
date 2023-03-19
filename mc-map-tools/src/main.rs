@@ -3,6 +3,7 @@ mod config;
 mod find_inventories;
 mod paths;
 mod quadtree;
+#[cfg(feature = "experimental")]
 mod read_level_dat;
 mod search_dupe_stashes;
 
@@ -40,6 +41,7 @@ fn main() {
         Action::FindInventories(sub_args) => {
             find_inventories::main(args.save_directory.as_path(), &sub_args)
         }
+        #[cfg(feature = "experimental")]
         Action::ReadLevelDat => read_level_dat::main(args.save_directory.as_path()),
     }
 }

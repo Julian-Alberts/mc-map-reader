@@ -19,4 +19,5 @@ simplelog = "0.12.1"
 
 [features]
 parallel = ["rayon", "mc-map-reader/parallel"]
+experimental = [ "mc-map-reader/level_dat" ]
 default = ["parallel"]
