@@ -8,7 +8,6 @@ use crate::nbt::{Array, List, Tag};
 use super::item::Item;
 
 ///<a href="https://minecraft.fandom.com/wiki/Entity_format#Entity_Format">minecraft wiki</a>
-///
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
 pub struct Entity {
     pub air: Option<i16>,

@@ -16,30 +16,40 @@ use {
 };
 
 #[cfg(feature =  "region_file")]
+/// Errors that can occur when loading a region.
 #[derive(Error, Debug)]
 pub enum RegionLoadError {
+    /// Some data in the region file could not be decompressed.
     #[error(transparent)]
     Decode(crate::compression::Error),
+    /// Some data in the region file is not valid NBT.
     #[error(transparent)]
     NBT(#[from] crate::nbt::Error),
     #[error(transparent)]
+    /// Error while reading from the region file.
     Io(#[from] std::io::Error),
+    /// Error while loading the data of a chunk.
     #[error(transparent)]
     LoadChunkData(#[from] data::load::chunk::LoadChunkDataError),
 }
 
+/// Errors that can occur when loading a level.dat file.
 #[derive(Error, Debug)]
 pub enum LevelDatLoadError {
+    /// Some data in the level.dat file is not valid NBT.
     #[error(transparent)]
     NBT(#[from] crate::nbt::Error),
+    /// Some data in the level.dat file could not be decompressed.
     #[error(transparent)]
     Compression(crate::compression::Error),
     #[cfg(feature = "level_dat")]
+    /// Some data in the level.dat file is not valid.
     #[error(transparent)]
     LevelDat(#[from] data::load::file_format::level_dat::LevelDatError),
 }
 
 #[cfg(feature = "level_dat")]
+/// Parse a level.dat file.
 pub fn parse_level_dat(data: &[u8]) -> std::result::Result<level_dat::LevelDat, LevelDatLoadError> {
     let data = compression::decompress(data, &compression::Compression::GZip)
         .map_err(LevelDatLoadError::Compression)?;
@@ -48,6 +58,7 @@ pub fn parse_level_dat(data: &[u8]) -> std::result::Result<level_dat::LevelDat, 
 }
 
 #[cfg(feature = "region_file")]
+/// Load a region file.
 pub fn load_region(
     mut read: impl Read,
     ignore_saved_before: Option<i32>,
