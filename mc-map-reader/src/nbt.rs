@@ -69,6 +69,7 @@ macro_rules! tags {
     };
 }
 
+// TODO add test
 pub trait NbtData: TryFrom<Tag, Error = Self::BuildError>
 where
     Self::BuildError: From<Error>,
@@ -76,6 +77,7 @@ where
     type BuildError;
 }
 
+// TODO add test
 impl<T> TryFrom<Tag> for List<T>
 where
     T: NbtData,
@@ -92,6 +94,7 @@ where
     }
 }
 
+// TODO add test
 impl<T> NbtData for HashMap<String, T>
 where
     T: NbtData,
@@ -99,6 +102,7 @@ where
     type BuildError = T::BuildError;
 }
 
+// TODO add test
 impl<T> TryFrom<Tag> for HashMap<String, T>
 where
     T: NbtData,
@@ -114,6 +118,7 @@ where
     }
 }
 
+// TODO add test
 impl TryFrom<Tag> for bool {
     type Error = Error;
     fn try_from(value: Tag) -> Result<bool, Self::Error> {
@@ -125,12 +130,14 @@ impl TryFrom<Tag> for bool {
     }
 }
 
+// TODO add test
 impl<T> From<Vec<T>> for List<T> {
     fn from(value: Vec<T>) -> Self {
         Self(value)
     }
 }
 
+// TODO add test
 impl<T> IntoIterator for List<T> {
     type IntoIter = IntoIter<T>;
     type Item = T;
@@ -139,6 +146,7 @@ impl<T> IntoIterator for List<T> {
     }
 }
 
+// TODO add test
 impl<A> FromIterator<A> for List<A> {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
         Self(iter.into_iter().collect())
@@ -254,6 +262,7 @@ pub struct Array<T>(Vec<T>);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct List<T>(Vec<T>);
 
+// TODO Add test
 impl<T> List<T> {
     pub fn take(self) -> Vec<T> {
         self.0
@@ -271,6 +280,7 @@ pub enum Error {
     InvalidValue,
 }
 
+// TODO Add test
 impl<T> Deref for Array<T> {
     type Target = Vec<T>;
     fn deref(&self) -> &Self::Target {
@@ -278,6 +288,7 @@ impl<T> Deref for Array<T> {
     }
 }
 
+// TODO Add test
 impl<T> Deref for List<T> {
     type Target = Vec<T>;
     fn deref(&self) -> &Self::Target {
@@ -285,6 +296,7 @@ impl<T> Deref for List<T> {
     }
 }
 
+// TODO Add test
 pub fn parse(data: &[u8]) -> Result<Tag, Error> {
     match data[0] {
         10 => Tag::new(10, data, &mut 3),
@@ -330,6 +342,7 @@ fn convert_to_i64(data: &[u8], offset: &mut usize) -> Result<i64, Error> {
     Ok(result)
 }
 
+//TODO Add test
 fn convert_to_f32(data: &[u8], offset: &mut usize) -> Result<f32, Error> {
     let result = f32::from_be_bytes([
         data[*offset],
@@ -341,6 +354,7 @@ fn convert_to_f32(data: &[u8], offset: &mut usize) -> Result<f32, Error> {
     Ok(result)
 }
 
+//TODO Add test
 fn convert_to_f64(data: &[u8], offset: &mut usize) -> Result<f64, Error> {
     let result = f64::from_be_bytes([
         data[*offset],
@@ -413,4 +427,92 @@ fn convert_to_i64_array(data: &[u8], offset: &mut usize) -> Result<Array<i64>, E
         result.push(convert_to_i64(data, offset)?)
     }
     Ok(Array(result))
+}
+
+#[cfg(test)]
+mod tests {
+
+    use test_case::test_case;
+    use super::Tag;
+
+    #[test_case(&[10], 0 => 10; "Single byte array")]
+    #[test_case(&[1,2,3,4,5,6,7], 0 => 1; "Multi byte array")]
+    #[test_case(&[1,2,3,4,5,6,7], 3 => 4; "Offset in array")]
+    fn test_convert_to_i8(data: &[u8], mut offset: usize) -> i8 {
+        let orig_offset = offset;
+        let result = super::convert_to_i8(data, &mut offset).unwrap();
+        assert_eq!(offset, orig_offset + 1);
+        result
+    }
+
+    #[test_case(&[0, 10], 0 => 10; "Single value array")]
+    #[test_case(&[0, 1, 0, 2, 0, 3, 0, 4], 0 => 1; "Multi value array")]
+    #[test_case(&[0, 1, 0, 2, 0, 3, 0, 4], 2 => 2; "Offset in array")]
+    #[test_case(&[0, 1, 0, 2, 0, 3, 0, 4], 5 => 768; "Big value")]
+    #[test_case(&[0, 1, 0, 2, 0, 3, 3, 4], 5 => 771; "Multi byte value")]
+    fn test_convert_to_i16(data: &[u8], mut offset: usize) -> i16 {
+        let orig_offset = offset;
+        let result = super::convert_to_i16(data, &mut offset).unwrap();
+        assert_eq!(offset, orig_offset + 2);
+        result
+    }
+
+    #[test_case(&[0, 0, 0, 10], 0 => 10; "Single value array")]
+    #[test_case(&[0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4], 0 => 1; "Multi value array")]
+    #[test_case(&[0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4], 4 => 2; "Offset in array")]
+    #[test_case(&[1, 1, 1, 1], 0 => 0b1_0000_0001_0000_0001_0000_0001; "Big value")]
+    fn test_convert_to_i32(data: &[u8], mut offset: usize) -> i32 {
+        let orig_offset = offset;
+        let result = super::convert_to_i32(data, &mut offset).unwrap();
+        assert_eq!(offset, orig_offset + 4);
+        result
+    }
+    #[test_case(&[0, 0, 0, 0, 0, 0, 0, 10], 0 => 10; "Single value array")]
+    #[test_case(&[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 4], 4 => 3; "Offset in array")]
+    #[test_case(&[1, 1, 1, 1, 1, 1, 1, 1], 0 => 0b1_0000_0001_0000_0001_0000_0001_0000_0001_0000_0001_0000_0001_0000_0001; "Big value")]
+    fn test_convert_to_i64(data: &[u8], mut offset: usize) -> i64 {
+        let orig_offset = offset;
+        let result = super::convert_to_i64(data, &mut offset).unwrap();
+        assert_eq!(offset, orig_offset + 8);
+        result
+    }
+
+    #[test_case(&[0, 0, 0, 1, 1], 0 => vec![1]; "Single value array")]
+    #[test_case(&[0, 0, 0, 4, 1, 2, 3, 4], 0 => vec![1,2,3,4]; "Multi value array")]
+    fn test_convert_to_i8_array(data: &[u8], mut offset: usize) -> Vec<i8> {
+        let orig_offset = offset;
+        let result = super::convert_to_i8_array(data, &mut offset).unwrap();
+        assert_eq!(offset, orig_offset + 4 + result.0.len());
+        result.0
+    }
+
+    #[test]
+    fn test_convert_to_string() {
+        let data = &[0, 5, b'H', b'e', b'l', b'l', b'o'];
+        let mut offset = 0;
+        let result = super::convert_to_string(data, &mut offset).unwrap();
+        assert_eq!(offset, 7);
+        assert_eq!(result, "Hello");
+    }
+
+    #[test_case(&[1, 0, 0, 0, 1, 1], 0 => vec![Tag::Byte(1)]; "Single value")]
+    #[test_case(&[1, 0, 0, 0, 2, 1, 255], 0 => vec![Tag::Byte(1), Tag::Byte(-1)]; "Multi value")]
+    fn test_convert_to_list(data: &[u8], mut offset: usize) -> Vec<Tag> {
+        let orig_offset = offset;
+        let result = super::convert_to_list(data, &mut offset).unwrap();
+        assert_eq!(offset, orig_offset + 5 + result.0.len());
+        result.0
+    }
+
+    #[test_case(&[0], 0 => Vec::<(String, Tag)>::new(); "Empty map")]
+    #[test_case(&[1, 0, 1, b'A', 1, 0], 0 => vec![("A".to_string(), Tag::Byte(1))]; "Single value in map")]
+    #[test_case(&[1, 0, 1, b'A', 1, 8, 0, 2, b'B', b'B', 0, 4, b'A', b'B', b'C', b'D', 0], 0 => vec![("A".to_string(), Tag::Byte(1)), ("BB".to_string(), Tag::String("ABCD".to_string()))]; "Multi value in map")]
+    fn test_convert_to_compound(data: &[u8], mut offset: usize) -> Vec<(String, Tag)> {
+        let mut result = super::convert_to_map(data, &mut offset).unwrap()
+            .into_iter().collect::<Vec<_>>();
+        result.sort_by(|a, b| a.0.cmp(&b.0));
+        result
+    }
+
+    
 }
