@@ -14,6 +14,7 @@ macro_rules! tags {
         description: $description:literal
     }),*) => {
         #[derive(Debug, Clone, PartialEq)]
+        /// Tags are used to store data in the NBT format.
         pub enum Tag {
             $(
                 #[doc=$description]
@@ -40,6 +41,7 @@ macro_rules! tags {
             }
 
             $($(
+            /// Returns the value of the tag if it is of the correct type.
             pub fn $getter(self) -> Result<$ty, Error> {
                 if let Self::$tag_type(v) = self {
                     Ok(v)
@@ -70,10 +72,13 @@ macro_rules! tags {
 }
 
 // TODO add test
+/// All possible NBT data types must implement this trait.
+/// Most of the time this is done by macros.
 pub trait NbtData: TryFrom<Tag, Error = Self::BuildError>
 where
     Self::BuildError: From<Error>,
 {
+    /// The error type that is returned when building the data type using TryFrom<Tag> fails.
     type BuildError;
 }
 
@@ -257,25 +262,33 @@ tags![
 }
 ];
 
+/// A NBT Array of a specific type.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Array<T>(Vec<T>);
+
+/// A NBT List of a specific type.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct List<T>(Vec<T>);
 
 // TODO Add test
 impl<T> List<T> {
+    /// Get the inner vector.
     pub fn take(self) -> Vec<T> {
         self.0
     }
+    /// Get an iterator over the data.
     pub fn iter(&self) -> core::slice::Iter<T> {
         self.0.iter()
     }
 }
 
+/// A generic error type which represents all possible errors that can occur when parsing NBT.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum Error {
+    /// The given tag ID is not valid.
     #[error("Unknown Tag ID: {0}")]
     UnknownTagId(u8),
+    /// The given value is not valid.
     #[error("Invalid Value")]
     InvalidValue,
 }
@@ -297,6 +310,7 @@ impl<T> Deref for List<T> {
 }
 
 // TODO Add test
+/// Parse a NBT tag from a byte slice.
 pub fn parse(data: &[u8]) -> Result<Tag, Error> {
     match data[0] {
         10 => Tag::new(10, data, &mut 3),

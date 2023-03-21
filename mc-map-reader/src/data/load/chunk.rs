@@ -9,6 +9,7 @@ use crate::{
 
 /// 1KiB
 const KIB: u32 = 1024;
+/// The alignment of chunks in the region file.
 pub const CHUNK_ALLIGNMENT: u32 = KIB * 4;
 
 #[derive(Debug, Error)]
