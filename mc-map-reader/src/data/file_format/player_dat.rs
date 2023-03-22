@@ -1,3 +1,5 @@
+//! The player.dat file format
+
 use jbe::Builder;
 
 use crate::{
@@ -8,15 +10,23 @@ use crate::{
     nbt::{Array, List},
 };
 
-// https://minecraft.fandom.com/wiki/Player.dat_format
+/// Information about the player.
+/// [Minecraft Wiki](https://minecraft.fandom.com/wiki/Player.dat_format)
 #[derive(Debug, Builder, getset::Getters)]
 pub struct Player {
+    /// Generic mob data
     pub mob: Mob,
+    /// The player's abilities
     pub abilities: PlayerAbilities,
+    /// The version of the data. This value is incremented with every new version of Minecraft.
     pub data_version: i32,
+    /// The dimension the player is currently in.
     pub dimension: String,
+    /// The player's ender chest
     pub ender_items: List<ItemWithSlot>,
+    /// The position the player entered the nether at.
     pub entered_nether_position: Option<EnteredNetherPosition>,
+    
     pub food_exhaustion_level: f32,
     pub food_level: i32,
     pub food_saturation_level: f32,

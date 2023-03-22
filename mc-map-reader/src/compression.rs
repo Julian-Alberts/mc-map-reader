@@ -1,5 +1,6 @@
 use std::io::Read;
 
+/// Decompresses the given data using the given compression.
 pub fn decompress(data: &[u8], compression: &Compression) -> Result<Vec<u8>, Error> {
     let mut decompressed = Vec::new();
     match compression {
