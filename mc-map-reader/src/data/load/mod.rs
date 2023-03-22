@@ -82,11 +82,15 @@ macro_rules! try_from_tag {
     (error $name:ty => [$($error:ty $(=> feature = $feature:literal)?,)*]) => {
         paste::paste! {
             #[derive(Debug, thiserror::Error)]
+            #[doc = "Error type for"]
+            #[doc = stringify!($name)]
             pub enum [< $name Error >] {
                 #[error(transparent)]
+                /// An NBT error occurred
                 Nbt(#[from] crate::nbt::Error),
                 $(
                     $(#[cfg(feature = $feature)])?
+                    /// An error occurred while parsing a field occurred
                     #[error(transparent)]
                     $error(#[from] [< $error Error >])
                 ),*

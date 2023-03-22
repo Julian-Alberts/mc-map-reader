@@ -12,20 +12,28 @@ use crate::data::load::block_entity::BlockEntityError;
 /// 1KiB
 const KIB: u32 = 1024;
 /// The alignment of chunks in the region file.
-pub const CHUNK_ALIGNMENT: u32 = KIB * 4;
+const CHUNK_ALIGNMENT: u32 = KIB * 4;
 
+/// Errors that can occur when loading chunk data.
 #[derive(Debug, Error)]
 pub enum LoadChunkDataError {
+    /// The chunk data is not valid.
     #[error(transparent)]
     ChunkData(#[from] ChunkDataError),
+    /// The chunk data length could not be parsed.
+    #[error("Could not parse chunk data length")]
+    ChunkDataLengthError,
+    /// The chunk data could not be decompressed.
     #[error(transparent)]
     Compression(compression::Error),
+
 }
 
+/// Load chunk data from a region file.
 pub fn load_chunk(raw: &[u8], chunk_info: &ChunkInfo) -> Result<ChunkData, LoadChunkDataError> {
     let offset = ((chunk_info.offset - 2) * CHUNK_ALIGNMENT) as usize;
     let chunk_data = &raw[offset..];
-    let chunk_len = u32::from_be_bytes(chunk_data[..4].try_into().expect("Length does not match"));
+    let chunk_len = u32::from_be_bytes(chunk_data[..4].try_into().map_err(|_| LoadChunkDataError::ChunkDataLengthError)?);
     let compression = chunk_data[4].into();
     let data = &chunk_data[5..chunk_len as usize];
 

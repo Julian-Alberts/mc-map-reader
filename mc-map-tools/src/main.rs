@@ -1,3 +1,18 @@
+#![warn(missing_docs)]
+#![deny(clippy::unwrap_used)]
+#![deny(unused_unsafe)]
+#![deny(clippy::undocumented_unsafe_blocks)]
+
+//! # mc-map-tools
+//! A collection of tools for working with Minecraft maps.
+//! ## Features
+//! ### SearchDupeStashes
+//! Search for stashes of duplicate items.
+//! ### FindInventories (experimental)
+//! Find inventories of a specific type.
+//! ### ReadLevelDat (experimental)
+//! Read the level.dat file. This feature is currently pretty useless.
+
 mod arguments;
 mod config;
 mod find_inventories;
@@ -74,5 +89,4 @@ fn setup_logger(level: log::LevelFilter) {
         TermLogger::new(level, Config::default(), simplelog::TerminalMode::Stderr, ColorChoice::Auto),
         WriteLogger::new(level, Config::default(), std::fs::File::create(paths::Files::LogFile.path()).unwrap())
     ]).unwrap();
-    log::error!("Test2")
 }

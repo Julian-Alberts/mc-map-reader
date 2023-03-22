@@ -7,6 +7,7 @@ use crate::nbt::{Array, List, Tag};
 
 #[cfg(feature = "block_entity")]
 use super::block_entity::BlockEntity;
+pub use super::load::chunk::*;
 
 #[derive(jbe::Builder, Debug, Getters, CopyGetters)]
 pub struct ChunkData {

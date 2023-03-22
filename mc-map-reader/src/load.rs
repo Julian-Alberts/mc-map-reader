@@ -30,7 +30,7 @@ pub enum RegionLoadError {
     Io(#[from] std::io::Error),
     /// Error while loading the data of a chunk.
     #[error(transparent)]
-    LoadChunkData(#[from] data::load::chunk::LoadChunkDataError),
+    LoadChunkData(#[from] data::chunk::LoadChunkDataError),
 }
 
 /// Errors that can occur when loading a level.dat file.
@@ -81,11 +81,10 @@ pub fn load_region(
     let chunk_info = header.get_chunk_info().iter();
     let chunks = chunk_info
         .filter_map(|ci| ci.as_ref())
-        .filter(|chunk_info| {
-            ignore_saved_before.is_none()
-                || chunk_info.timestamp as i32 >= ignore_saved_before.unwrap()
-        })
-        .map(|chunk| data::load::chunk::load_chunk(&raw_chunk_data, chunk))
+        .filter(|chunk_info| 
+            ignore_saved_before.map_or(true, |ignore_saved_before| chunk_info.timestamp as i32 >= ignore_saved_before)
+        )
+        .map(|chunk| data::chunk::load_chunk(&raw_chunk_data, chunk))
         .collect::<std::result::Result<_, _>>()?;
 
     Ok(AnvilSave::new(header, chunks))
