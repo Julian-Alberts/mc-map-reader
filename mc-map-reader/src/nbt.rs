@@ -71,7 +71,6 @@ macro_rules! tags {
     };
 }
 
-// TODO add test
 /// All possible NBT data types must implement this trait.
 /// Most of the time this is done by macros.
 pub trait NbtData: TryFrom<Tag, Error = Self::BuildError>
@@ -82,7 +81,6 @@ where
     type BuildError;
 }
 
-// TODO add test
 impl<T> TryFrom<Tag> for List<T>
 where
     T: NbtData,
@@ -99,7 +97,6 @@ where
     }
 }
 
-// TODO add test
 impl<T> NbtData for HashMap<String, T>
 where
     T: NbtData,
@@ -107,7 +104,6 @@ where
     type BuildError = T::BuildError;
 }
 
-// TODO add test
 impl<T> TryFrom<Tag> for HashMap<String, T>
 where
     T: NbtData,
@@ -123,7 +119,6 @@ where
     }
 }
 
-// TODO add test
 impl TryFrom<Tag> for bool {
     type Error = Error;
     fn try_from(value: Tag) -> Result<bool, Self::Error> {
@@ -135,14 +130,18 @@ impl TryFrom<Tag> for bool {
     }
 }
 
-// TODO add test
 impl<T> From<Vec<T>> for List<T> {
     fn from(value: Vec<T>) -> Self {
         Self(value)
     }
 }
 
-// TODO add test
+impl<T> From<Vec<T>> for Array<T> {
+    fn from(value: Vec<T>) -> Self {
+        Self(value)
+    }
+}
+
 impl<T> IntoIterator for List<T> {
     type IntoIter = IntoIter<T>;
     type Item = T;
@@ -151,7 +150,6 @@ impl<T> IntoIterator for List<T> {
     }
 }
 
-// TODO add test
 impl<A> FromIterator<A> for List<A> {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
         Self(iter.into_iter().collect())
@@ -270,7 +268,6 @@ pub struct Array<T>(Vec<T>);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct List<T>(Vec<T>);
 
-// TODO Add test
 impl<T> List<T> {
     /// Get the inner vector.
     pub fn take(self) -> Vec<T> {
@@ -293,7 +290,6 @@ pub enum Error {
     InvalidValue,
 }
 
-// TODO Add test
 impl<T> Deref for Array<T> {
     type Target = Vec<T>;
     fn deref(&self) -> &Self::Target {
@@ -301,7 +297,6 @@ impl<T> Deref for Array<T> {
     }
 }
 
-// TODO Add test
 impl<T> Deref for List<T> {
     type Target = Vec<T>;
     fn deref(&self) -> &Self::Target {
@@ -309,12 +304,11 @@ impl<T> Deref for List<T> {
     }
 }
 
-// TODO Add test
 /// Parse a NBT tag from a byte slice.
 pub fn parse(data: &[u8]) -> Result<Tag, Error> {
     match data[0] {
         10 => Tag::new(10, data, &mut 3),
-        out => panic!("{out}"),
+        _ => Err(Error::InvalidValue),
     }
 }
 
@@ -356,7 +350,6 @@ fn convert_to_i64(data: &[u8], offset: &mut usize) -> Result<i64, Error> {
     Ok(result)
 }
 
-//TODO Add test
 fn convert_to_f32(data: &[u8], offset: &mut usize) -> Result<f32, Error> {
     let result = f32::from_be_bytes([
         data[*offset],
@@ -368,7 +361,6 @@ fn convert_to_f32(data: &[u8], offset: &mut usize) -> Result<f32, Error> {
     Ok(result)
 }
 
-//TODO Add test
 fn convert_to_f64(data: &[u8], offset: &mut usize) -> Result<f64, Error> {
     let result = f64::from_be_bytes([
         data[*offset],
@@ -445,9 +437,102 @@ fn convert_to_i64_array(data: &[u8], offset: &mut usize) -> Result<Array<i64>, E
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
 
     use test_case::test_case;
-    use super::Tag;
+    use super::{Tag, List, Error, Array};
+
+    #[test_case(Tag::List(List(vec![Tag::Byte(10), Tag::Byte(20), Tag::Byte(30)])) => Ok(List(vec![10, 20, 30])); "List of bytes")]
+    #[test_case(Tag::Byte(10) => Err(Error::InvalidValue); "Not a list")]
+    #[test_case(Tag::List(List(vec![Tag::Byte(10), Tag::Int(20), Tag::Byte(30)])) => Err(Error::InvalidValue); "Wrong data type")]
+    fn test_try_into_list(list: Tag) -> Result<List<i8>, super::Error> {
+        list.try_into()
+    }
+
+    #[test_case(
+        Tag::Compound(HashMap::from_iter([("A".to_owned(), Tag::Byte(10)), ("B".to_owned(), Tag::Byte(20)), ("C".to_owned(), Tag::Byte(30))].into_iter())) => 
+        Ok(HashMap::from_iter(vec![("A".to_string(), 10), ("B".to_string(), 20), ("C".to_string(), 30)].into_iter())); 
+        "Map of bytes"
+    )]
+    #[test_case(Tag::Byte(10) => Err(Error::InvalidValue); "Not a map")]
+    #[test_case(
+        Tag::Compound(HashMap::from_iter([("A".to_owned(), Tag::Byte(10)), ("B".to_owned(), Tag::Int(20)), ("C".to_owned(), Tag::Byte(30))].into_iter())) => 
+        Err(Error::InvalidValue); 
+        "Mixed map"
+    )]    
+    fn test_try_into_map(map: Tag) -> Result<HashMap<String, i8>, super::Error> {
+        map.try_into()
+    }
+
+    #[test_case(Tag::Byte(1) => Ok(true); "Byte true")]
+    #[test_case(Tag::Byte(0) => Ok(false); "Byte false")]
+    #[test_case(Tag::Int(1) => Err(Error::InvalidValue); "Invalid")]
+    fn test_try_to_bool(tag: Tag) -> Result<bool, super::Error> {
+        tag.try_into()
+    }
+
+    #[test_case(vec![10] => List(vec![10]); "Single byte vector")]
+    #[test_case(vec![1,2,3,4,5,6,7] => List(vec![1,2,3,4,5,6,7]); "Multi byte vector")]
+    fn test_list_from_vec(vec: Vec<u8>) -> List<u8> {
+        vec.into()
+    }
+
+    #[test]
+    fn test_list_into_iter() {
+        let list = List(vec![1,2,3,4,5,6,7]);
+        let iter = list.into_iter();
+        assert_eq!(iter.count(), 7);
+    }
+
+    #[test]
+    fn test_list_from_iter() {
+        let list: List<u8> = vec![1,2,3,4,5,6,7].into_iter().collect();
+        assert_eq!(list, List(vec![1,2,3,4,5,6,7]));
+    }
+
+    #[test]
+    fn test_take_inner_of_list() {
+        let list = List(vec![1,2,3,4,5,6,7]);
+        let inner: Vec<u8> = list.take();
+        assert_eq!(inner, vec![1,2,3,4,5,6,7]);
+    }
+
+    #[test]
+    fn test_list_iter() {
+        let list = List(vec![1,2,3,4,5,6,7]);
+        let mut iter = list.iter();
+        assert_eq!(iter.next(), Some(&1));
+        assert_eq!(iter.next(), Some(&2));
+        assert_eq!(iter.next(), Some(&3));
+        assert_eq!(iter.next(), Some(&4));
+        assert_eq!(iter.next(), Some(&5));
+        assert_eq!(iter.next(), Some(&6));
+        assert_eq!(iter.next(), Some(&7));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn test_dref_array() {
+        let array = Array(vec![1,2,3,4,5,6,7]);
+        let inner = &*array;
+        assert_eq!(inner, &vec![1,2,3,4,5,6,7]);
+    }
+
+    #[test]
+    fn test_dref_list() {
+        let list = List(vec![1,2,3,4,5,6,7]);
+        let inner = &*list;
+        assert_eq!(inner, &vec![1,2,3,4,5,6,7]);
+    }
+
+    #[test_case(&[8] => Err(Error::InvalidValue); "Unexpected type")]
+    #[test_case(&[10, 0, 0, 8, 0, 1, b'a', 0, 5, b'H', b'e', b'l', b'l', b'o', 1, 0, 1, b'b', 10, 0] => Ok(Tag::Compound(HashMap::from_iter([
+        ("a".to_owned(), Tag::String("Hello".to_owned())),
+        ("b".to_owned(), Tag::Byte(10))
+    ]))); "Single byte array")]
+    fn test_parse(data: &[u8]) -> Result<Tag, Error>{
+        super::parse(data)
+    }
 
     #[test_case(&[10], 0 => 10; "Single byte array")]
     #[test_case(&[1,2,3,4,5,6,7], 0 => 1; "Multi byte array")]
@@ -487,6 +572,28 @@ mod tests {
     fn test_convert_to_i64(data: &[u8], mut offset: usize) -> i64 {
         let orig_offset = offset;
         let result = super::convert_to_i64(data, &mut offset).unwrap();
+        assert_eq!(offset, orig_offset + 8);
+        result
+    }
+
+    #[test_case(42.0, 0 => 42.0; "42")]
+    #[test_case(0.815, 0 => 0.815; "815")]
+    #[test_case(0.0, 0 => 0.0; "Single value array")]
+    fn test_convert_f32(data: f32, mut offset: usize) -> f32 {
+        let orig_offset = offset;
+        let data = data.to_be_bytes();
+        let result = super::convert_to_f32(data.as_slice(), &mut offset).unwrap();
+        assert_eq!(offset, orig_offset + 4);
+        result
+    }
+
+    #[test_case(42.0, 0 => 42.0; "42")]
+    #[test_case(0.815, 0 => 0.815; "815")]
+    #[test_case(0.0, 0 => 0.0; "Single value array")]
+    fn test_convert_f64(data: f64, mut offset: usize) -> f64 {
+        let orig_offset = offset;
+        let data = data.to_be_bytes();
+        let result = super::convert_to_f64(data.as_slice(), &mut offset).unwrap();
         assert_eq!(offset, orig_offset + 8);
         result
     }

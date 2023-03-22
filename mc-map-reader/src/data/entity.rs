@@ -8,7 +8,7 @@ use crate::nbt::{Array, List, Tag};
 use super::item::Item;
 
 ///<a href="https://minecraft.fandom.com/wiki/Entity_format#Entity_Format">minecraft wiki</a>
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters, Clone, PartialEq)]
 pub struct Entity {
     pub air: Option<i16>,
     pub custom_name: Option<String>,
@@ -140,4 +140,69 @@ impl Entity {
     pub fn uuid(&self) -> Option<&Array<i32>> {
         self.uuid.as_ref()
     }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    fn entity_getter_none() {
+        let entity = EntityBuilder::default().try_build();
+        assert!(entity.is_ok());
+    }
+
+    #[test]
+    fn entity_getter_some() {
+        let mut entity = EntityBuilder::default();
+        entity
+            .with_air(1)
+            .with_custom_name("test".to_string())
+            .with_custom_name_visible(true)
+            .with_fall_distance(10.)
+            .with_fire(1)
+            .with_glowing(true)
+            .with_has_visual_fire(true)
+            .with_id("test".to_string())
+            .with_invulnerable(true)
+            .with_motion(List::from(vec![1., 2., 3.]))
+            .with_no_gravity(true)
+            .with_on_ground(false)
+            .with_passengers(List::from(vec![EntityBuilder::default().try_build().unwrap()]))
+            .with_portal_colldown(10)
+            .with_pos(List::from(vec![1., 2., 3.]))
+            .with_rotation(List::from(vec![1., 2., 3.]))
+            .with_silent(true)
+            .with_tags(HashMap::new())
+            .with_ticks_frozen(20)
+            .set_uuid(Array::from(vec![1, 2, 3, 4]));
+        let entity = entity.try_build();
+        assert!(entity.is_ok());
+        let entity = entity.unwrap();
+        assert_eq!(entity.air(), Some(1));
+        assert_eq!(entity.custom_name(), Some(&"test".to_string()));
+        assert_eq!(entity.custom_name_visible(), Some(true));
+        assert_eq!(entity.fall_distance(), Some(10.));
+        assert_eq!(entity.fire(), 1);
+        assert_eq!(entity.glowing(), true);
+        assert_eq!(entity.has_visual_fire(), true);
+        assert_eq!(entity.id(), Some(&"test".to_string()));
+        assert_eq!(entity.invulnerable(), true);
+        assert_eq!(entity.motion(), Some(&List::from(vec![1., 2., 3.])));
+        assert_eq!(entity.no_gravity(), true);
+        assert_eq!(entity.on_ground(), false);
+        assert_eq!(
+            entity.passengers(),
+            Some(&List::from(vec![EntityBuilder::default().build()]))
+        );
+        assert_eq!(entity.portal_colldown(), 10);
+        assert_eq!(entity.pos(), Some(&List::from(vec![1., 2., 3.])));
+        assert_eq!(entity.rotation(), Some(&List::from(vec![1., 2., 3.])));
+        assert_eq!(entity.silent(), true);
+        assert_eq!(entity.tags(), Some(&HashMap::new()));
+        assert_eq!(entity.ticks_frozen(), Some(20));
+        assert_eq!(entity.uuid(), Some(&Array::from(vec![1, 2, 3, 4])));
+    }
+
 }

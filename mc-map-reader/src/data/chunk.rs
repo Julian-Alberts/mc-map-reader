@@ -44,13 +44,6 @@ pub struct ChunkData {
                                                post_processing: Vec<()>*/
 }
 
-#[cfg(feature = "block_entity")]
-impl ChunkData {
-    pub fn block_entities(&self) -> Option<&List<BlockEntity>> {
-        self.block_entities.as_ref()
-    }
-}
-
 #[derive(Debug, Clone, Copy)]
 pub enum ChunkStatus {
     Empty,
@@ -82,6 +75,36 @@ pub struct Section {
 }
 
 #[cfg(feature = "chunk_section")]
+#[derive(Debug, Builder, Getters)]
+pub struct BlockStates {
+    #[get = "pub"]
+    palette: List<BlockState>,
+    data: Option<Array<i64>>,
+}
+
+#[derive(Debug, Builder, Getters)]
+pub struct Biomes {
+    #[get = "pub"]
+    palette: List<String>,
+    data: Option<Array<i64>>,
+}
+
+#[cfg(feature = "chunk_section")]
+#[derive(Debug, Builder, Getters, Clone)]
+pub struct BlockState {
+    #[get = "pub"]
+    name: String,
+    properties: Option<HashMap<String, crate::nbt::Tag>>,
+}
+
+#[cfg(feature = "block_entity")]
+impl ChunkData {
+    pub fn block_entities(&self) -> Option<&List<BlockEntity>> {
+        self.block_entities.as_ref()
+    }
+}
+
+#[cfg(feature = "chunk_section")]
 impl Section {
     pub fn block_light(&self) -> Option<&Array<i8>> {
         self.block_light.as_ref()
@@ -93,39 +116,17 @@ impl Section {
 }
 
 #[cfg(feature = "chunk_section")]
-#[derive(Debug, Builder, Getters)]
-pub struct BlockStates {
-    #[get = "pub"]
-    palette: List<BlockState>,
-    data: Option<Array<i64>>,
-}
-
-#[cfg(feature = "chunk_section")]
 impl BlockStates {
     pub fn data(&self) -> Option<&Array<i64>> {
         self.data.as_ref()
     }
 }
 
-#[derive(Debug, Builder, Getters)]
-pub struct Biomes {
-    #[get = "pub"]
-    palette: List<String>,
-    data: Option<Array<i64>>,
-}
 
 impl Biomes {
     pub fn data(&self) -> Option<&Array<i64>> {
         self.data.as_ref()
     }
-}
-
-#[cfg(feature = "chunk_section")]
-#[derive(Debug, Builder, Getters, Clone)]
-pub struct BlockState {
-    #[get = "pub"]
-    name: String,
-    properties: Option<HashMap<String, crate::nbt::Tag>>,
 }
 
 #[cfg(feature = "chunk_section")]
