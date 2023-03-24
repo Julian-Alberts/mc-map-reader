@@ -64,7 +64,7 @@ fn parse_player(
         "XpSeed": set_xp_seed,
         "XpTotal": set_xp_total,
     ]);
-    builder.set_mob(nbt_data.try_into().map_err(|e| PlayerError::Mob(e))?);
+    builder.set_mob(nbt_data.try_into().map_err(PlayerError::Mob)?);
     Ok(())
 }
 try_from_tag!(EnteredNetherPosition => [

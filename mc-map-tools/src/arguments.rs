@@ -54,6 +54,6 @@ impl From<LogLevel> for log::LevelFilter {
 
 impl Display for LogLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        log::LevelFilter::fmt(&self.clone().into(), f)
+        log::LevelFilter::fmt(&(*self).into(), f)
     }
 }

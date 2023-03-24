@@ -78,29 +78,18 @@ fn setup_logger(level: log::LevelFilter) {
 
     let log_file = std::fs::File::create(paths::Files::LogFile.path());
 
-    match log_file {
+    let error = match log_file {
         Ok(file) => {
             logger.push(WriteLogger::new(level, Config::default(), file));
-            CombinedLogger::init(logger).unwrap();
+            None
         }
         Err(e) => {
-            CombinedLogger::init(logger).unwrap();
-            log::info!("Error while opening log file: {e}");
+            Some(e)
         }
-    }
+    };
 
-    CombinedLogger::init(vec![
-        TermLogger::new(
-            level,
-            Config::default(),
-            simplelog::TerminalMode::Stderr,
-            ColorChoice::Auto,
-        ),
-        WriteLogger::new(
-            level,
-            Config::default(),
-            std::fs::File::create(paths::Files::LogFile.path()).unwrap(),
-        ),
-    ])
-    .unwrap();
+    CombinedLogger::init(logger).expect("Error while initializing logger");
+    if let Some(e) = error {
+        log::info!("Error while opening log file: {e}");
+    }
 }

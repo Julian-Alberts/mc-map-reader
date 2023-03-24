@@ -6,7 +6,7 @@ pub fn decompress(data: &[u8], compression: &Compression) -> Result<Vec<u8>, Err
     match compression {
         Compression::GZip => libflate::gzip::Decoder::new(data)?.read_to_end(&mut decompressed),
         Compression::Zlib => compress::zlib::Decoder::new(data).read_to_end(&mut decompressed),
-        Compression::Uncompressed => return Ok(data.iter().map(|v| *v).collect::<Vec<_>>()),
+        Compression::Uncompressed => return Ok(data.to_vec()),
         Compression::Other => unimplemented!("Only GZip, ZLib and Uncompressed are supported"),
     }?;
     Ok(decompressed)
@@ -71,7 +71,7 @@ mod tests {
         let mut encoder = libflate::gzip::Encoder::new(&mut encoded).unwrap();
         encoder.write_all(b"Hello World").unwrap();
         encoder.finish().unwrap();
-        assert!(encoded.len() > 0);
+        assert!(!encoded.is_empty());
 
         let decoded = super::decompress(&encoded, &Compression::GZip).unwrap();
 
@@ -84,7 +84,7 @@ mod tests {
         let mut encoder = libflate::zlib::Encoder::new(&mut encoded).unwrap();
         encoder.write_all(b"Hello World").unwrap();
         encoder.finish().unwrap();
-        assert!(encoded.len() > 0);
+        assert!(!encoded.is_empty());
 
         let decoded = super::decompress(&encoded, &Compression::Zlib).unwrap();
 

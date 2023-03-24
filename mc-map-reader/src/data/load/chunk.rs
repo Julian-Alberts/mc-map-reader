@@ -40,8 +40,8 @@ pub fn load_chunk(raw: &[u8], chunk_info: &ChunkInfo) -> Result<ChunkData, LoadC
     let compression = chunk_data[4].into();
     let data = &chunk_data[5..chunk_len as usize];
 
-    let data = decompress(data, &compression).map_err(|e| LoadChunkDataError::Compression(e))?;
-    let tag = crate::nbt::parse(data.as_slice()).map_err(|e| ChunkDataError::Nbt(e))?;
+    let data = decompress(data, &compression).map_err(LoadChunkDataError::Compression)?;
+    let tag = crate::nbt::parse(data.as_slice()).map_err(ChunkDataError::Nbt)?;
     let chunk_data = tag.try_into()?;
     Ok(chunk_data)
 }

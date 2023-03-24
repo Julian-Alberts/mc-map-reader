@@ -7,11 +7,11 @@ use data::*;
 use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashMap, fs::OpenOptions, path::Path, sync::Mutex};
 
-use mc_map_reader::data::{
+use mc_map_reader::{data::{
     block_entity::{BlockEntity, BlockEntityType, InventoryBlock, ShulkerBox},
     chunk::ChunkData,
     item::Item,
-};
+}, RegionLoadError};
 
 use crate::{
     config::Config,
@@ -20,6 +20,14 @@ use crate::{
 };
 
 use self::config::SearchDupeStashesConfig;
+
+#[derive(Debug, thiserror::Error)]
+enum Error {
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+    #[error(transparent)]
+    RegionLoadError(#[from] RegionLoadError)
+}
 
 pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let region_groups = if let Some(area) = data.area {
@@ -39,28 +47,34 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let region_groups = region_groups.into_par_iter();
     #[cfg(not(feature = "parallel"))]
     let region_groups = region_groups.into_iter();
-    let inventories = region_groups
-        .map(|region| OpenOptions::new().read(true).open(region).unwrap())
-        .map(read_file)
-        .map(Result::unwrap)
-        .map(|data| mc_map_reader::load_region(&data[..], None).unwrap())
-        .map(|region| {
-            region
+    let (inventories, errors) = region_groups
+        .map(|region| -> Result<Vec<FoundInventory>, Error> {
+            let region = OpenOptions::new().read(true).open(region)?;
+            let region = read_file(region)?;
+            let region = mc_map_reader::load_region(region.as_slice(), None)?;
+            let inv = region
                 .chunks
                 .iter()
                 .filter_map(|c| search_inventories_in_chunk(c, &config))
                 .fold(Vec::default(), |mut invnentories, mut new| {
                     invnentories.append(&mut new);
                     invnentories
-                })
+                });
+            Ok(inv)
         })
-        .collect::<Vec<_>>()
+        .collect::<Vec<Result<_, Error>>>()
         .into_iter()
-        .fold(Vec::default(), |mut all, mut new| {
-            all.append(&mut new);
-            all
+        .fold((Vec::default(), Vec::default()), |(mut inv, mut err), new| {
+            match new {
+                Ok(mut i) => inv.append(&mut i),
+                Err(e) => err.push(e)
+            }
+            (inv, err)
         });
 
+    for e in errors {
+        log::error!("Error while reading region file {}", e);
+    }
     if inventories.is_empty() {
         log::info!("No inventories found");
         return;
@@ -89,7 +103,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         y: z1 as f32,
     };
     let mut inventory_trees = HashMap::new();
-    for (name, _) in &config.groups {
+    for name in config.groups.keys() {
         inventory_trees.insert(name, Mutex::new(QuadTree::new(bounds.clone())));
     }
 
@@ -99,14 +113,14 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let inventories = inventories.iter();
     inventories.for_each(|inv| {
         inv.items.iter().for_each(|(group_key, item)| {
-            let tree = inventory_trees.get(group_key).unwrap();
-            let mut tree = tree.lock().unwrap();
+            let tree = inventory_trees.get(group_key).expect("Could not find group key");
+            let mut tree = tree.lock().expect("Error locking tree");
             tree.insert(item);
         });
     });
     let inventory_trees = inventory_trees
         .into_iter()
-        .map(|(k, v)| (k, v.into_inner().unwrap()))
+        .map(|(k, v)| (k, v.into_inner().expect("Error unwrapping tree")))
         .collect::<HashMap<_, _>>();
     #[cfg(feature = "parallel")]
     let inventory_trees = inventory_trees.into_par_iter();
@@ -114,12 +128,12 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let inventory_trees = inventory_trees.into_iter();
     let item_stashes = inventory_trees
         .map(|(group_key, items)| {
-            let group = config.groups.get(group_key).unwrap();
+            let group = config.groups.get(group_key).expect("Error Could not find group key");
             let threshold = group.threshold;
             let counts: Vec<_> = items
                 .iter()
                 .map(|item| {
-                    let pos = item.position.clone();
+                    let pos = item.position;
                     let radius = data.radius;
                     let count = count_items_in_area(radius, pos.x, pos.z, &items);
                     PotentialStashLocation {

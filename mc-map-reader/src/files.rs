@@ -85,8 +85,8 @@ mod tests {
         }
         dbg!(&actual);
         dbg!(&expected);
-        assert!(expected.iter().all(|file_name| actual.contains(&file_name)));
-        assert!(actual.iter().all(|file_name| expected.contains(&file_name)));
+        assert!(expected.iter().all(|file_name| actual.contains(file_name)));
+        assert!(actual.iter().all(|file_name| expected.contains(file_name)));
     }
 
     #[test_case(10, 10, 42, 42, &[(0, 0), (1,0), (0,1), (1,1)]; "Four region files")]
@@ -97,14 +97,14 @@ mod tests {
         let expected = expected
             .iter()
             .map(|(x, z)| {
-                let mut path = PathBuf::from(get_test_world_dir());
+                let mut path = get_test_world_dir();
                 path.push("region");
                 path.push(format!("r.{}.{}.mca", x, z));
                 path
             })
             .collect::<Vec<_>>();
         assert_eq!(expected.len(), actual.len());
-        assert!(expected.iter().all(|file_name| actual.contains(&file_name)));
-        assert!(actual.iter().all(|file_name| expected.contains(&file_name)));
+        assert!(expected.iter().all(|file_name| actual.contains(file_name)));
+        assert!(actual.iter().all(|file_name| expected.contains(file_name)));
     }
 }
