@@ -72,9 +72,11 @@ mod tests {
 
     #[test]
     fn get_all_region_files() {
-        let actual = super::get_region_files(&get_test_world_dir(), None).unwrap()
+        let actual = super::get_region_files(&get_test_world_dir(), None)
+            .unwrap()
             .into_iter()
-            .map(|path| path.file_name().unwrap().to_str().unwrap().to_owned()).collect::<Vec<_>>();
+            .map(|path| path.file_name().unwrap().to_str().unwrap().to_owned())
+            .collect::<Vec<_>>();
         let mut expected = Vec::new();
         for x in -2..=2 {
             for z in -2..=2 {
@@ -91,14 +93,7 @@ mod tests {
     #[test_case(64, 64, 96, 96, &[(2, 2)]; "Region files out ouf range")]
     #[test_case(-10, -10, 10, 10, &[(0, 0), (-1,0), (0,-1), (-1,-1)]; "Negative coordinates")]
     fn get_files_in_area(x1: i64, z1: i64, x2: i64, z2: i64, expected: &'static [(i64, i64)]) {
-        let actual = super::get_region_files_in_area(
-            &get_test_world_dir(),
-            None,
-            x1,
-            z1,
-            x2,
-            z2,
-        );
+        let actual = super::get_region_files_in_area(&get_test_world_dir(), None, x1, z1, x2, z2);
         let expected = expected
             .iter()
             .map(|(x, z)| {
@@ -112,6 +107,4 @@ mod tests {
         assert!(expected.iter().all(|file_name| actual.contains(&file_name)));
         assert!(actual.iter().all(|file_name| expected.contains(&file_name)));
     }
-
-
 }

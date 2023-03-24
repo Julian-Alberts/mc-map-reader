@@ -1,4 +1,4 @@
-use std::{path::PathBuf, fmt::Display};
+use std::{fmt::Display, path::PathBuf};
 
 use clap::{command, Parser, Subcommand, ValueEnum};
 
@@ -35,7 +35,7 @@ pub enum LogLevel {
     Warn,
     Info,
     Debug,
-    Trace
+    Trace,
 }
 
 impl From<LogLevel> for log::LevelFilter {
@@ -57,4 +57,3 @@ impl Display for LogLevel {
         log::LevelFilter::fmt(&self.clone().into(), f)
     }
 }
-

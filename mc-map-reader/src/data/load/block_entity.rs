@@ -322,7 +322,7 @@ fn parse_cooking_block_entity<B>(
     mut nbt_data: HashMap<String, Tag>,
 ) -> Result<(), B::CookingBlockError>
 where
-    B: CookingBlockEntityBuilder
+    B: CookingBlockEntityBuilder,
 {
     add_data_to_builder!(builder, nbt_data => [
         "BurnTime": set_burn_time,
@@ -360,13 +360,12 @@ where
     Ok(())
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::{nbt::*, data::block_entity::*};
-    use test_case::test_case;
-    use std::collections::HashMap;
     use super::BlastFurnaceBuilder;
+    use crate::{data::block_entity::*, nbt::*};
+    use std::collections::HashMap;
+    use test_case::test_case;
 
     #[test_case(HashMap::from_iter([
         ("BurnTime".to_string(), Tag::Short(10)),
@@ -419,11 +418,14 @@ mod tests {
         lock: Some("test".to_string()),
         recipes_used: HashMap::new(),
     }); "Smoker")]
-    fn test_parse_cooking_block<B>(nbt: HashMap<String, Tag>, mut builder: B) -> Result<B::Target, B::CookingBlockError>
-        where B: CookingBlockEntityBuilder
+    fn test_parse_cooking_block<B>(
+        nbt: HashMap<String, Tag>,
+        mut builder: B,
+    ) -> Result<B::Target, B::CookingBlockError>
+    where
+        B: CookingBlockEntityBuilder,
     {
         super::parse_cooking_block_entity(&mut builder, nbt)?;
         builder.try_build()
     }
-
 }

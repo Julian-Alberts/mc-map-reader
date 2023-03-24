@@ -4,8 +4,8 @@ use crate::{
     data::{
         file_format::player_dat::*,
         load::{
-            item::{ItemError, ItemWithSlotError},
             entity::{EntityError, MobError},
+            item::{ItemError, ItemWithSlotError},
         },
     },
     nbt::Tag,

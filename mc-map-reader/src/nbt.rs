@@ -155,7 +155,7 @@ impl<T> IntoIterator for List<T> {
     }
 }
 
-impl <A> FromIterator<A> for Array<A> {
+impl<A> FromIterator<A> for Array<A> {
     fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
         Self(iter.into_iter().collect())
     }
@@ -450,8 +450,8 @@ fn convert_to_i64_array(data: &[u8], offset: &mut usize) -> Result<Array<i64>, E
 mod tests {
     use std::collections::HashMap;
 
+    use super::{Array, Error, List, Tag};
     use test_case::test_case;
-    use super::{Tag, List, Error, Array};
 
     #[test_case(Tag::List(List(vec![Tag::Byte(10), Tag::Byte(20), Tag::Byte(30)])) => Ok(List(vec![10, 20, 30])); "List of bytes")]
     #[test_case(Tag::Byte(10) => Err(Error::InvalidValue); "Not a list")]
@@ -468,9 +468,9 @@ mod tests {
     #[test_case(Tag::Byte(10) => Err(Error::InvalidValue); "Not a map")]
     #[test_case(
         Tag::Compound(HashMap::from_iter([("A".to_owned(), Tag::Byte(10)), ("B".to_owned(), Tag::Int(20)), ("C".to_owned(), Tag::Byte(30))].into_iter())) => 
-        Err(Error::InvalidValue); 
+        Err(Error::InvalidValue);
         "Mixed map"
-    )]    
+    )]
     fn test_try_into_map(map: Tag) -> Result<HashMap<String, i8>, super::Error> {
         map.try_into()
     }
@@ -490,27 +490,27 @@ mod tests {
 
     #[test]
     fn test_list_into_iter() {
-        let list = List(vec![1,2,3,4,5,6,7]);
+        let list = List(vec![1, 2, 3, 4, 5, 6, 7]);
         let iter = list.into_iter();
         assert_eq!(iter.count(), 7);
     }
 
     #[test]
     fn test_list_from_iter() {
-        let list: List<u8> = vec![1,2,3,4,5,6,7].into_iter().collect();
-        assert_eq!(list, List(vec![1,2,3,4,5,6,7]));
+        let list: List<u8> = vec![1, 2, 3, 4, 5, 6, 7].into_iter().collect();
+        assert_eq!(list, List(vec![1, 2, 3, 4, 5, 6, 7]));
     }
 
     #[test]
     fn test_take_inner_of_list() {
-        let list = List(vec![1,2,3,4,5,6,7]);
+        let list = List(vec![1, 2, 3, 4, 5, 6, 7]);
         let inner: Vec<u8> = list.take();
-        assert_eq!(inner, vec![1,2,3,4,5,6,7]);
+        assert_eq!(inner, vec![1, 2, 3, 4, 5, 6, 7]);
     }
 
     #[test]
     fn test_list_iter() {
-        let list = List(vec![1,2,3,4,5,6,7]);
+        let list = List(vec![1, 2, 3, 4, 5, 6, 7]);
         let mut iter = list.iter();
         assert_eq!(iter.next(), Some(&1));
         assert_eq!(iter.next(), Some(&2));
@@ -524,16 +524,16 @@ mod tests {
 
     #[test]
     fn test_dref_array() {
-        let array = Array(vec![1,2,3,4,5,6,7]);
+        let array = Array(vec![1, 2, 3, 4, 5, 6, 7]);
         let inner = &*array;
-        assert_eq!(inner, &vec![1,2,3,4,5,6,7]);
+        assert_eq!(inner, &vec![1, 2, 3, 4, 5, 6, 7]);
     }
 
     #[test]
     fn test_dref_list() {
-        let list = List(vec![1,2,3,4,5,6,7]);
+        let list = List(vec![1, 2, 3, 4, 5, 6, 7]);
         let inner = &*list;
-        assert_eq!(inner, &vec![1,2,3,4,5,6,7]);
+        assert_eq!(inner, &vec![1, 2, 3, 4, 5, 6, 7]);
     }
 
     #[test_case(&[8] => Err(Error::InvalidValue); "Unexpected type")]
@@ -541,7 +541,7 @@ mod tests {
         ("a".to_owned(), Tag::String("Hello".to_owned())),
         ("b".to_owned(), Tag::Byte(10))
     ]))); "Single byte array")]
-    fn test_parse(data: &[u8]) -> Result<Tag, Error>{
+    fn test_parse(data: &[u8]) -> Result<Tag, Error> {
         super::parse(data)
     }
 
@@ -640,11 +640,11 @@ mod tests {
     #[test_case(&[1, 0, 1, b'A', 1, 0], 0 => vec![("A".to_string(), Tag::Byte(1))]; "Single value in map")]
     #[test_case(&[1, 0, 1, b'A', 1, 8, 0, 2, b'B', b'B', 0, 4, b'A', b'B', b'C', b'D', 0], 0 => vec![("A".to_string(), Tag::Byte(1)), ("BB".to_string(), Tag::String("ABCD".to_string()))]; "Multi value in map")]
     fn test_convert_to_compound(data: &[u8], mut offset: usize) -> Vec<(String, Tag)> {
-        let mut result = super::convert_to_map(data, &mut offset).unwrap()
-            .into_iter().collect::<Vec<_>>();
+        let mut result = super::convert_to_map(data, &mut offset)
+            .unwrap()
+            .into_iter()
+            .collect::<Vec<_>>();
         result.sort_by(|a, b| a.0.cmp(&b.0));
         result
     }
-
-    
 }

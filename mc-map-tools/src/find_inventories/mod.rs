@@ -29,7 +29,7 @@ pub fn main(world_dir: &Path, args: &SearchEntity) {
         let file = File::open(r).expect("Could not open file");
         let region = mc_map_reader::load_region(file, None).expect("Error reading file");
         region
-            .chunks()
+            .chunks
             .iter()
             .for_each(|chunk| search_fn(chunk, &wildcards))
     })
@@ -42,16 +42,8 @@ fn search_block_entity(chunk_data: &ChunkData, wildcards: &[WildMatch]) {
 
     block_entities
         .iter()
-        .filter(|be| wildcards.iter().any(|w| w.matches(be.id())))
-        .for_each(|be| {
-            println!(
-                "Found {} at x:{} y:{} z:{}",
-                be.id(),
-                be.x(),
-                be.y(),
-                be.z()
-            )
-        })
+        .filter(|be| wildcards.iter().any(|w| w.matches(&be.id)))
+        .for_each(|be| println!("Found {} at x:{} y:{} z:{}", be.id, be.x, be.y, be.z))
 }
 
 fn compile_wildcards(wildcards: &[String]) -> Vec<WildMatch> {

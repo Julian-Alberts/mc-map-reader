@@ -9,8 +9,8 @@ use std::{collections::HashMap, fs::OpenOptions, path::Path, sync::Mutex};
 
 use mc_map_reader::data::{
     block_entity::{BlockEntity, BlockEntityType, InventoryBlock, ShulkerBox},
-    item::Item,
     chunk::ChunkData,
+    item::Item,
 };
 
 use crate::{
@@ -30,7 +30,10 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         mc_map_reader::files::get_region_files(world_dir, None)
             .expect("Could not read region directory")
     };
-    log::debug!("Found {} region files {region_groups:#?}", region_groups.len());
+    log::debug!(
+        "Found {} region files {region_groups:#?}",
+        region_groups.len()
+    );
     let config = config.search_dupe_stashes;
     #[cfg(feature = "parallel")]
     let region_groups = region_groups.into_par_iter();
@@ -43,7 +46,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         .map(|data| mc_map_reader::load_region(&data[..], None).unwrap())
         .map(|region| {
             region
-                .chunks()
+                .chunks
                 .iter()
                 .filter_map(|c| search_inventories_in_chunk(c, &config))
                 .fold(Vec::default(), |mut invnentories, mut new| {
@@ -116,7 +119,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
             let counts: Vec<_> = items
                 .iter()
                 .map(|item| {
-                    let pos = item.position;
+                    let pos = item.position.clone();
                     let radius = data.radius;
                     let count = count_items_in_area(radius, pos.x, pos.z, &items);
                     PotentialStashLocation {
@@ -153,7 +156,7 @@ where
     let res = block_entities
         .iter()
         .filter_map(|block_entity| {
-            let inventory: &dyn InventoryBlock = match block_entity.entity_type() {
+            let inventory: &dyn InventoryBlock = match &block_entity.entity_type {
                 BlockEntityType::Barrel(block) => block,
                 BlockEntityType::Chest(block) => block,
                 BlockEntityType::Dispenser(block) => block,
@@ -185,23 +188,26 @@ where
     if inventory.loot_table().is_some() || inventory.loot_table_seed().is_some() {
         return None;
     }
-    let x = base_entity.x();
-    let z = base_entity.z();
-    let y = base_entity.y();
+    let x = base_entity.x;
+    let z = base_entity.z;
+    let y = base_entity.y;
     let items = if let Some(items) = inventory.items() {
         items.iter().fold(HashMap::default(), |mut item_map, item| {
             add_item_to_map(item, &mut item_map, config, x, y, z);
-            if item_is_shulker_box(item.item().id()) {
-                search_subinventory(item.item(), &mut item_map, config, x, y, z)
+            if item_is_shulker_box(&item.item.id) {
+                search_subinventory(&item.item, &mut item_map, config, x, y, z)
             }
             item_map
         })
     } else {
         return None;
     };
-    log::debug!("Found inventory at ({x}, {y}, {z}) with {items_len} items", items_len = items.len());
+    log::debug!(
+        "Found inventory at ({x}, {y}, {z}) with {items_len} items",
+        items_len = items.len()
+    );
     Some(FoundInventory {
-        inventory_type: base_entity.id().clone(),
+        inventory_type: base_entity.id.clone(),
         items,
         x,
         y,
@@ -224,7 +230,7 @@ fn search_subinventory<'a, 'b>(
 ) where
     'b: 'a,
 {
-    let Some (tag) = item.tag() else {
+    let Some (tag) = &item.tag else {
         return;
     };
     let Some (block_entity_tag) = tag.get("BlockEntityTag").cloned() else {
@@ -250,7 +256,7 @@ fn add_item_to_map<'a, 'b>(
 ) where
     'b: 'a,
 {
-    let item = item.item();
+    let item = &item.item;
     config
         .groups
         .iter()
@@ -265,12 +271,12 @@ fn add_item_to_map<'a, 'b>(
             item_map
                 .entry(group_name)
                 .and_modify(|item_entry: &mut FoundItem| {
-                    item_entry.count += item.count() as usize * mult;
+                    item_entry.count += item.count as usize * mult;
                 })
                 .or_insert_with(|| FoundItem {
                     group_key: group_name,
                     position: Position { x, y, z },
-                    count: item.count() as usize * mult,
+                    count: item.count as usize * mult,
                 });
         });
 }

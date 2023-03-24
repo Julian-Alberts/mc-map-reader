@@ -68,9 +68,14 @@ fn read_file(mut region_file: File) -> std::io::Result<Vec<u8>> {
 
 fn setup_logger(level: log::LevelFilter) {
     use simplelog::*;
-    let mut logger : Vec<Box<dyn SharedLogger>> = Vec::new();
-    logger.push(TermLogger::new(level, Config::default(), TerminalMode::Stderr, ColorChoice::Auto));
-    
+    let mut logger: Vec<Box<dyn SharedLogger>> = Vec::new();
+    logger.push(TermLogger::new(
+        level,
+        Config::default(),
+        TerminalMode::Stderr,
+        ColorChoice::Auto,
+    ));
+
     let log_file = std::fs::File::create(paths::Files::LogFile.path());
 
     match log_file {
@@ -85,7 +90,17 @@ fn setup_logger(level: log::LevelFilter) {
     }
 
     CombinedLogger::init(vec![
-        TermLogger::new(level, Config::default(), simplelog::TerminalMode::Stderr, ColorChoice::Auto),
-        WriteLogger::new(level, Config::default(), std::fs::File::create(paths::Files::LogFile.path()).unwrap())
-    ]).unwrap();
+        TermLogger::new(
+            level,
+            Config::default(),
+            simplelog::TerminalMode::Stderr,
+            ColorChoice::Auto,
+        ),
+        WriteLogger::new(
+            level,
+            Config::default(),
+            std::fs::File::create(paths::Files::LogFile.path()).unwrap(),
+        ),
+    ])
+    .unwrap();
 }

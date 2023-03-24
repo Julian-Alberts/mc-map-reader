@@ -8,5 +8,5 @@ use crate::nbt::Tag;
 #[derive(Debug, Builder)]
 pub struct Dimension {
     pub dimension_type: String,
-    pub generator: HashMap<String, Tag>
+    pub generator: HashMap<String, Tag>,
 }

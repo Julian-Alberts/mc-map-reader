@@ -1,18 +1,15 @@
 //! Anvil save file.
 
-use getset::Getters;
-
 use crate::data::chunk::ChunkData;
 
 /// Anvil save file.
 /// [Minecraft Wiki](https://minecraft.fandom.com/wiki/Anvil_file_format)
-#[derive(Debug, Getters)]
-#[get = "pub"]
+#[derive(Debug)]
 pub struct AnvilSave {
     /// The header of the save file.
-    header: McRegionHeader,
+    pub header: McRegionHeader,
     /// The chunks in the save file.
-    chunks: Vec<ChunkData>,
+    pub chunks: Vec<ChunkData>,
 }
 
 impl AnvilSave {

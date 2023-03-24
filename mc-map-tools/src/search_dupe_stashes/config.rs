@@ -71,14 +71,14 @@ impl Item {
         let Some(id) = &self.id else {
             return true
         };
-        id.0.matches(item.id())
+        id.0.matches(&item.id)
     }
 
     fn matches_nbt(&self, item: &mc_map_reader::data::item::Item) -> bool {
         let Some(required_nbt) = &self.nbt else {
             return true
         };
-        let item_nbt = if let Some(item_nbt) = item.tag() {
+        let item_nbt = if let Some(item_nbt) = &item.tag {
             item_nbt
         } else {
             return required_nbt.is_empty();

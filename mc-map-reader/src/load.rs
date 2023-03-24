@@ -1,21 +1,20 @@
-
 #[cfg(all(feature = "parallel", feature = "region_file"))]
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use thiserror::Error;
 
 use crate::data;
-#[cfg(feature="level_dat")]
+#[cfg(feature = "level_dat")]
 use crate::{
     compression,
     data::file_format::level_dat::{self, LevelDat},
 };
-#[cfg(feature="region_file")]
+#[cfg(feature = "region_file")]
 use {
     crate::data::file_format::anvil::{self, AnvilSave},
-    std::io::Read
+    std::io::Read,
 };
 
-#[cfg(feature =  "region_file")]
+#[cfg(feature = "region_file")]
 /// Errors that can occur when loading a region.
 #[derive(Error, Debug)]
 pub enum RegionLoadError {
@@ -53,7 +52,10 @@ pub enum LevelDatLoadError {
 pub fn parse_level_dat(data: &[u8]) -> std::result::Result<level_dat::LevelDat, LevelDatLoadError> {
     let data = compression::decompress(data, &compression::Compression::GZip)
         .map_err(LevelDatLoadError::Compression)?;
-    let data = crate::nbt::parse(data.as_slice())?.get_as_map()?.remove("Data").ok_or(crate::nbt::Error::InvalidValue)?;
+    let data = crate::nbt::parse(data.as_slice())?
+        .get_as_map()?
+        .remove("Data")
+        .ok_or(crate::nbt::Error::InvalidValue)?;
     LevelDat::try_from(data).map_err(LevelDatLoadError::LevelDat)
 }
 
@@ -81,9 +83,11 @@ pub fn load_region(
     let chunk_info = header.get_chunk_info().iter();
     let chunks = chunk_info
         .filter_map(|ci| ci.as_ref())
-        .filter(|chunk_info| 
-            ignore_saved_before.map_or(true, |ignore_saved_before| chunk_info.timestamp as i32 >= ignore_saved_before)
-        )
+        .filter(|chunk_info| {
+            ignore_saved_before.map_or(true, |ignore_saved_before| {
+                chunk_info.timestamp as i32 >= ignore_saved_before
+            })
+        })
         .map(|chunk| data::chunk::load_chunk(&raw_chunk_data, chunk))
         .collect::<std::result::Result<_, _>>()?;
 

@@ -19,21 +19,21 @@ pub struct ChunkData {
     #[cfg(feature = "chunk_section")]
     pub sections: List<Section>,
     pub block_entities: Option<List<BlockEntity>>, /*#[get = "pub"]
-                                               carving_masks: Option<()>,
-                                               #[get = "pub"]
-                                               height_maps: (),
-                                               #[get = "pub"]
-                                               lights: Vec<i16>,
-                                               #[get = "pub"]
-                                               entities: Vec<()>,
-                                               #[get = "pub"]
-                                               fluid_ticks: Vec<()>,
-                                               #[get = "pub"]
-                                               block_ticks: Vec<()>,
-                                               #[get_copy = "pub"]
-                                               inhabited_time: i64,
-                                               #[get = "pub"]
-                                               post_processing: Vec<()>*/
+                                                   carving_masks: Option<()>,
+                                                   #[get = "pub"]
+                                                   height_maps: (),
+                                                   #[get = "pub"]
+                                                   lights: Vec<i16>,
+                                                   #[get = "pub"]
+                                                   entities: Vec<()>,
+                                                   #[get = "pub"]
+                                                   fluid_ticks: Vec<()>,
+                                                   #[get = "pub"]
+                                                   block_ticks: Vec<()>,
+                                                   #[get_copy = "pub"]
+                                                   inhabited_time: i64,
+                                                   #[get = "pub"]
+                                                   post_processing: Vec<()>*/
 }
 
 #[derive(Debug, Clone, Copy)]

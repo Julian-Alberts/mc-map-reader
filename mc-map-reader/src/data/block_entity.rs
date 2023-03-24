@@ -1,29 +1,26 @@
 use std::collections::HashMap;
 
-use getset::{CopyGetters, Getters};
 use jbe::Builder;
 
 use crate::{
-    data::{entity::Entity, item::{Item, ItemWithSlot}, load::block_entity::*},
+    data::{
+        entity::Entity,
+        item::{Item, ItemWithSlot},
+        load::block_entity::*,
+    },
     nbt::{Array, List, Tag},
 };
 
 use super::load::item::ItemWithSlotError;
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct BlockEntity {
-    #[get = "pub"]
     pub id: String,
-    #[get_copy = "pub"]
     #[builder({default false})]
     pub keep_packed: bool,
-    #[get_copy = "pub"]
     pub x: i32,
-    #[get_copy = "pub"]
     pub y: i32,
-    #[get_copy = "pub"]
     pub z: i32,
-    #[get = "pub"]
     pub entity_type: BlockEntityType,
 }
 
@@ -67,22 +64,19 @@ pub enum BlockEntityType {
     Other(HashMap<String, Tag>),
 }
 
-#[derive(Debug, Builder, Getters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Banner {
     pub custom_name: Option<String>,
     pub patterns: Option<List<BannerPattern>>,
 }
 
-
-#[derive(Debug, Builder, Getters, CopyGetters, Clone, PartialEq)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct BannerPattern {
-    #[get_copy = "pub"]
     pub color: i32,
-    #[get = "pub"]
     pub pattern: String,
 }
 
-#[derive(Debug, Builder, Getters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Barrel {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
@@ -91,425 +85,318 @@ pub struct Barrel {
     pub loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Beacon {
-    #[get = "pub"]
     pub custom_name: Option<String>,
-    #[get = "pub"]
     pub lock: Option<String>,
-    #[get_copy = "pub"]
     pub levels: i32,
-    #[get_copy = "pub"]
     pub primary: i32,
-    #[get_copy = "pub"]
     pub secondary: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Beehive {
     pub bees: Option<List<BeeInHive>>,
     pub flower_pos: Option<FlowerPos>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct BeeInHive {
-    #[get = "pub"]
     pub entity_data: Entity,
-    #[get_copy = "pub"]
     pub min_occupation_ticks: i32,
-    #[get_copy = "pub"]
     pub ticks_in_hive: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
-#[get_copy = "pub"]
+#[derive(Debug, Builder, Clone)]
 pub struct FlowerPos {
     pub x: i32,
     pub y: i32,
     pub z: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone, PartialEq)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct BlastFurnace {
-    #[get_copy = "pub"]
     pub burn_time: i16,
-    #[get_copy = "pub"]
     pub cook_time: i16,
-    #[get_copy = "pub"]
     pub cook_time_total: i16,
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
     pub lock: Option<String>,
-    #[get = "pub"]
     pub recipes_used: HashMap<String, i32>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct BrewingStand {
-    #[get_copy = "pub"]
     pub brew_time: i16,
     pub custom_name: Option<String>,
-    #[get_copy = "pub"]
     pub fuel: i8,
     pub items: Option<List<ItemWithSlot>>,
     pub lock: Option<String>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Campfire {
-    #[get = "pub"]
     pub cooking_times: Array<i32>,
-    #[get = "pub"]
     pub cooking_total_times: Array<i32>,
     pub items: Option<List<ItemWithSlot>>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct ChiseledBookshelf {
     pub items: Option<List<ItemWithSlot>>,
-    #[get_copy = "pub"]
     pub last_interacted_slot: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Chest {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
     pub lock: Option<String>,
     pub loot_table: Option<String>,
-    #[get_copy = "pub"]
     pub loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Comparator {
-    #[get_copy = "pub"]
     pub output_signal: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct CommandBlock {
-    #[get_copy = "pub"]
     pub auto: bool,
-    #[get = "pub"]
     pub command: String,
-    #[get_copy = "pub"]
     pub condition_met: bool,
     pub custom_name: Option<String>,
-    #[get_copy = "pub"]
     pub last_execution: i64,
-    #[get = "pub"]
     pub last_output: String,
-    #[get_copy = "pub"]
     pub powered: bool,
-    #[get_copy = "pub"]
     pub success_count: i32,
-    #[get_copy = "pub"]
     pub track_output: bool,
-    #[get_copy = "pub"]
     pub update_last_execution: bool,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Conduit {
-    #[get = "pub"]
     pub target: Array<i32>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Dispenser {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
     pub lock: Option<String>,
     pub loot_table: Option<String>,
-    #[get_copy = "pub"]
     pub loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Dropper {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
     pub lock: Option<String>,
     pub loot_table: Option<String>,
-    #[get_copy = "pub"]
     pub loot_table_seed: Option<i64>,
 }
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct EnchantingTable {
     pub custom_name: Option<String>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct EndGateway {
-    #[get_copy = "pub"]
     pub age: i64,
-    #[get_copy = "pub"]
     pub exact_teleport: bool,
-    #[get = "pub"]
     pub exit_portal: ExitPortal,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct ExitPortal {
-    #[get_copy = "pub"]
     pub x: i32,
-    #[get_copy = "pub"]
     pub y: i32,
-    #[get_copy = "pub"]
     pub z: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone, PartialEq)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Furnace {
-    #[get_copy = "pub"]
     pub burn_time: i16,
-    #[get_copy = "pub"]
     pub cook_time: i16,
-    #[get_copy = "pub"]
     pub cook_time_total: i16,
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
     pub lock: Option<String>,
-    #[get = "pub"]
     pub recipes_used: HashMap<String, i32>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Hopper {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
     pub lock: Option<String>,
     pub loot_table: Option<String>,
-    #[get_copy = "pub"]
     pub loot_table_seed: Option<i64>,
-    #[get_copy = "pub"]
     #[builder({default 0})]
     pub transfer_cooldown: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Jigsaw {
-    #[get = "pub"]
     pub final_state: String,
-    #[get = "pub"]
     pub joint: String,
-    #[get = "pub"]
     pub name: String,
-    #[get = "pub"]
     pub pool: String,
-    #[get = "pub"]
     pub target: String,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Jukebox {
-    #[get_copy = "pub"]
     pub is_playing: bool,
-    #[get = "pub"]
     pub record_item: Item,
-    #[get_copy = "pub"]
     pub record_start_tick: i64,
-    #[get_copy = "pub"]
     pub tick_count: i64,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Lectern {
     pub book: Option<Item>,
     pub page: Option<i32>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct MobSpawner {
-    #[get = "pub"]
     pub spawner: Spawner,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Spawner {
-    #[get_copy = "pub"]
     pub delay: i16,
-    #[get_copy = "pub"]
     pub max_nearby_entities: i16,
-    #[get_copy = "pub"]
     pub max_spawn_delay: i16,
-    #[get_copy = "pub"]
     pub min_spawn_delay: i16,
-    #[get_copy = "pub"]
     pub required_player_range: i16,
-    #[get_copy = "pub"]
     pub spawn_count: i16,
-    #[get = "pub"]
     pub spawn_data: HashMap<String, Tag>,
     pub spawn_potentials: Option<List<PotentialSpawn>>,
-    #[get_copy = "pub"]
     pub spawn_range: i16,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct PotentialSpawn {
-    #[get_copy = "pub"]
     pub weight: i32,
-    #[get = "pub"]
     pub data: HashMap<String, Tag>,
     pub custom_spawn_rules: Option<CustomSpawnRules>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct CustomSpawnRules {
-    #[get_copy = "pub"]
     pub block_light_limit: i32,
-    #[get_copy = "pub"]
     pub sky_light_limit: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Piston {
-    #[get = "pub"]
     pub block_state: PistonBlockState,
-    #[get_copy = "pub"]
     pub extending: bool,
-    #[get_copy = "pub"]
     pub facing: i32,
-    #[get_copy = "pub"]
     pub progress: f32,
-    #[get_copy = "pub"]
     pub source: bool,
 }
 
-#[derive(Debug, Builder, Getters, Clone)]
-#[get = "pub"]
+#[derive(Debug, Builder, Clone)]
 pub struct PistonBlockState {
     pub name: String,
     pub properties: HashMap<String, Tag>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct ShulkerBox {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
     pub lock: Option<String>,
     pub loot_table: Option<String>,
-    #[get_copy = "pub"]
     pub loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Sign {
-    #[get_copy = "pub"]
-    glowing_text: bool,
-    #[get = "pub"]
-    color: String,
-    #[get = "pub"]
-    text1: String,
-    #[get = "pub"]
-    text2: String,
-    #[get = "pub"]
-    text3: String,
-    #[get = "pub"]
-    text4: String,
+    pub glowing_text: bool,
+    pub color: String,
+    pub text1: String,
+    pub text2: String,
+    pub text3: String,
+    pub text4: String,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct Skull {
     pub note_block_sound: Option<String>,
     pub extra_type: Option<String>,
     pub skull_owner: Option<SkullOwner>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct SkullOwner {
-    #[get = "pub"]
     pub id: Array<i32>,
     pub name: Option<String>,
-    #[get = "pub"]
     pub properties: Option<List<SkullOwnerProperties>>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct SkullOwnerProperties {
-    #[get = "pub"]
-    textures: Option<List<SkullOwnerTextures>>,
+    pub textures: Option<List<SkullOwnerTextures>>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct SkullOwnerTextures {
-    #[get = "pub"]
     pub value: String,
     pub signature: Option<String>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone, PartialEq)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Smoker {
-    #[get_copy = "pub"]
     pub burn_time: i16,
-    #[get_copy = "pub"]
     pub cook_time: i16,
-    #[get_copy = "pub"]
     pub cook_time_total: i16,
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
     pub lock: Option<String>,
-    #[get = "pub"]
     pub recipes_used: HashMap<String, i32>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct SoulCampfire {
-    #[get = "pub"]
     pub cooking_times: Array<i32>,
-    #[get = "pub"]
     pub cooking_total_times: Array<i32>,
     pub items: Option<List<ItemWithSlot>>,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct StructureBlock {
-    #[get = "pub"]
-    author: String,
-    #[get_copy = "pub"]
-    ignore_entities: bool,
-    #[get_copy = "pub"]
-    integrity: f32,
-    #[get = "pub"]
-    metadata: String,
-    #[get = "pub"]
-    mirror: String,
-    #[get = "pub"]
-    mode: String,
-    #[get = "pub"]
-    name: String,
-    #[get_copy = "pub"]
-    pos_x: i32,
-    #[get_copy = "pub"]
-    pos_y: i32,
-    #[get_copy = "pub"]
-    pos_z: i32,
-    #[get_copy = "pub"]
-    powered: bool,
-    #[get = "pub"]
-    rotation: String,
-    #[get_copy = "pub"]
-    seed: i64,
-    #[get_copy = "pub"]
-    show_bounding_box: bool,
-    #[get_copy = "pub"]
-    size_x: i32,
-    #[get_copy = "pub"]
-    size_y: i32,
-    #[get_copy = "pub"]
-    size_z: i32,
+    pub author: String,
+    pub ignore_entities: bool,
+    pub integrity: f32,
+    pub metadata: String,
+    pub mirror: String,
+    pub mode: String,
+    pub name: String,
+    pub pos_x: i32,
+    pub pos_y: i32,
+    pub pos_z: i32,
+    pub powered: bool,
+    pub rotation: String,
+    pub seed: i64,
+    pub show_bounding_box: bool,
+    pub size_x: i32,
+    pub size_y: i32,
+    pub size_z: i32,
 }
 
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct TrappedChest {
-    custom_name: Option<String>,
-    items: Option<List<ItemWithSlot>>,
-    lock: Option<String>,
-    loot_table: Option<String>,
-    #[get_copy = "pub"]
-    loot_table_seed: Option<i64>,
+    pub custom_name: Option<String>,
+    pub items: Option<List<ItemWithSlot>>,
+    pub lock: Option<String>,
+    pub loot_table: Option<String>,
+    pub loot_table_seed: Option<i64>,
 }
 
 macro_rules! impl_IBE_for_builder {
@@ -559,8 +446,8 @@ macro_rules! impl_IBE_for_builder {
 macro_rules! impl_CBEB_for_builder {
     ($ty:ty, $res:ty) => {
         impl CookingBlockEntityBuilder for $ty {
-            type CookingBlockError = paste::paste!{ [< $res Error >] };
-            type Target = paste::paste!{[< $res >]};
+            type CookingBlockError = paste::paste! { [< $res Error >] };
+            type Target = paste::paste! {[< $res >]};
 
             fn set_burn_time(&mut self, burn_time: i16) {
                 self.set_burn_time(burn_time)
@@ -657,10 +544,10 @@ pub trait CookingBlockEntity {
     fn lock(&self) -> Option<&String>;
     fn recipes_used(&self) -> &HashMap<String, i32>;
 }
-pub trait CookingBlockEntityBuilder 
-    where 
-        Self::CookingBlockError: From<crate::nbt::Error> + From<ItemWithSlotError>,
-        Self::Target: CookingBlockEntity,
+pub trait CookingBlockEntityBuilder
+where
+    Self::CookingBlockError: From<crate::nbt::Error> + From<ItemWithSlotError>,
+    Self::Target: CookingBlockEntity,
 {
     type CookingBlockError;
     type Target;

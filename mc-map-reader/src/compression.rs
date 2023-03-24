@@ -58,8 +58,10 @@ mod tests {
 
     #[test]
     fn decompress_uncompressed() {
-        let result = super::decompress(&[1,2,3,4,5,6,7,8,9,10], &Compression::Uncompressed).unwrap();
-        let expected = vec![1,2,3,4,5,6,7,8,9,10];
+        let result =
+            super::decompress(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], &Compression::Uncompressed)
+                .unwrap();
+        let expected = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         assert_eq!(result, expected);
     }
 
@@ -70,9 +72,9 @@ mod tests {
         encoder.write_all(b"Hello World").unwrap();
         encoder.finish().unwrap();
         assert!(encoded.len() > 0);
-        
+
         let decoded = super::decompress(&encoded, &Compression::GZip).unwrap();
-        
+
         assert_eq!(decoded.as_slice(), b"Hello World");
     }
 
@@ -83,16 +85,15 @@ mod tests {
         encoder.write_all(b"Hello World").unwrap();
         encoder.finish().unwrap();
         assert!(encoded.len() > 0);
-        
+
         let decoded = super::decompress(&encoded, &Compression::Zlib).unwrap();
-        
+
         assert_eq!(decoded.as_slice(), b"Hello World");
     }
 
     #[test]
     fn decompress_invalid() {
-        let res = super::decompress(&[1,2,3,4,5,6,7,8,9,10], &Compression::GZip);
+        let res = super::decompress(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], &Compression::GZip);
         assert!(res.is_err());
     }
-
 }

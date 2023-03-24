@@ -4,15 +4,15 @@ use jbe::Builder;
 
 use crate::{
     data::{
-        item::{Item, ItemWithSlot},
         entity::{Entity, Mob},
+        item::{Item, ItemWithSlot},
     },
     nbt::{Array, List},
 };
 
 /// Information about the player.
 /// [Minecraft Wiki](https://minecraft.fandom.com/wiki/Player.dat_format)
-#[derive(Debug, Builder, getset::Getters)]
+#[derive(Debug, Builder)]
 pub struct Player {
     /// Generic mob data
     pub mob: Mob,
@@ -26,7 +26,7 @@ pub struct Player {
     pub ender_items: List<ItemWithSlot>,
     /// The position the player entered the nether at.
     pub entered_nether_position: Option<EnteredNetherPosition>,
-    
+
     pub food_exhaustion_level: f32,
     pub food_level: i32,
     pub food_saturation_level: f32,

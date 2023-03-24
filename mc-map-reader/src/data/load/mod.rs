@@ -1,6 +1,6 @@
 macro_rules! mod_try_from_tag {
     ({
-        $($name: ty: 
+        $($name: ty:
             $(
                 [$($(if feature = $feature:literal)? $key:literal => $setter:ident test($nbt_input_value:expr => $prop:ident = $test_value:expr),)*]
                 $(? [$($(if feature = $error_feature:literal)? $data_type:ty,)*])?
@@ -11,14 +11,14 @@ macro_rules! mod_try_from_tag {
         ,)*
     }) => {
         $(
-            try_from_tag!($name => 
+            try_from_tag!($name =>
                 $(
                     [$(
                         $key: $setter $(feature = $feature)?
                     ,)*]
                     $(
                         ?[ $($(if feature = $error_feature)? $data_type,)* ]
-                    )?        
+                    )?
                 )?
                 $(
                     $build_fn $(? [$($type,)*])?
