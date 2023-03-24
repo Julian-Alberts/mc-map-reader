@@ -147,7 +147,7 @@ fn search_inventories_in_chunk<'a, 'b>(
 where
     'b: 'a,
 {
-    let Some(block_entities) = chunk.block_entities() else {
+    let Some(block_entities) = &chunk.block_entities else {
         return None
     };
     let res = block_entities

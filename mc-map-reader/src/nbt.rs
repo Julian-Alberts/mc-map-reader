@@ -54,6 +54,11 @@ macro_rules! tags {
         }
 
         $($(
+        impl From<$ty> for Tag {
+            fn from(value: $ty) -> Self {
+                Self::$tag_type(value)
+            }
+        }
         impl NbtData for $ty {
             type BuildError = Error;
         }
@@ -147,6 +152,12 @@ impl<T> IntoIterator for List<T> {
     type Item = T;
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
+    }
+}
+
+impl <A> FromIterator<A> for Array<A> {
+    fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
+        Self(iter.into_iter().collect())
     }
 }
 

@@ -2,12 +2,14 @@ use std::collections::HashMap;
 
 use crate::{data::item::*, nbt::Tag};
 
-try_from_tag!(Item => [
-    "Count": set_count,
-    "id": set_id,
-    "tag": set_tag,
-]);
-try_from_tag!(ItemWithSlot => parse_item_with_slot ? [ Item, ]);
+mod_try_from_tag!({
+    Item: [ 
+        "Count" => set_count test(10_i8 => count = 10),
+        "id" => set_id test("test_id".to_string() => id = "test_id".to_string()),
+        "tag" => set_tag test(HashMap::new() => tag = Some(HashMap::new())),
+    ],
+    ItemWithSlot: parse_item_with_slot ? [ Item, ],
+});
 fn parse_item_with_slot(
     builder: &mut ItemWithSlotBuilder,
     mut nbt_data: HashMap<String, Tag>,

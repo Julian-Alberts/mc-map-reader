@@ -12,22 +12,22 @@ pub use super::load::chunk::*;
 #[derive(jbe::Builder, Debug, Getters, CopyGetters)]
 pub struct ChunkData {
     #[get_copy = "pub"]
-    data_version: i32,
+    pub data_version: i32,
     #[get_copy = "pub"]
-    x_pos: i32,
+    pub x_pos: i32,
     #[get_copy = "pub"]
-    y_pos: i32,
+    pub y_pos: i32,
     #[get_copy = "pub"]
-    z_pos: i32,
+    pub z_pos: i32,
     #[get_copy = "pub"]
-    status: ChunkStatus,
+    pub status: ChunkStatus,
     #[get_copy = "pub"]
-    last_update: i64,
+    pub last_update: i64,
     #[cfg(feature = "chunk_section")]
     #[get = "pub"]
-    sections: List<Section>,
+    pub sections: List<Section>,
     #[cfg(feature = "block_entity")]
-    block_entities: Option<List<BlockEntity>>, /*#[get = "pub"]
+    pub block_entities: Option<List<BlockEntity>>, /*#[get = "pub"]
                                                carving_masks: Option<()>,
                                                #[get = "pub"]
                                                height_maps: (),
@@ -66,73 +66,34 @@ pub enum ChunkStatus {
 #[derive(Debug, Builder, Getters, CopyGetters)]
 pub struct Section {
     #[get_copy = "pub"]
-    y: i8,
+    pub y: i8,
     #[get = "pub"]
-    block_states: BlockStates,
+    pub block_states: BlockStates,
     #[get = "pub"]
-    biomes: Biomes,
-    block_light: Option<Array<i8>>,
-    sky_light: Option<Array<i8>>,
+    pub biomes: Biomes,
+    pub block_light: Option<Array<i8>>,
+    pub sky_light: Option<Array<i8>>,
 }
 
 #[cfg(feature = "chunk_section")]
 #[derive(Debug, Builder, Getters)]
 pub struct BlockStates {
     #[get = "pub"]
-    palette: List<BlockState>,
-    data: Option<Array<i64>>,
+    pub palette: List<BlockState>,
+    pub data: Option<Array<i64>>,
 }
 
 #[derive(Debug, Builder, Getters)]
 pub struct Biomes {
     #[get = "pub"]
-    palette: List<String>,
-    data: Option<Array<i64>>,
+    pub palette: List<String>,
+    pub data: Option<Array<i64>>,
 }
 
 #[cfg(feature = "chunk_section")]
 #[derive(Debug, Builder, Getters, Clone)]
 pub struct BlockState {
     #[get = "pub"]
-    name: String,
-    properties: Option<HashMap<String, crate::nbt::Tag>>,
-}
-
-#[cfg(feature = "block_entity")]
-impl ChunkData {
-    pub fn block_entities(&self) -> Option<&List<BlockEntity>> {
-        self.block_entities.as_ref()
-    }
-}
-
-#[cfg(feature = "chunk_section")]
-impl Section {
-    pub fn block_light(&self) -> Option<&Array<i8>> {
-        self.block_light.as_ref()
-    }
-
-    pub fn sky_light(&self) -> Option<&Array<i8>> {
-        self.sky_light.as_ref()
-    }
-}
-
-#[cfg(feature = "chunk_section")]
-impl BlockStates {
-    pub fn data(&self) -> Option<&Array<i64>> {
-        self.data.as_ref()
-    }
-}
-
-
-impl Biomes {
-    pub fn data(&self) -> Option<&Array<i64>> {
-        self.data.as_ref()
-    }
-}
-
-#[cfg(feature = "chunk_section")]
-impl BlockState {
-    pub fn properties(&self) -> Option<&HashMap<String, Tag>> {
-        self.properties.as_ref()
-    }
+    pub name: String,
+    pub properties: Option<HashMap<String, crate::nbt::Tag>>,
 }

@@ -82,7 +82,7 @@ pub enum Leash {
     Entity(Array<i32>),
     Position { x: i32, y: i32, z: i32 },
 }
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct ActiveEffect {
     pub ambient: bool,
     pub amplifier: i8,

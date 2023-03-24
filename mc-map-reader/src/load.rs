@@ -45,7 +45,7 @@ pub enum LevelDatLoadError {
     #[cfg(feature = "level_dat")]
     /// Some data in the level.dat file is not valid.
     #[error(transparent)]
-    LevelDat(#[from] data::load::file_format::level_dat::LevelDatError),
+    LevelDat(#[from] data::file_format::level_dat::LevelDatError),
 }
 
 #[cfg(feature = "level_dat")]

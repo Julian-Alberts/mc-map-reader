@@ -25,4 +25,4 @@ block_entity = []
 level_dat = []
 
 parallel = ["rayon"]
-default = []
+default = [ "region_file", "chunk_section", "block_entity", "level_dat", "parallel" ]

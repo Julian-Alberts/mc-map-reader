@@ -1,44 +1,45 @@
 use std::collections::HashMap;
 
-use crate::{data::entity::*, data::load::item::ItemError, nbt::Tag};
+use crate::{data::entity::*, data::load::item::ItemError, nbt::*};
 
-try_from_tag!(
-Entity => [
-    "Air": set_air,
-    "CustomName": set_custom_name,
-    "CustomNameVisible": set_custom_name_visible,
-    "FallDistance": set_fall_distance,
-    "Fire": set_fire,
-    "Glowing": set_glowing,
-    "HasVisualFire": set_has_visual_fire,
-    "id": set_id,
-    "Invulnerable": set_invulnerable,
-    "Motion": set_motion,
-    "NoGravity": set_no_gravity,
-    "OnGround": set_on_ground,
-    "Passengers": set_passengers,
-    "PortalCooldown": set_portal_colldown,
-    "Pos": set_pos,
-    "Rotation": set_rotation,
-    "Silent": set_silent,
-    "Tags": set_tags,
-    "TicksFrozen": set_ticks_frozen,
-    "UUID": set_uuid,
-]);
-try_from_tag!(Mob => parse_mob ? [
+mod_try_from_tag!({
+Entity: [
+    "Air" => set_air test(1_i16 => air = Some(1)),
+    "CustomName" => set_custom_name test("test_name".to_string() => custom_name = Some("test_name".to_string())),
+    "CustomNameVisible" => set_custom_name_visible test(1_i8 => custom_name_visible = Some(true)),
+    "FallDistance" => set_fall_distance test(2_f32 => fall_distance = Some(2.)),
+    "Fire" => set_fire test(3i16 => fire = 3),
+    "Glowing" => set_glowing test(1i8 => glowing = true),
+    "HasVisualFire" => set_has_visual_fire test(1i8 => has_visual_fire = true),
+    "id" => set_id test("test_id".to_string() => id = Some("test_id".to_string())),
+    "Invulnerable" => set_invulnerable test(1i8 => invulnerable = true),
+    "Motion" => set_motion test(List::<Tag>::from(vec![1_f64.into(),2f64.into(),3f64.into()]) => motion = Some(List::from_iter([1.,2.,3.]))),
+    "NoGravity" => set_no_gravity test(1i8 => no_gravity = true),
+    "OnGround" => set_on_ground test(0i8 => on_ground = false),
+    "Passengers" => set_passengers test(List::from_iter([]) => passengers = Some(List::from_iter([]))),
+    "PortalCooldown" => set_portal_colldown test(4i32 => portal_colldown = 4),
+    "Pos" => set_pos test(List::from_iter([]) => pos = Some(List::from_iter([]))),
+    "Rotation" => set_rotation test(List::from_iter([]) => rotation = Some(List::from_iter([]))),
+    "Silent" => set_silent test(1i8 => silent = true),
+    "Tags" => set_tags test(HashMap::new() => tags = Some(HashMap::new())),
+    "TicksFrozen" => set_ticks_frozen test(5i32 => ticks_frozen = Some(5)),
+    "UUID" => set_uuid test(Array::<i32>::from(vec![]) => uuid = Some(Array::from_iter([]))),
+],
+Mob: parse_mob ? [
     Entity,
     ActiveEffect,
     Item,
     Leash,
-]);
-try_from_tag!(ActiveEffect => [
-    "Ambient": set_ambient,
-    "Amplifier": set_amplifier,
-    "Duration": set_duration,
-    "Id": set_id,
-    "ShowIcon": set_show_icon,
-    "ShowParticles": set_show_particles,
-]);
+],
+ActiveEffect: [
+    "Ambient" => set_ambient test(1i8 => ambient = true),
+    "Amplifier" => set_amplifier test(1i8 => amplifier = 1),
+    "Duration" => set_duration test(1i32 => duration = 1),
+    "Id" => set_id test(1i32 => id = 1),
+    "ShowIcon" => set_show_icon test(1i8 => show_icon = true),
+    "ShowParticles" => set_show_particles test(1i8 => show_particles = true),
+],
+});
 try_from_tag!(enum Leash => parse_leash);
 fn parse_mob(builder: &mut MobBuilder, mut nbt_data: HashMap<String, Tag>) -> Result<(), MobError> {
     add_data_to_builder!(builder, nbt_data => [

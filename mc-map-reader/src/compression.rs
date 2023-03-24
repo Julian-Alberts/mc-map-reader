@@ -35,6 +35,7 @@ pub type Error = std::io::Error;
 
 #[cfg(test)]
 mod tests {
+    use std::io::Write;
     use test_case::test_case;
 
     use super::Compression;
@@ -60,6 +61,38 @@ mod tests {
         let result = super::decompress(&[1,2,3,4,5,6,7,8,9,10], &Compression::Uncompressed).unwrap();
         let expected = vec![1,2,3,4,5,6,7,8,9,10];
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn decompress_gzip() {
+        let mut encoded = Vec::new();
+        let mut encoder = libflate::gzip::Encoder::new(&mut encoded).unwrap();
+        encoder.write_all(b"Hello World").unwrap();
+        encoder.finish().unwrap();
+        assert!(encoded.len() > 0);
+        
+        let decoded = super::decompress(&encoded, &Compression::GZip).unwrap();
+        
+        assert_eq!(decoded.as_slice(), b"Hello World");
+    }
+
+    #[test]
+    fn decompress_zlib() {
+        let mut encoded = Vec::new();
+        let mut encoder = libflate::zlib::Encoder::new(&mut encoded).unwrap();
+        encoder.write_all(b"Hello World").unwrap();
+        encoder.finish().unwrap();
+        assert!(encoded.len() > 0);
+        
+        let decoded = super::decompress(&encoded, &Compression::Zlib).unwrap();
+        
+        assert_eq!(decoded.as_slice(), b"Hello World");
+    }
+
+    #[test]
+    fn decompress_invalid() {
+        let res = super::decompress(&[1,2,3,4,5,6,7,8,9,10], &Compression::GZip);
+        assert!(res.is_err());
     }
 
 }

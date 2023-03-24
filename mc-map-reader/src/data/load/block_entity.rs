@@ -317,12 +317,12 @@ fn parse_mob_spawner(
     builder.set_spawner(nbt_data.try_into()?);
     Ok(())
 }
-fn parse_cooking_block_entity<E>(
-    builder: &mut impl CookingBlockEntityBuilder,
+fn parse_cooking_block_entity<B>(
+    builder: &mut B,
     mut nbt_data: HashMap<String, Tag>,
-) -> Result<(), E>
+) -> Result<(), B::CookingBlockError>
 where
-    E: From<crate::nbt::Error> + From<ItemWithSlotError>,
+    B: CookingBlockEntityBuilder
 {
     add_data_to_builder!(builder, nbt_data => [
         "BurnTime": set_burn_time,
@@ -358,4 +358,72 @@ where
         "LootTableSeed": set_loot_table_seed,
     ]);
     Ok(())
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::{nbt::*, data::block_entity::*};
+    use test_case::test_case;
+    use std::collections::HashMap;
+    use super::BlastFurnaceBuilder;
+
+    #[test_case(HashMap::from_iter([
+        ("BurnTime".to_string(), Tag::Short(10)),
+        ("CookTime".to_string(), Tag::Short(10)),
+        ("CookTimeTotal".to_string(), Tag::Short(10)),
+        ("CustomName".to_string(), Tag::String("test".to_string())),
+        ("Items".to_string(), Tag::List(List::from_iter([]))),
+        ("Lock".to_string(), Tag::String("test".to_string())),
+        ("RecipesUsed".to_string(), Tag::Compound(HashMap::new()))
+    ]), BlastFurnaceBuilder::default() => Ok(BlastFurnace {
+        burn_time: 10,
+        cook_time: 10,
+        cook_time_total: 10,
+        custom_name: Some("test".to_string()),
+        items: Some(List::from_iter([])),
+        lock: Some("test".to_string()),
+        recipes_used: HashMap::new(),
+    }); "BlastFurnace")]
+    #[test_case(HashMap::from_iter([
+        ("BurnTime".to_string(), Tag::Short(10)),
+        ("CookTime".to_string(), Tag::Short(10)),
+        ("CookTimeTotal".to_string(), Tag::Short(10)),
+        ("CustomName".to_string(), Tag::String("test".to_string())),
+        ("Items".to_string(), Tag::List(List::from_iter([]))),
+        ("Lock".to_string(), Tag::String("test".to_string())),
+        ("RecipesUsed".to_string(), Tag::Compound(HashMap::new()))
+    ]), FurnaceBuilder::default() => Ok(Furnace {
+        burn_time: 10,
+        cook_time: 10,
+        cook_time_total: 10,
+        custom_name: Some("test".to_string()),
+        items: Some(List::from_iter([])),
+        lock: Some("test".to_string()),
+        recipes_used: HashMap::new(),
+    }); "Furnace")]
+    #[test_case(HashMap::from_iter([
+        ("BurnTime".to_string(), Tag::Short(10)),
+        ("CookTime".to_string(), Tag::Short(10)),
+        ("CookTimeTotal".to_string(), Tag::Short(10)),
+        ("CustomName".to_string(), Tag::String("test".to_string())),
+        ("Items".to_string(), Tag::List(List::from_iter([]))),
+        ("Lock".to_string(), Tag::String("test".to_string())),
+        ("RecipesUsed".to_string(), Tag::Compound(HashMap::new()))
+    ]), SmokerBuilder::default() => Ok(Smoker {
+        burn_time: 10,
+        cook_time: 10,
+        cook_time_total: 10,
+        custom_name: Some("test".to_string()),
+        items: Some(List::from_iter([])),
+        lock: Some("test".to_string()),
+        recipes_used: HashMap::new(),
+    }); "Smoker")]
+    fn test_parse_cooking_block<B>(nbt: HashMap<String, Tag>, mut builder: B) -> Result<B::Target, B::CookingBlockError>
+        where B: CookingBlockEntityBuilder
+    {
+        super::parse_cooking_block_entity(&mut builder, nbt)?;
+        builder.try_build()
+    }
+
 }

@@ -1,3 +1,56 @@
+macro_rules! mod_try_from_tag {
+    ({
+        $($name: ty: 
+            $(
+                [$($(if feature = $feature:literal)? $key:literal => $setter:ident test($nbt_input_value:expr => $prop:ident = $test_value:expr),)*]
+                $(? [$($(if feature = $error_feature:literal)? $data_type:ty,)*])?
+            )?
+            $(
+                $build_fn:ident $(? [$($type:ident,)*])?
+            )?
+        ,)*
+    }) => {
+        $(
+            try_from_tag!($name => 
+                $(
+                    [$(
+                        $key: $setter $(feature = $feature)?
+                    ,)*]
+                    $(
+                        ?[ $($(if feature = $error_feature)? $data_type,)* ]
+                    )?        
+                )?
+                $(
+                    $build_fn $(? [$($type,)*])?
+                )?
+            );
+        )*
+
+        #[allow(non_snake_case)]
+        #[cfg(test)]
+        mod macro_tests {
+            use super::*;
+            paste::paste!{
+            $($(
+                #[test]
+                fn [<test_ $name>]() {
+                    let tag = crate::nbt::Tag::Compound(std::collections::HashMap::from_iter(
+                        [$(
+                            ($key.to_string(), $nbt_input_value.into())
+                        ,)*]
+                    ));
+                    let actual = $name::try_from(tag);
+                    let expected = $name {$(
+                        $prop: $test_value,
+                    )*};
+                    assert_eq!(actual, Ok(expected));
+                }
+            )?)*
+            }
+        }
+    };
+}
+
 macro_rules! try_from_tag {
     ($name:ty => [$(
         $key:literal: $setter:ident $(feature = $feature:literal)?,
@@ -81,7 +134,7 @@ macro_rules! try_from_tag {
     };
     (error $name:ty => [$($error:ty $(=> feature = $feature:literal)?,)*]) => {
         paste::paste! {
-            #[derive(Debug, thiserror::Error)]
+            #[derive(Debug, thiserror::Error, PartialEq)]
             #[doc = "Error type for"]
             #[doc = stringify!($name)]
             pub enum [< $name Error >] {

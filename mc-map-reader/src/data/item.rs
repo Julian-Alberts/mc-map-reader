@@ -7,15 +7,15 @@ use crate::nbt::Tag;
 
 /// Representation of an item.
 /// [Minecraft Wiki](https://minecraft.fandom.com/wiki/Player.dat_format#Item_structure)
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters, Clone, PartialEq)]
 pub struct Item {
     /// Internal item ID
     #[get = "pub"]
-    id: String,
-    tag: Option<HashMap<String, Tag>>,
+    pub id: String,
+    pub tag: Option<HashMap<String, Tag>>,
     /// Stack size
     #[get_copy = "pub"]
-    count: i8,
+    pub count: i8,
 }
 
 impl Item {
@@ -26,7 +26,7 @@ impl Item {
 }
 
 /// Representation of an item inside a slot. This type is used if something takes more than one item.
-#[derive(Debug, Builder, Getters, CopyGetters, Clone)]
+#[derive(Debug, Builder, Getters, CopyGetters, Clone, PartialEq)]
 pub struct ItemWithSlot {
     /// Slot ID
     #[get_copy = "pub"]
