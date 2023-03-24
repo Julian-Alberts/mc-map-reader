@@ -1,4 +1,3 @@
-#![warn(missing_docs)]
 #![deny(clippy::unwrap_used)]
 #![deny(unused_unsafe)]
 #![deny(clippy::undocumented_unsafe_blocks)]

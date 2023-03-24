@@ -1,32 +1,23 @@
 use std::collections::HashMap;
 
-use getset::{CopyGetters, Getters};
 use jbe::Builder;
 
-use crate::nbt::{Array, List, Tag};
+use crate::nbt::{Array, List};
 
 #[cfg(feature = "block_entity")]
 use super::block_entity::BlockEntity;
 pub use super::load::chunk::*;
 
-#[derive(jbe::Builder, Debug, Getters, CopyGetters)]
+#[derive(jbe::Builder, Debug)]
 pub struct ChunkData {
-    #[get_copy = "pub"]
     pub data_version: i32,
-    #[get_copy = "pub"]
     pub x_pos: i32,
-    #[get_copy = "pub"]
     pub y_pos: i32,
-    #[get_copy = "pub"]
     pub z_pos: i32,
-    #[get_copy = "pub"]
     pub status: ChunkStatus,
-    #[get_copy = "pub"]
     pub last_update: i64,
     #[cfg(feature = "chunk_section")]
-    #[get = "pub"]
     pub sections: List<Section>,
-    #[cfg(feature = "block_entity")]
     pub block_entities: Option<List<BlockEntity>>, /*#[get = "pub"]
                                                carving_masks: Option<()>,
                                                #[get = "pub"]
@@ -63,37 +54,31 @@ pub enum ChunkStatus {
 }
 
 #[cfg(feature = "chunk_section")]
-#[derive(Debug, Builder, Getters, CopyGetters)]
+#[derive(Debug, Builder)]
 pub struct Section {
-    #[get_copy = "pub"]
     pub y: i8,
-    #[get = "pub"]
     pub block_states: BlockStates,
-    #[get = "pub"]
     pub biomes: Biomes,
     pub block_light: Option<Array<i8>>,
     pub sky_light: Option<Array<i8>>,
 }
 
 #[cfg(feature = "chunk_section")]
-#[derive(Debug, Builder, Getters)]
+#[derive(Debug, Builder)]
 pub struct BlockStates {
-    #[get = "pub"]
     pub palette: List<BlockState>,
     pub data: Option<Array<i64>>,
 }
 
-#[derive(Debug, Builder, Getters)]
+#[derive(Debug, Builder)]
 pub struct Biomes {
-    #[get = "pub"]
     pub palette: List<String>,
     pub data: Option<Array<i64>>,
 }
 
 #[cfg(feature = "chunk_section")]
-#[derive(Debug, Builder, Getters, Clone)]
+#[derive(Debug, Builder, Clone)]
 pub struct BlockState {
-    #[get = "pub"]
     pub name: String,
     pub properties: Option<HashMap<String, crate::nbt::Tag>>,
 }

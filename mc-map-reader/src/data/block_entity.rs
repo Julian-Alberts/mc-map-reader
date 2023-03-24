@@ -413,18 +413,18 @@ pub struct Sign {
 
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
 pub struct Skull {
-    note_block_sound: Option<String>,
-    extra_type: Option<String>,
-    skull_owner: Option<SkullOwner>,
+    pub note_block_sound: Option<String>,
+    pub extra_type: Option<String>,
+    pub skull_owner: Option<SkullOwner>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
 pub struct SkullOwner {
     #[get = "pub"]
-    id: Array<i32>,
-    name: Option<String>,
+    pub id: Array<i32>,
+    pub name: Option<String>,
     #[get = "pub"]
-    properties: Option<List<SkullOwnerProperties>>,
+    pub properties: Option<List<SkullOwnerProperties>>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
@@ -436,8 +436,8 @@ pub struct SkullOwnerProperties {
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
 pub struct SkullOwnerTextures {
     #[get = "pub"]
-    value: String,
-    signature: Option<String>,
+    pub value: String,
+    pub signature: Option<String>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters, Clone, PartialEq)]
@@ -458,10 +458,10 @@ pub struct Smoker {
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
 pub struct SoulCampfire {
     #[get = "pub"]
-    cooking_times: Array<i32>,
+    pub cooking_times: Array<i32>,
     #[get = "pub"]
-    cooking_total_times: Array<i32>,
-    items: Option<List<ItemWithSlot>>,
+    pub cooking_total_times: Array<i32>,
+    pub items: Option<List<ItemWithSlot>>,
 }
 
 #[derive(Debug, Builder, Getters, CopyGetters, Clone)]
