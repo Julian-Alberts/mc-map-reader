@@ -6,7 +6,7 @@ use crate::{
         load::{
             entity::{EntityError, MobError},
             item::{ItemError, ItemWithSlotError},
-        },
+        }, FieldError,
     },
     nbt::Tag,
 };
@@ -64,7 +64,7 @@ fn parse_player(
         "XpSeed": set_xp_seed,
         "XpTotal": set_xp_total,
     ]);
-    builder.set_mob(nbt_data.try_into().map_err(PlayerError::Mob)?);
+    builder.set_mob(nbt_data.try_into().map_err(|e| FieldError::new("<internal> mob", e))?);
     Ok(())
 }
 try_from_tag!(EnteredNetherPosition => [

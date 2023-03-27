@@ -9,3 +9,4 @@ pub mod entity;
 pub mod file_format;
 pub mod item;
 mod load;
+pub use load::FieldError;

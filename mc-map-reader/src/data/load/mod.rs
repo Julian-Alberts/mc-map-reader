@@ -56,7 +56,7 @@ macro_rules! try_from_tag {
         $key:literal: $setter:ident $(feature = $feature:literal)?,
     )*] $(? [ $($(if feature = $error_feature:literal)? $data_type:ty,)* ])? ) => {
         paste::paste!{
-        try_from_tag!(error $name => [[< $name Builder >], $($($data_type $(=> feature = $error_feature)?,)*)?]);
+        try_from_tag!(error $name => builder [< $name Builder >] [$($($data_type $(=> feature = $error_feature)?,)*)?]);
         try_from_tag!(other_impls $name);
         }
         impl TryFrom<std::collections::HashMap<String, $crate::nbt::Tag>> for $name {
@@ -89,11 +89,11 @@ macro_rules! try_from_tag {
             fn try_from(nbt_data: HashMap<String, Tag>) -> Result<Self, Self::Error> {
                 type Builder = paste::paste!([<$name Builder>]);
                 let mut builder = Builder::default();
-                let result:Result<_, [< $name Error >]> = $build_fn(&mut builder, nbt_data);
+                let result:Result<_, Self::Error> = $build_fn(&mut builder, nbt_data);
                 result?;
                 let b = builder
                     .try_build()
-                    .map_err([< $name Error >]::from)?;
+                    .map_err(Self::Error::from)?;
                 Ok(b)
             }
         }
@@ -106,7 +106,7 @@ macro_rules! try_from_tag {
         }
         }
         paste::paste!{
-            try_from_tag!(error $name => [[< $name Builder >], $($($type,)*)?]);
+            try_from_tag!(error $name => builder [< $name Builder >] [$($($type,)*)?]);
             try_from_tag!(other_impls $name);
         }
     };
@@ -132,7 +132,7 @@ macro_rules! try_from_tag {
             try_from_tag!(other_impls $name);
         }
     };
-    (error $name:ty => [$($error:ty $(=> feature = $feature:literal)?,)*]) => {
+    (error $name:ty => $(builder $b_err:ty)? [$($error:ty $(=> feature = $feature:literal)?,)*]) => {
         paste::paste! {
             #[derive(Debug, thiserror::Error, PartialEq)]
             #[doc = "Error type for"]
@@ -141,12 +141,19 @@ macro_rules! try_from_tag {
                 #[error(transparent)]
                 /// An NBT error occurred
                 Nbt(#[from] crate::nbt::Error),
+                #[error(transparent)]
+                /// An NBT error occurred
+                NbtField(#[from] $crate::data::FieldError<crate::nbt::Error>),
+                $(
+                    #[error(transparent)]
+                    $b_err(#[from] [<$b_err Error>]),
+                )?
                 $(
                     $(#[cfg(feature = $feature)])?
                     /// An error occurred while parsing a field occurred
                     #[error(transparent)]
-                    $error(#[from] [< $error Error >])
-                ),*
+                    [<$error Field>](#[from] $crate::data::FieldError<[<$error Error>]>),
+                )*
             }
         }
     };
@@ -167,7 +174,8 @@ macro_rules! add_data_to_builder {
             $(#[cfg(feature = $feature)])?
             {
                 if let Some(value) = $nbt.remove($key) {
-                    $builder.$setter(value.try_into()?)
+                    let value = value.try_into().map_err(|e| $crate::data::FieldError::new($key, e))?;
+                    $builder.$setter(value)
                 }
             }
         )*
@@ -182,3 +190,19 @@ pub mod dimension;
 pub mod entity;
 pub mod file_format;
 pub mod item;
+
+#[derive(Debug, thiserror::Error, PartialEq)]
+#[error("{field} -> {error}")]
+pub struct FieldError<E> {
+    pub field: &'static str,
+    pub error: Box<E>,
+}
+
+impl <E> FieldError<E> {
+    pub fn new(field: &'static str, error: E) -> Self {
+        FieldError {
+            field,
+            error: Box::new(error),
+        }
+    }
+} 

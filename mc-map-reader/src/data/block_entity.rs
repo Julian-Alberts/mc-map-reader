@@ -11,7 +11,7 @@ use crate::{
     nbt::{Array, List, Tag},
 };
 
-use super::load::item::ItemWithSlotError;
+use super::{load::item::ItemWithSlotError, FieldError};
 
 #[derive(Debug, Builder, Clone)]
 pub struct BlockEntity {
@@ -546,7 +546,7 @@ pub trait CookingBlockEntity {
 }
 pub trait CookingBlockEntityBuilder
 where
-    Self::CookingBlockError: From<crate::nbt::Error> + From<ItemWithSlotError>,
+    Self::CookingBlockError: From<FieldError<crate::nbt::Error>> + From<FieldError<ItemWithSlotError>>,
     Self::Target: CookingBlockEntity,
 {
     type CookingBlockError;

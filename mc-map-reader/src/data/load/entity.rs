@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{data::entity::*, data::load::item::ItemError, nbt::*};
+use crate::{data::entity::*, data::{load::item::ItemError, FieldError}, nbt::*};
 
 mod_try_from_tag!({
 Entity: [
@@ -24,6 +24,8 @@ Entity: [
     "Tags" => set_tags test(HashMap::new() => tags = Some(HashMap::new())),
     "TicksFrozen" => set_ticks_frozen test(5i32 => ticks_frozen = Some(5)),
     "UUID" => set_uuid test(Array::<i32>::from(vec![]) => uuid = Some(Array::from_iter([]))),
+] ? [ 
+    Entity, 
 ],
 Mob: parse_mob ? [
     Entity,
@@ -68,7 +70,7 @@ fn parse_mob(builder: &mut MobBuilder, mut nbt_data: HashMap<String, Tag>) -> Re
         "SleepingZ": set_sleeping_z,
         "Team": set_team,
     ]);
-    builder.set_entity(nbt_data.try_into()?);
+    builder.set_entity(nbt_data.try_into().map_err(|e| FieldError::new("<internal> entity", e))?);
     Ok(())
 }
 fn parse_leash(mut nbt_data: HashMap<String, Tag>) -> Result<Leash, LeashError> {
