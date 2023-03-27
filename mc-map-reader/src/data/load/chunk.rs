@@ -46,49 +46,73 @@ pub fn load_chunk(raw: &[u8], chunk_info: &ChunkInfo) -> Result<ChunkData, LoadC
     Ok(chunk_data)
 }
 
-try_from_tag!(ChunkData => [
-    "DataVersion": set_data_version,
-    "xPos": set_x_pos,
-    "yPos": set_y_pos,
-    "zPos": set_z_pos,
-    "Status": set_status,
-    "LastUpdate": set_last_update,
-    "sections": set_sections feature = "chunk_section",
-    "block_entities": set_block_entities feature = "block_entity",
+mod_try_from_tag!(ChunkData: [
+    "DataVersion" => set_data_version test(crate::nbt::Tag::Int(1) => data_version = 1),
+    "xPos" => set_x_pos test(crate::nbt::Tag::Int(2) => x_pos = 2),
+    "yPos" => set_y_pos test(crate::nbt::Tag::Int(3) => y_pos = 3),
+    "zPos" => set_z_pos test(crate::nbt::Tag::Int(4) => z_pos = 4),
+    "Status" => set_status test(crate::nbt::Tag::String("empty".to_string()) => status = ChunkStatus::Empty),
+    "LastUpdate" => set_last_update test(crate::nbt::Tag::Long(5) => last_update = 5),
+    if feature = "chunk_section" "sections" => set_sections test(crate::nbt::Tag::List(crate::nbt::List::from(vec![])) => sections = crate::nbt::List::from(vec![])),
+    if feature = "block_entity" "block_entities" => set_block_entities test(crate::nbt::Tag::List(crate::nbt::List::from(vec![])) => block_entities = Some(crate::nbt::List::from(vec![]))),
 ] ? [
     ChunkStatus,
     if feature = "chunk_section" Section,
     if feature = "block_entity" BlockEntity,
-]);
-
-#[cfg(feature = "chunk_section")]
-try_from_tag!(Section => [
-    "Y": set_y,
-    "block_states": set_block_states,
-    "biomes": set_biomes,
+],
+if feature = "chunk_section" Section: [
+    "Y" => set_y test(1i8 => y = 1),
+    "block_states" => set_block_states test(std::collections::HashMap::from_iter([
+        ("palette".to_string(), crate::nbt::Tag::List(vec![].into())),
+        ("data".to_string(), crate::nbt::Tag::LongArray(vec![].into()))
+    ]) => block_states = BlockStates {
+        palette: vec![].into(),
+        data: Some(vec![].into()),
+    }),
+    "biomes" => set_biomes test(std::collections::HashMap::from_iter([
+        ("palette".to_string(), crate::nbt::Tag::List(vec![].into())),
+        ("data".to_string(), crate::nbt::Tag::LongArray(vec![].into()))
+    ]) => biomes = Biomes {
+        palette: vec![].into(),
+        data: Some(vec![].into()),
+    }),
+    "block_light" => set_block_light test(crate::nbt::Tag::ByteArray(vec![].into()) => block_light = Some(vec![].into())),
+    "sky_light" => set_sky_light test(crate::nbt::Tag::ByteArray(vec![].into()) => sky_light = Some(vec![].into())),
 ] ? [
     BlockStates,
     Biomes,
-]);
-
-try_from_tag!(Biomes => [
-    "palette": set_palette,
-    "data": set_data,
-]);
-
-#[cfg(feature = "chunk_section")]
-try_from_tag!(BlockStates => [
-    "palette": set_palette,
-    "data": set_data,
+],
+Biomes: [
+    "palette" => set_palette 
+    test(crate::nbt::List::from(
+        vec![
+            "a".to_string().into(), 
+            "b".to_string().into()
+        ]
+    ) => palette = crate::nbt::List::from(vec![
+        "a".to_string(), 
+        "b".to_string()
+    ])),
+    "data" => set_data 
+    test(crate::nbt::Array::from(
+        vec![
+            1i64,2
+        ]
+    ) => data = Some(crate::nbt::Array::from(vec![
+        1,2
+    ]))),
+],
+if feature = "chunk_section" BlockStates: [
+    "palette" => set_palette test(crate::nbt::List::from(vec![]) => palette = crate::nbt::List::from(vec![])),
+    "data" => set_data test(crate::nbt::Array::from(vec![1i64]) => data = Some(crate::nbt::Array::from(vec![1i64]))),
 ] ? [
     BlockState,
-]);
-
-#[cfg(feature = "chunk_section")]
-try_from_tag!(BlockState => [
-    "Name": set_name,
-    "Properties": set_properties,
-]);
+],
+if feature = "chunk_section" BlockState: [
+    "Name" => set_name test("a".to_string() => name = "a".to_string()),
+    "Properties" => set_properties test(std::collections::HashMap::new() => properties = Some(std::collections::HashMap::new())),
+],
+);
 try_from_tag!(error ChunkStatus => []);
 
 impl TryFrom<crate::nbt::Tag> for ChunkStatus {

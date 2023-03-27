@@ -7,7 +7,7 @@ use crate::{
 
 use crate::data::load::item::*;
 
-try_from_tag!(BlockEntity => parse_block_entity ? [
+mod_try_from_tag!(BlockEntity: parse_block_entity ? [
     Banner,
     Barrel,
     Beacon,
@@ -38,7 +38,8 @@ try_from_tag!(BlockEntity => parse_block_entity ? [
     SoulCampfire,
     StructureBlock,
     TrappedChest,
-]);
+],
+);
 
 try_from_tag!(
     Beehive => [

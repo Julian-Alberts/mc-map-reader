@@ -13,7 +13,7 @@ use crate::{
 
 use super::{load::item::ItemWithSlotError, FieldError};
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct BlockEntity {
     pub id: String,
     #[builder({default false})]
@@ -24,7 +24,7 @@ pub struct BlockEntity {
     pub entity_type: BlockEntityType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BlockEntityType {
     Banner(Banner),
     Barrel(Barrel),
@@ -64,7 +64,7 @@ pub enum BlockEntityType {
     Other(HashMap<String, Tag>),
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Banner {
     pub custom_name: Option<String>,
     pub patterns: Option<List<BannerPattern>>,
@@ -76,7 +76,7 @@ pub struct BannerPattern {
     pub pattern: String,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Barrel {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
@@ -85,7 +85,7 @@ pub struct Barrel {
     pub loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Beacon {
     pub custom_name: Option<String>,
     pub lock: Option<String>,
@@ -94,20 +94,20 @@ pub struct Beacon {
     pub secondary: i32,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Beehive {
     pub bees: Option<List<BeeInHive>>,
     pub flower_pos: Option<FlowerPos>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct BeeInHive {
     pub entity_data: Entity,
     pub min_occupation_ticks: i32,
     pub ticks_in_hive: i32,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct FlowerPos {
     pub x: i32,
     pub y: i32,
@@ -125,7 +125,7 @@ pub struct BlastFurnace {
     pub recipes_used: HashMap<String, i32>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct BrewingStand {
     pub brew_time: i16,
     pub custom_name: Option<String>,
@@ -134,20 +134,20 @@ pub struct BrewingStand {
     pub lock: Option<String>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Campfire {
     pub cooking_times: Array<i32>,
     pub cooking_total_times: Array<i32>,
     pub items: Option<List<ItemWithSlot>>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct ChiseledBookshelf {
     pub items: Option<List<ItemWithSlot>>,
     pub last_interacted_slot: i32,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Chest {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
@@ -156,12 +156,12 @@ pub struct Chest {
     pub loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Comparator {
     pub output_signal: i32,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct CommandBlock {
     pub auto: bool,
     pub command: String,
@@ -175,12 +175,12 @@ pub struct CommandBlock {
     pub update_last_execution: bool,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Conduit {
     pub target: Array<i32>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Dispenser {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
@@ -189,7 +189,7 @@ pub struct Dispenser {
     pub loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Dropper {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
@@ -197,19 +197,19 @@ pub struct Dropper {
     pub loot_table: Option<String>,
     pub loot_table_seed: Option<i64>,
 }
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct EnchantingTable {
     pub custom_name: Option<String>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct EndGateway {
     pub age: i64,
     pub exact_teleport: bool,
     pub exit_portal: ExitPortal,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct ExitPortal {
     pub x: i32,
     pub y: i32,
@@ -227,7 +227,7 @@ pub struct Furnace {
     pub recipes_used: HashMap<String, i32>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Hopper {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
@@ -238,7 +238,7 @@ pub struct Hopper {
     pub transfer_cooldown: i32,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Jigsaw {
     pub final_state: String,
     pub joint: String,
@@ -247,7 +247,7 @@ pub struct Jigsaw {
     pub target: String,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Jukebox {
     pub is_playing: bool,
     pub record_item: Item,
@@ -255,18 +255,18 @@ pub struct Jukebox {
     pub tick_count: i64,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Lectern {
     pub book: Option<Item>,
     pub page: Option<i32>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct MobSpawner {
     pub spawner: Spawner,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Spawner {
     pub delay: i16,
     pub max_nearby_entities: i16,
@@ -279,20 +279,20 @@ pub struct Spawner {
     pub spawn_range: i16,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct PotentialSpawn {
     pub weight: i32,
     pub data: HashMap<String, Tag>,
     pub custom_spawn_rules: Option<CustomSpawnRules>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct CustomSpawnRules {
     pub block_light_limit: i32,
     pub sky_light_limit: i32,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Piston {
     pub block_state: PistonBlockState,
     pub extending: bool,
@@ -301,13 +301,13 @@ pub struct Piston {
     pub source: bool,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct PistonBlockState {
     pub name: String,
     pub properties: HashMap<String, Tag>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct ShulkerBox {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,
@@ -316,7 +316,7 @@ pub struct ShulkerBox {
     pub loot_table_seed: Option<i64>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Sign {
     pub glowing_text: bool,
     pub color: String,
@@ -326,26 +326,26 @@ pub struct Sign {
     pub text4: String,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct Skull {
     pub note_block_sound: Option<String>,
     pub extra_type: Option<String>,
     pub skull_owner: Option<SkullOwner>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct SkullOwner {
     pub id: Array<i32>,
     pub name: Option<String>,
     pub properties: Option<List<SkullOwnerProperties>>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct SkullOwnerProperties {
     pub textures: Option<List<SkullOwnerTextures>>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct SkullOwnerTextures {
     pub value: String,
     pub signature: Option<String>,
@@ -362,14 +362,14 @@ pub struct Smoker {
     pub recipes_used: HashMap<String, i32>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct SoulCampfire {
     pub cooking_times: Array<i32>,
     pub cooking_total_times: Array<i32>,
     pub items: Option<List<ItemWithSlot>>,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct StructureBlock {
     pub author: String,
     pub ignore_entities: bool,
@@ -390,7 +390,7 @@ pub struct StructureBlock {
     pub size_z: i32,
 }
 
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct TrappedChest {
     pub custom_name: Option<String>,
     pub items: Option<List<ItemWithSlot>>,

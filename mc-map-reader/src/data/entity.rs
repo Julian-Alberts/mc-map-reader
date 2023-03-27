@@ -68,7 +68,7 @@ pub struct Mob {
     pub team: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Leash {
     Entity(Array<i32>),
     Position { x: i32, y: i32, z: i32 },

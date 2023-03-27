@@ -86,3 +86,35 @@ fn parse_leash(mut nbt_data: HashMap<String, Tag>) -> Result<Leash, LeashError> 
     }
     Err(crate::nbt::Error::InvalidValue.into())
 }
+
+#[cfg(test)]
+mod tests {
+    use test_case::test_case;
+    use super::*;
+
+    #[test_case(vec![
+        ("UUID", Tag::IntArray(Array::from(vec![1, 2, 3, 4])))
+    ] => Ok(Leash::Entity(Array::from(vec![1,2,3,4]))); "Success UUID")]
+    #[test_case(vec![
+        ("X", Tag::Int(1)),
+        ("Y", Tag::Int(2)),
+        ("Z", Tag::Int(3))
+    ] => Ok(Leash::Position { x: 1, y: 2, z: 3 }); "Success Position")]
+    #[test_case(vec![
+        ("Y", Tag::Int(2)),
+        ("Z", Tag::Int(3))
+    ] => Err(LeashError::Nbt(crate::nbt::Error::InvalidValue)); "Error Position X")]
+    #[test_case(vec![
+        ("X", Tag::Int(1)),
+        ("Z", Tag::Int(3))
+    ] => Err(LeashError::Nbt(crate::nbt::Error::InvalidValue)); "Error Position Y")]
+    #[test_case(vec![
+        ("X", Tag::Int(1)),
+        ("Y", Tag::Int(2)),
+    ] => Err(LeashError::Nbt(crate::nbt::Error::InvalidValue)); "Error Position Z")]
+    fn test_parse_leash(nbt_data: Vec<(&str, Tag)>) -> Result<Leash, LeashError> {
+        let data: HashMap<_, _> = nbt_data.into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+        data.try_into()
+    }
+
+}

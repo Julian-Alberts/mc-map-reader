@@ -10,7 +10,30 @@ macro_rules! mod_try_from_tag {
             )?
         ,)*
     }) => {
+        mod_try_from_tag!($(
+            $name:
+                $(
+                    [$($(if feature = $feature)? $key => $setter test($nbt_input_value => $prop = $test_value),)*]
+                    $(? [$($(if feature = $error_feature)? $data_type,)*])?
+                )?
+                $(
+                    $build_fn $(? [$($type,)*])?
+                )?
+        ,)*);
+    };
+    (
+        $($(if feature = $type_feature:literal)? $name: ty:
+            $(
+                [$($(if feature = $feature:literal)? $key:literal => $setter:ident test($nbt_input_value:expr => $prop:ident = $test_value:expr),)*]
+                $(? [$($(if feature = $error_feature:literal)? $data_type:ty,)*])?
+            )?
+            $(
+                $build_fn:ident $(? [$($type:ident,)*])?
+            )?
+        ,)*
+    ) => {
         $(
+            $(#[cfg(feature = $type_feature)])?
             try_from_tag!($name =>
                 $(
                     [$(
@@ -29,11 +52,13 @@ macro_rules! mod_try_from_tag {
         #[allow(non_snake_case)]
         #[cfg(test)]
         mod macro_tests {
-            use super::*;
             paste::paste!{
-            $($(
+            $(
+                $(#[cfg(feature = $type_feature)])?
+                $(
                 #[test]
                 fn [<test_ $name>]() {
+                    use super::*;
                     let tag = crate::nbt::Tag::Compound(std::collections::HashMap::from_iter(
                         [$(
                             ($key.to_string(), $nbt_input_value.into())
@@ -45,7 +70,8 @@ macro_rules! mod_try_from_tag {
                     )*};
                     assert_eq!(actual, Ok(expected));
                 }
-            )?)*
+                )?
+            )*
             }
         }
     };

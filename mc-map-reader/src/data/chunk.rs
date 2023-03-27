@@ -8,7 +8,7 @@ use crate::nbt::{Array, List};
 use super::block_entity::BlockEntity;
 pub use super::load::chunk::*;
 
-#[derive(jbe::Builder, Debug)]
+#[derive(jbe::Builder, Debug, PartialEq)]
 pub struct ChunkData {
     pub data_version: i32,
     pub x_pos: i32,
@@ -36,7 +36,7 @@ pub struct ChunkData {
                                                    post_processing: Vec<()>*/
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ChunkStatus {
     Empty,
     StructureStarts,
@@ -54,7 +54,7 @@ pub enum ChunkStatus {
 }
 
 #[cfg(feature = "chunk_section")]
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct Section {
     pub y: i8,
     pub block_states: BlockStates,
@@ -64,20 +64,20 @@ pub struct Section {
 }
 
 #[cfg(feature = "chunk_section")]
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct BlockStates {
     pub palette: List<BlockState>,
     pub data: Option<Array<i64>>,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct Biomes {
     pub palette: List<String>,
     pub data: Option<Array<i64>>,
 }
 
 #[cfg(feature = "chunk_section")]
-#[derive(Debug, Builder, Clone)]
+#[derive(Debug, Builder, Clone, PartialEq)]
 pub struct BlockState {
     pub name: String,
     pub properties: Option<HashMap<String, crate::nbt::Tag>>,
