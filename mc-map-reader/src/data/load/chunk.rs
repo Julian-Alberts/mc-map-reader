@@ -83,17 +83,17 @@ if feature = "chunk_section" Section: [
     Biomes,
 ],
 Biomes: [
-    "palette" => set_palette 
+    "palette" => set_palette
     test(crate::nbt::List::from(
         vec![
-            "a".to_string().into(), 
+            "a".to_string().into(),
             "b".to_string().into()
         ]
     ) => palette = crate::nbt::List::from(vec![
-        "a".to_string(), 
+        "a".to_string(),
         "b".to_string()
     ])),
-    "data" => set_data 
+    "data" => set_data
     test(crate::nbt::Array::from(
         vec![
             1i64,2

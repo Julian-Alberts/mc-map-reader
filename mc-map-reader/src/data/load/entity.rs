@@ -1,6 +1,10 @@
 use std::collections::HashMap;
 
-use crate::{data::entity::*, data::{load::item::ItemError, FieldError}, nbt::*};
+use crate::{
+    data::entity::*,
+    data::{load::item::ItemError, FieldError},
+    nbt::*,
+};
 
 mod_try_from_tag!({
 Entity: [
@@ -24,8 +28,8 @@ Entity: [
     "Tags" => set_tags test(HashMap::new() => tags = Some(HashMap::new())),
     "TicksFrozen" => set_ticks_frozen test(5i32 => ticks_frozen = Some(5)),
     "UUID" => set_uuid test(Array::<i32>::from(vec![]) => uuid = Some(Array::from_iter([]))),
-] ? [ 
-    Entity, 
+] ? [
+    Entity,
 ],
 Mob: parse_mob ? [
     Entity,
@@ -70,7 +74,11 @@ fn parse_mob(builder: &mut MobBuilder, mut nbt_data: HashMap<String, Tag>) -> Re
         "SleepingZ": set_sleeping_z,
         "Team": set_team,
     ]);
-    builder.set_entity(nbt_data.try_into().map_err(|e| FieldError::new("<internal> entity", e))?);
+    builder.set_entity(
+        nbt_data
+            .try_into()
+            .map_err(|e| FieldError::new("<internal> entity", e))?,
+    );
     Ok(())
 }
 fn parse_leash(mut nbt_data: HashMap<String, Tag>) -> Result<Leash, LeashError> {
@@ -89,8 +97,8 @@ fn parse_leash(mut nbt_data: HashMap<String, Tag>) -> Result<Leash, LeashError> 
 
 #[cfg(test)]
 mod tests {
-    use test_case::test_case;
     use super::*;
+    use test_case::test_case;
 
     #[test_case(vec![
         ("UUID", Tag::IntArray(Array::from(vec![1, 2, 3, 4])))
@@ -113,8 +121,10 @@ mod tests {
         ("Y", Tag::Int(2)),
     ] => Err(LeashError::Nbt(crate::nbt::Error::InvalidValue)); "Error Position Z")]
     fn test_parse_leash(nbt_data: Vec<(&str, Tag)>) -> Result<Leash, LeashError> {
-        let data: HashMap<_, _> = nbt_data.into_iter().map(|(k, v)| (k.to_string(), v)).collect();
+        let data: HashMap<_, _> = nbt_data
+            .into_iter()
+            .map(|(k, v)| (k.to_string(), v))
+            .collect();
         data.try_into()
     }
-
 }

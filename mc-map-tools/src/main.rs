@@ -83,9 +83,7 @@ fn setup_logger(level: log::LevelFilter) {
             logger.push(WriteLogger::new(level, Config::default(), file));
             None
         }
-        Err(e) => {
-            Some(e)
-        }
+        Err(e) => Some(e),
     };
 
     CombinedLogger::init(logger).expect("Error while initializing logger");

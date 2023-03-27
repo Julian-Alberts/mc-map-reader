@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use crate::{data::{item::*, FieldError}, nbt::Tag};
+use crate::{
+    data::{item::*, FieldError},
+    nbt::Tag,
+};
 
 mod_try_from_tag!({
     Item: [
@@ -18,7 +21,11 @@ fn parse_item_with_slot(
     add_data_to_builder!(builder, nbt_data => [
         "Slot": set_slot,
     ]);
-    builder.set_item(nbt_data.try_into().map_err(|e| FieldError::new("<internal> item",e))?);
+    builder.set_item(
+        nbt_data
+            .try_into()
+            .map_err(|e| FieldError::new("<internal> item", e))?,
+    );
     Ok(())
 }
 
@@ -67,9 +74,12 @@ mod tests {
             tag: None,
         },
     }); "Success without tag")]
-    fn test_parse_item_with_slot(nbt_data: Vec<(&str, Tag)>) -> Result<ItemWithSlot, ItemWithSlotError> {
-        let nbt_data = Tag::Compound(HashMap::from_iter(nbt_data.into_iter().map(|(k, v)| (k.to_string(), v))));
+    fn test_parse_item_with_slot(
+        nbt_data: Vec<(&str, Tag)>,
+    ) -> Result<ItemWithSlot, ItemWithSlotError> {
+        let nbt_data = Tag::Compound(HashMap::from_iter(
+            nbt_data.into_iter().map(|(k, v)| (k.to_string(), v)),
+        ));
         nbt_data.try_into()
     }
-
 }

@@ -546,7 +546,8 @@ pub trait CookingBlockEntity {
 }
 pub trait CookingBlockEntityBuilder
 where
-    Self::CookingBlockError: From<FieldError<crate::nbt::Error>> + From<FieldError<ItemWithSlotError>>,
+    Self::CookingBlockError:
+        From<FieldError<crate::nbt::Error>> + From<FieldError<ItemWithSlotError>>,
     Self::Target: CookingBlockEntity,
 {
     type CookingBlockError;

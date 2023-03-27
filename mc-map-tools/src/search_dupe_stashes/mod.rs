@@ -7,11 +7,14 @@ use data::*;
 use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashMap, fs::OpenOptions, path::Path, sync::Mutex};
 
-use mc_map_reader::{data::{
-    block_entity::{BlockEntity, BlockEntityType, InventoryBlock, ShulkerBox},
-    chunk::ChunkData,
-    item::Item,
-}, RegionLoadError};
+use mc_map_reader::{
+    data::{
+        block_entity::{BlockEntity, BlockEntityType, InventoryBlock, ShulkerBox},
+        chunk::ChunkData,
+        item::Item,
+    },
+    RegionLoadError,
+};
 
 use crate::{
     config::Config,
@@ -26,7 +29,7 @@ enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error(transparent)]
-    RegionLoadError(#[from] RegionLoadError)
+    RegionLoadError(#[from] RegionLoadError),
 }
 
 pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
@@ -64,13 +67,16 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         })
         .collect::<Vec<Result<_, Error>>>()
         .into_iter()
-        .fold((Vec::default(), Vec::default()), |(mut inv, mut err), new| {
-            match new {
-                Ok(mut i) => inv.append(&mut i),
-                Err(e) => err.push(e)
-            }
-            (inv, err)
-        });
+        .fold(
+            (Vec::default(), Vec::default()),
+            |(mut inv, mut err), new| {
+                match new {
+                    Ok(mut i) => inv.append(&mut i),
+                    Err(e) => err.push(e),
+                }
+                (inv, err)
+            },
+        );
 
     for e in errors {
         log::error!("Error while reading region file {}", e);
@@ -113,7 +119,9 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let inventories = inventories.iter();
     inventories.for_each(|inv| {
         inv.items.iter().for_each(|(group_key, item)| {
-            let tree = inventory_trees.get(group_key).expect("Could not find group key");
+            let tree = inventory_trees
+                .get(group_key)
+                .expect("Could not find group key");
             let mut tree = tree.lock().expect("Error locking tree");
             tree.insert(item);
         });
@@ -128,7 +136,10 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let inventory_trees = inventory_trees.into_iter();
     let item_stashes = inventory_trees
         .map(|(group_key, items)| {
-            let group = config.groups.get(group_key).expect("Error Could not find group key");
+            let group = config
+                .groups
+                .get(group_key)
+                .expect("Error Could not find group key");
             let threshold = group.threshold;
             let counts: Vec<_> = items
                 .iter()

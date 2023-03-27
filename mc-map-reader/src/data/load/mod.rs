@@ -224,11 +224,11 @@ pub struct FieldError<E> {
     pub error: Box<E>,
 }
 
-impl <E> FieldError<E> {
+impl<E> FieldError<E> {
     pub fn new(field: &'static str, error: E) -> Self {
         FieldError {
             field,
             error: Box::new(error),
         }
     }
-} 
+}

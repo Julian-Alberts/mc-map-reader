@@ -268,44 +268,134 @@ fn parse_block_entity(
         "y": set_y,
         "z": set_z,
     ]);
-    
+
     const ENTITY_TYPE_KEY: &str = "<internal> entity_type";
     let ty = match id.as_str() {
-        "minecraft:banners" => nbt_data.try_into().map(BlockEntityType::Banner).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:barrel" => nbt_data.try_into().map(BlockEntityType::Barrel).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:beacon" => nbt_data.try_into().map(BlockEntityType::Beacon).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:banners" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Banner)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:barrel" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Barrel)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:beacon" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Beacon)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
         "minecraft:bed" => BlockEntityType::Bed,
-        "minecraft:beehive" => nbt_data.try_into().map(BlockEntityType::Beehive).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:beehive" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Beehive)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
         "minecraft:bell" => BlockEntityType::Bell,
-        "minecraft:blast_furnace" => nbt_data.try_into().map(BlockEntityType::BlastFurnace).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:brewing_stand" => nbt_data.try_into().map(BlockEntityType::BrewingStand).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:campfire" => nbt_data.try_into().map(BlockEntityType::Campfire).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:chiseled_bookshelf" => nbt_data.try_into().map(BlockEntityType::ChiseledBookshelf).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:chest" => nbt_data.try_into().map(BlockEntityType::Chest).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:comparator" => nbt_data.try_into().map(BlockEntityType::Comparator).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:command_block" => nbt_data.try_into().map(BlockEntityType::CommandBlock).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:conduit" => nbt_data.try_into().map(BlockEntityType::Conduit).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:blast_furnace" => nbt_data
+            .try_into()
+            .map(BlockEntityType::BlastFurnace)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:brewing_stand" => nbt_data
+            .try_into()
+            .map(BlockEntityType::BrewingStand)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:campfire" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Campfire)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:chiseled_bookshelf" => nbt_data
+            .try_into()
+            .map(BlockEntityType::ChiseledBookshelf)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:chest" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Chest)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:comparator" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Comparator)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:command_block" => nbt_data
+            .try_into()
+            .map(BlockEntityType::CommandBlock)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:conduit" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Conduit)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
         "minecraft:daylight_detector" => BlockEntityType::DaylightDetector,
-        "minecraft:dispenser" => nbt_data.try_into().map(BlockEntityType::Dispenser).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:dropper" => nbt_data.try_into().map(BlockEntityType::Dropper).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:enchanting_table" => nbt_data.try_into().map(BlockEntityType::EnchantingTable).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:dispenser" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Dispenser)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:dropper" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Dropper)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:enchanting_table" => nbt_data
+            .try_into()
+            .map(BlockEntityType::EnchantingTable)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
         "minecraft:ender_chest" => BlockEntityType::EnderChest,
-        "minecraft:end_gateway" => nbt_data.try_into().map(BlockEntityType::EndGateway).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:end_gateway" => nbt_data
+            .try_into()
+            .map(BlockEntityType::EndGateway)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
         "minecraft:end_portal" => BlockEntityType::EndPortal,
-        "minecraft:furnace" => nbt_data.try_into().map(BlockEntityType::Furnace).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:hopper" => nbt_data.try_into().map(BlockEntityType::Hopper).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:jigsaw" => nbt_data.try_into().map(BlockEntityType::Jigsaw).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:jukebox" => nbt_data.try_into().map(BlockEntityType::Jukebox).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:lectern" => nbt_data.try_into().map(BlockEntityType::Lectern).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:mob_spawner" => nbt_data.try_into().map(BlockEntityType::MobSpawner).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:piston" => nbt_data.try_into().map(BlockEntityType::Piston).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:shulker_box" => nbt_data.try_into().map(BlockEntityType::ShulkerBox).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:sign" => nbt_data.try_into().map(BlockEntityType::Sign).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:skull" => nbt_data.try_into().map(BlockEntityType::Skull).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:smoker" => nbt_data.try_into().map(BlockEntityType::Smoker).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:soul_campfire" => nbt_data.try_into().map(BlockEntityType::SoulCampfire).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:structure_block" => nbt_data.try_into().map(BlockEntityType::StructureBlock).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        "minecraft:trapped_chest" => nbt_data.try_into().map(BlockEntityType::TrappedChest).map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:furnace" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Furnace)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:hopper" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Hopper)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:jigsaw" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Jigsaw)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:jukebox" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Jukebox)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:lectern" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Lectern)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:mob_spawner" => nbt_data
+            .try_into()
+            .map(BlockEntityType::MobSpawner)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:piston" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Piston)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:shulker_box" => nbt_data
+            .try_into()
+            .map(BlockEntityType::ShulkerBox)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:sign" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Sign)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:skull" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Skull)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:smoker" => nbt_data
+            .try_into()
+            .map(BlockEntityType::Smoker)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:soul_campfire" => nbt_data
+            .try_into()
+            .map(BlockEntityType::SoulCampfire)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:structure_block" => nbt_data
+            .try_into()
+            .map(BlockEntityType::StructureBlock)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
+        "minecraft:trapped_chest" => nbt_data
+            .try_into()
+            .map(BlockEntityType::TrappedChest)
+            .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
         _ => BlockEntityType::Other(nbt_data),
     };
     builder.set_entity_type(ty);
@@ -316,7 +406,11 @@ fn parse_mob_spawner(
     builder: &mut MobSpawnerBuilder,
     nbt_data: HashMap<String, Tag>,
 ) -> Result<(), MobSpawnerError> {
-    builder.set_spawner(nbt_data.try_into().map_err(|e| FieldError::new("<internal> spawner", e))?);
+    builder.set_spawner(
+        nbt_data
+            .try_into()
+            .map_err(|e| FieldError::new("<internal> spawner", e))?,
+    );
     Ok(())
 }
 

@@ -1,0 +1,1 @@
+cargo tarpaulin --frozen --locked --out Lcov --no-fail-fast --engine llvm
