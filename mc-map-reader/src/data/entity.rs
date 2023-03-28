@@ -39,7 +39,7 @@ pub struct Entity {
     pub uuid: Option<Array<i32>>,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct Mob {
     pub absorption_amount: Option<f32>,
     pub active_effects: Option<List<ActiveEffect>>,

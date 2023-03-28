@@ -24,7 +24,7 @@ macro_rules! mod_try_from_tag {
     (
         $($(if feature = $type_feature:literal)? $name: ty:
             $(
-                [$($(if feature = $feature:literal)? $key:literal => $setter:ident test($nbt_input_value:expr => $prop:ident = $test_value:expr),)*]
+                [$($(if feature = $feature:literal)? $key:literal => $setter:ident test($($nbt_input_value:expr)? => $prop:ident = $test_value:expr),)*]
                 $(? [$($(if feature = $error_feature:literal)? $data_type:ty,)*])?
             )?
             $(
@@ -61,8 +61,8 @@ macro_rules! mod_try_from_tag {
                     use super::*;
                     let tag = crate::nbt::Tag::Compound(std::collections::HashMap::from_iter(
                         [$(
-                            ($key.to_string(), $nbt_input_value.into())
-                        ,)*]
+                            $(($key.to_string(), $nbt_input_value.into()),)?
+                        )*]
                     ));
                     let actual = $name::try_from(tag);
                     let expected = $name {$(

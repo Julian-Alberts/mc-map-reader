@@ -9,7 +9,7 @@ use crate::data::dimension::Dimension;
 pub use crate::data::load::file_format::level_dat::*;
 
 /// https://minecraft.fandom.com/wiki/Java_Edition_level_format#level.dat_format
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct LevelDat {
     pub allow_commands: bool,
     pub border_center_x: f64,
@@ -63,7 +63,7 @@ pub struct LevelDat {
 }
 
 /// https://minecraft.fandom.com/wiki/Java_Edition_level_format#level.dat_format
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct CustomBossEvent {
     pub players: List<Array<i32>>,
     pub color: String,
@@ -78,14 +78,14 @@ pub struct CustomBossEvent {
 }
 
 /// https://minecraft.fandom.com/wiki/Java_Edition_level_format#level.dat_format
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct DataPacks {
     pub disabled: List<String>,
     pub enabled: List<String>,
 }
 
 /// https://minecraft.fandom.com/wiki/Java_Edition_level_format#level.dat_format
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct WorldGenSettings {
     pub bonus_chest: bool,
     pub seed: i64,
@@ -93,7 +93,7 @@ pub struct WorldGenSettings {
     pub dimensions: HashMap<String, Dimension>,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct Version {
     pub id: i32,
     pub name: String,

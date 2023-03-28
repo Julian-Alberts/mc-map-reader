@@ -12,7 +12,7 @@ use crate::{
 
 /// Information about the player.
 /// [Minecraft Wiki](https://minecraft.fandom.com/wiki/Player.dat_format)
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct Player {
     /// Generic mob data
     pub mob: Mob,
@@ -56,20 +56,20 @@ pub struct Player {
     pub xp_total: i32,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct EnteredNetherPosition {
     pub x: f64,
     pub y: f64,
     pub z: f64,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct LastDeathLocation {
     pub pos: Array<i32>,
     pub dimension: String,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct RecipeBook {
     pub recipes: List<String>,
     pub to_be_displayed: List<String>,
@@ -83,20 +83,20 @@ pub struct RecipeBook {
     pub is_smoker_gui_open: bool,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct RootVehicle {
     pub entity: Entity,
     pub attach: Array<i32>,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct WardenSpawnTracker {
     pub cooldown_ticks: i32,
     pub ticks_since_last_warning: i32,
     pub warning_level: i32,
 }
 
-#[derive(Debug, Builder)]
+#[derive(Debug, Builder, PartialEq)]
 pub struct PlayerAbilities {
     pub flying: bool,
     pub fly_speed: f32,
