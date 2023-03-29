@@ -70,9 +70,17 @@ mod tests {
         path
     }
 
-    #[test]
-    fn get_all_region_files() {
-        let actual = super::get_region_files(&get_test_world_dir(), None)
+    #[test_case(true; "Test dimension")]
+    #[test_case(false; "No dimension")]
+    fn get_all_region_files(test_dim: bool) {
+        let (world_dir, dimension) = if test_dim {
+            let mut dir = get_test_world_dir();
+            dir.pop();
+            (dir, Some(PathBuf::from("tests")))
+        } else {
+            (get_test_world_dir(), None)
+        };
+        let actual = super::get_region_files(&world_dir, dimension.as_ref().map(AsRef::as_ref))
             .unwrap()
             .into_iter()
             .map(|path| path.file_name().unwrap().to_str().unwrap().to_owned())
@@ -89,11 +97,34 @@ mod tests {
         assert!(actual.iter().all(|file_name| expected.contains(file_name)));
     }
 
-    #[test_case(10, 10, 42, 42, &[(0, 0), (1,0), (0,1), (1,1)]; "Four region files")]
-    #[test_case(64, 64, 96, 96, &[(2, 2)]; "Region files out ouf range")]
-    #[test_case(-10, -10, 10, 10, &[(0, 0), (-1,0), (0,-1), (-1,-1)]; "Negative coordinates")]
-    fn get_files_in_area(x1: i64, z1: i64, x2: i64, z2: i64, expected: &'static [(i64, i64)]) {
-        let actual = super::get_region_files_in_area(&get_test_world_dir(), None, x1, z1, x2, z2);
+    #[test_case(10, 10, 42, 42, &[(0, 0), (1,0), (0,1), (1,1)], false; "Four region files")]
+    #[test_case(42, 42, 10, 10, &[(0, 0), (1,0), (0,1), (1,1)], false; "Four region files inputs reversed")]
+    #[test_case(10, 10, 42, 42, &[(0, 0), (1,0), (0,1), (1,1)], true; "Four region files test dimension")]
+    #[test_case(64, 64, 96, 96, &[(2, 2)], false; "Region files out ouf range")]
+    #[test_case(-10, -10, 10, 10, &[(0, 0), (-1,0), (0,-1), (-1,-1)], false; "Negative coordinates")]
+    fn get_files_in_area(
+        x1: i64,
+        z1: i64,
+        x2: i64,
+        z2: i64,
+        expected: &'static [(i64, i64)],
+        test_dim: bool,
+    ) {
+        let (world_dir, dimension) = if test_dim {
+            let mut dir = get_test_world_dir();
+            dir.pop();
+            (dir, Some(PathBuf::from("tests")))
+        } else {
+            (get_test_world_dir(), None)
+        };
+        let actual = super::get_region_files_in_area(
+            &world_dir,
+            dimension.as_ref().map(AsRef::as_ref),
+            x1,
+            z1,
+            x2,
+            z2,
+        );
         let expected = expected
             .iter()
             .map(|(x, z)| {

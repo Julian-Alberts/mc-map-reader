@@ -402,6 +402,9 @@ pub struct TrappedChest {
 macro_rules! impl_IBE_for_builder {
     ($ty:ty, $res:ty) => {
         impl InventoryBlockEntityBuilder for $ty {
+            type InventoryBlockError = paste::paste! { [< $res Error >] };
+            type Target = $res;
+
             fn set_custom_name(&mut self, custom_name: String) {
                 self.set_custom_name(custom_name)
             }
@@ -420,6 +423,10 @@ macro_rules! impl_IBE_for_builder {
 
             fn set_loot_table_seed(&mut self, loot_table_seed: i64) {
                 self.set_loot_table_seed(loot_table_seed)
+            }
+            fn try_build(self) -> Result<Self::Target, Self::InventoryBlockError> {
+                let res = self.try_build()?;
+                Ok(res)
             }
         }
 
@@ -447,7 +454,7 @@ macro_rules! impl_CBEB_for_builder {
     ($ty:ty, $res:ty) => {
         impl CookingBlockEntityBuilder for $ty {
             type CookingBlockError = paste::paste! { [< $res Error >] };
-            type Target = paste::paste! {[< $res >]};
+            type Target = $res;
 
             fn set_burn_time(&mut self, burn_time: i16) {
                 self.set_burn_time(burn_time)
@@ -528,11 +535,14 @@ pub trait InventoryBlock {
     fn loot_table_seed(&self) -> Option<i64>;
 }
 pub trait InventoryBlockEntityBuilder {
+    type InventoryBlockError;
+    type Target;
     fn set_custom_name(&mut self, custom_name: String);
     fn set_items(&mut self, items: List<ItemWithSlot>);
     fn set_lock(&mut self, lock: String);
     fn set_loot_table(&mut self, loot_table: String);
     fn set_loot_table_seed(&mut self, loot_table_seed: i64);
+    fn try_build(self) -> Result<Self::Target, Self::InventoryBlockError>;
 }
 
 pub trait CookingBlockEntity {
@@ -560,4 +570,131 @@ where
     fn set_lock(&mut self, lock: String);
     fn set_recipes_used(&mut self, recipes_used: HashMap<String, i32>);
     fn try_build(self) -> Result<Self::Target, Self::CookingBlockError>;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_inventory_block_entity<B>(builder: &mut B)
+    where
+        B: InventoryBlockEntityBuilder,
+    {
+        builder.set_custom_name("test".to_string());
+        builder.set_items(List::from(vec![]));
+        builder.set_lock("test".to_string());
+        builder.set_loot_table("test".to_string());
+        builder.set_loot_table_seed(1);
+    }
+
+    fn assert_inventory_block_entity(block: &dyn InventoryBlock) {
+        assert_eq!(block.custom_name(), Some(&"test".to_string()));
+        assert_eq!(block.items(), Some(&List::from(vec![])));
+        assert_eq!(block.lock(), Some(&"test".to_string()));
+        assert_eq!(block.loot_table(), Some(&"test".to_string()));
+        assert_eq!(block.loot_table_seed(), Some(1));
+    }
+
+    fn test_cooking_block_entity<B>(builder: &mut B)
+    where
+        B: CookingBlockEntityBuilder,
+    {
+        builder.set_burn_time(1);
+        builder.set_cook_time(1);
+        builder.set_cook_time_total(1);
+        builder.set_custom_name("test".to_string());
+        builder.set_items(List::from(vec![]));
+        builder.set_lock("test".to_string());
+        builder.set_recipes_used(HashMap::new());
+    }
+
+    fn assert_cooking_block_entity(block: &dyn CookingBlockEntity) {
+        assert_eq!(block.burn_time(), 1);
+        assert_eq!(block.cook_time(), 1);
+        assert_eq!(block.cook_time_total(), 1);
+        assert_eq!(block.custom_name(), Some(&"test".to_string()));
+        assert_eq!(block.items(), Some(&List::from(vec![])));
+        assert_eq!(block.lock(), Some(&"test".to_string()));
+        assert_eq!(block.recipes_used(), &HashMap::new());
+    }
+
+    #[test]
+    fn test_barrel() {
+        let mut builder = BarrelBuilder::default();
+        test_inventory_block_entity(&mut builder);
+        let barrel = InventoryBlockEntityBuilder::try_build(builder).unwrap();
+        assert_inventory_block_entity(&barrel);
+    }
+
+    #[test]
+    fn test_chest() {
+        let mut builder = ChestBuilder::default();
+        test_inventory_block_entity(&mut builder);
+        let chest = InventoryBlockEntityBuilder::try_build(builder).unwrap();
+        assert_inventory_block_entity(&chest);
+    }
+
+    #[test]
+    fn test_dispenser() {
+        let mut builder = DispenserBuilder::default();
+        test_inventory_block_entity(&mut builder);
+        let dispenser = InventoryBlockEntityBuilder::try_build(builder).unwrap();
+        assert_inventory_block_entity(&dispenser);
+    }
+
+    #[test]
+    fn test_dropper() {
+        let mut builder = DropperBuilder::default();
+        test_inventory_block_entity(&mut builder);
+        let dropper = InventoryBlockEntityBuilder::try_build(builder).unwrap();
+        assert_inventory_block_entity(&dropper);
+    }
+
+    #[test]
+    fn test_hopper() {
+        let mut builder = HopperBuilder::default();
+        test_inventory_block_entity(&mut builder);
+        let hopper = InventoryBlockEntityBuilder::try_build(builder).unwrap();
+        assert_inventory_block_entity(&hopper);
+    }
+
+    #[test]
+    fn test_shulker_box() {
+        let mut builder = ShulkerBoxBuilder::default();
+        test_inventory_block_entity(&mut builder);
+        let shulker_box = InventoryBlockEntityBuilder::try_build(builder).unwrap();
+        assert_inventory_block_entity(&shulker_box);
+    }
+
+    #[test]
+    fn test_trapped_chest() {
+        let mut builder = TrappedChestBuilder::default();
+        test_inventory_block_entity(&mut builder);
+        let trapped_chest = InventoryBlockEntityBuilder::try_build(builder).unwrap();
+        assert_inventory_block_entity(&trapped_chest);
+    }
+
+    #[test]
+    fn test_blast_furnace() {
+        let mut builder = BlastFurnaceBuilder::default();
+        test_cooking_block_entity(&mut builder);
+        let blast_furnace = CookingBlockEntityBuilder::try_build(builder).unwrap();
+        assert_cooking_block_entity(&blast_furnace);
+    }
+
+    #[test]
+    fn test_furnace() {
+        let mut builder = FurnaceBuilder::default();
+        test_cooking_block_entity(&mut builder);
+        let furnace = CookingBlockEntityBuilder::try_build(builder).unwrap();
+        assert_cooking_block_entity(&furnace);
+    }
+
+    #[test]
+    fn test_smoker() {
+        let mut builder = SmokerBuilder::default();
+        test_cooking_block_entity(&mut builder);
+        let smoker = CookingBlockEntityBuilder::try_build(builder).unwrap();
+        assert_cooking_block_entity(&smoker);
+    }
 }

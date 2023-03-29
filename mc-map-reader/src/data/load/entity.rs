@@ -127,4 +127,136 @@ mod tests {
             .collect();
         data.try_into()
     }
+
+    #[test_case(None, None => Ok(result_parse_mob()); "Success")]
+    #[test_case(
+        Some("Fire"), Some(Tag::Double(42.)) =>
+        Err(MobError::EntityField(
+            FieldError::new("<internal> entity", EntityError::NbtField(
+                FieldError::new("Fire", crate::nbt::Error::InvalidValue)
+            ))
+        )); "Entity Error"
+    )]
+    fn test_parse_mob(remove: Option<&str>, new_value: Option<Tag>) -> Result<Mob, MobError> {
+        let mut builder = MobBuilder::default();
+        parse_mob(&mut builder, data_parse_mob(remove, new_value))?;
+        Ok(builder.try_build()?)
+    }
+
+    fn data_parse_mob(key: Option<&str>, new_value: Option<Tag>) -> HashMap<String, Tag> {
+        let mut data = HashMap::from_iter([
+            ("AbsorptionAmount", Tag::Float(42.)),
+            ("ActiveEffects", List::from(vec![]).into()),
+            ("ArmorDropChances", List::from(vec![]).into()),
+            ("ArmorItems", List::from(vec![]).into()),
+            ("Attributes", List::from(vec![]).into()),
+            ("Brain", HashMap::new().into()),
+            ("CanPickUpLoot", Tag::Byte(0)),
+            ("DeathLootTable", Tag::String("loot_table".to_string())),
+            ("DeathLootTableSeed", Tag::Long(0)),
+            ("DeathTime", Tag::Short(0)),
+            ("FallFlying", Tag::Byte(0)),
+            ("Health", Tag::Float(0.)),
+            ("HurtByTimestamp", Tag::Int(0)),
+            ("HurtTime", Tag::Short(0)),
+            ("HandDropChances", List::from(vec![]).into()),
+            ("HandItems", List::from(vec![]).into()),
+            ("Leash", Tag::Compound(HashMap::from_iter([
+                ("UUID".to_string(), Tag::IntArray(Array::from(vec![1, 2, 3, 4]))),
+            ]))),
+            ("LeftHanded", Tag::Byte(0)),
+            ("NoAI", Tag::Byte(0)),
+            ("PersistenceRequired", Tag::Byte(0)),
+            ("SleepingX", Tag::Int(0)),
+            ("SleepingY", Tag::Int(0)),
+            ("SleepingZ", Tag::Int(0)),
+            ("Team", Tag::String(String::new())),
+            ("Air", Tag::Short(1)),
+            ("CustomName", Tag::String(String::from("name"))),
+            ("CustomNameVisible", Tag::Byte(0)),
+            ("FallDistance", Tag::Float(0.)),
+            ("Fire", Tag::Short(1)),
+            ("Glowing", Tag::Byte(0)),
+            ("Invulnerable", Tag::Byte(0)),
+            ("OnGround", Tag::Byte(0)),
+            ("Passengers", List::from(vec![]).into()),
+            ("PortalCooldown", Tag::Int(0)),
+            ("Pos", List::from(vec![
+                Tag::Float(0.),
+                Tag::Float(0.),
+                Tag::Float(0.),
+            ]).into()),
+            ("Tags", HashMap::new().into()),
+            ("TicksFrozen", Tag::Int(0)),
+            ("Rotation", List::from(vec![Tag::Float(0.), Tag::Float(0.)]).into()),
+            ("UUID", Tag::IntArray(Array::from(vec![1, 2, 3, 4]))),
+            ("id", Tag::String(String::from("id"))),
+            ("Motion", List::from(vec![
+                Tag::Double(0.),
+                Tag::Double(0.),
+                Tag::Double(0.),
+            ]).into()),
+        ].map(|(k, v)| (k.to_string(), v)));
+        match (key, new_value) {
+            (Some(key), Some(value)) => {
+                data.insert(key.to_string(), value);
+            }
+            (Some(key), None) => {
+                data.remove(key);
+            }
+            _ => {}
+        }
+        data
+    }
+
+    fn result_parse_mob() -> Mob {
+        Mob {
+            absorption_amount: Some(42.),
+            active_effects: Some(List::from(vec![])),
+            armor_drop_chances: Some(List::from(vec![])),
+            armor_items: Some(List::from(vec![])),
+            attributes: Some(List::from(vec![])),
+            brain: Some(HashMap::new()),
+            can_pick_up_loot: Some(false),
+            death_loot_table: Some("loot_table".to_string()),
+            death_loot_table_seed: Some(0),
+            death_time: Some(0),
+            fall_flying: Some(false),
+            health: Some(0.),
+            hurt_by_timestamp: Some(0),
+            entity: Entity {
+                air: Some(1),
+                custom_name: Some("name".to_string()),
+                custom_name_visible: Some(false),
+                fall_distance: Some(0.),
+                fire: 1,
+                glowing: false,
+                has_visual_fire: false,
+                id: Some("id".to_string()),
+                invulnerable: false,
+                motion: Some(List::from(vec![0., 0., 0.])),
+                no_gravity: false,
+                on_ground: false,
+                passengers: Some(List::from(vec![])),
+                portal_colldown: 0,
+                pos: Some(List::from(vec![0., 0., 0.])),
+                rotation: Some(List::from(vec![0., 0.])),
+                silent: false,
+                tags: Some(HashMap::new()),
+                ticks_frozen: Some(0),
+                uuid: Some(Array::from(vec![1, 2, 3, 4])),
+            },
+            hand_drop_chances: Some(List::from(vec![])),
+            hand_items: Some(List::from(vec![])),
+            hurt_time: Some(0),
+            leash: Some(Leash::Entity(Array::from(vec![1, 2, 3, 4]))),
+            left_handed: Some(false),
+            no_ai: Some(false),
+            persistence_required: Some(false),
+            sleeping_x: Some(0),
+            sleeping_y: Some(0),
+            sleeping_z: Some(0),
+            team: Some(String::new()),
+        }
+    }
 }

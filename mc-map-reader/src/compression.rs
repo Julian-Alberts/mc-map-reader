@@ -1,5 +1,7 @@
 use std::io::Read;
 
+use thiserror::Error;
+
 /// Decompresses the given data using the given compression.
 pub fn decompress(data: &[u8], compression: &Compression) -> Result<Vec<u8>, Error> {
     let mut decompressed = Vec::new();
@@ -31,7 +33,19 @@ impl From<u8> for Compression {
     }
 }
 
-pub type Error = std::io::Error;
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error(transparent)]
+    Io(#[from] std::io::Error),
+}
+
+impl PartialEq for Error {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Io(a), Self::Io(b)) => a.kind() == b.kind() && a.to_string() == b.to_string(),
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

@@ -94,7 +94,7 @@ where
     fn try_from(value: Tag) -> Result<Self, Self::Error> {
         let values = value
             .get_as_list()?
-            .0
+            .take()
             .into_iter()
             .map(T::try_from)
             .collect::<Result<_, _>>()?;
@@ -453,6 +453,46 @@ mod tests {
     use super::{Array, Error, List, Tag};
     use test_case::test_case;
 
+    #[test_case(0, &[] => (Ok(Tag::End), 0); "End tag")]
+    #[test_case(1, &[10] => (Ok(Tag::Byte(10)), 1); "Byte tag")]
+    #[test_case(2, &[0, 10] => (Ok(Tag::Short(10)), 2); "Short tag")]
+    #[test_case(3, &[0, 0, 0, 10] => (Ok(Tag::Int(10)), 4); "Int tag")]
+    #[test_case(4, &[0, 0, 0, 0, 0, 0, 0, 10] => (Ok(Tag::Long(10)), 8); "Long tag")]
+    #[test_case(5, (42.0f32).to_be_bytes().as_slice() => (Ok(Tag::Float(42.0)), 4); "Float tag")]
+    #[test_case(6, (42.0f64).to_be_bytes().as_slice() => (Ok(Tag::Double(42.0)), 8); "Double tag")]
+    #[test_case(7, &[0, 0, 0, 2, 1, 2] => (Ok(Tag::ByteArray(Array(vec![1, 2]))), 6); "Byte array tag")]
+    #[test_case(8, &[0, 5, b'H', b'e', b'l', b'l', b'o'] => (Ok(Tag::String("Hello".to_owned())), 7); "String tag")]
+    #[test_case(9, &[1, 0, 0, 0, 3, 1, 2, 3] => (Ok(Tag::List(List(vec![Tag::Byte(1), Tag::Byte(2), Tag::Byte(3)]))), 8); "List tag")]
+    #[test_case(
+        10, &[1, 0, 1, b'A', 32, 8, 0, 1, b'B', 0, 3, b'B', b'i', b't', 0] =>
+        (Ok(Tag::Compound(HashMap::from_iter(vec![("A".to_owned(), Tag::Byte(32)), ("B".to_owned(), Tag::String("Bit".to_owned()))].into_iter()))), 15);
+        "Map tag"
+    )]
+    #[test_case(11, &[0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 2] => (Ok(Tag::IntArray(Array(vec![1, 2]))), 12); "Int array tag")]
+    #[test_case(12, &[0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2] => (Ok(Tag::LongArray(Array(vec![1, 2]))), 20); "Long array tag")]
+    #[test_case(13, &[] => (Err(Error::UnknownTagId(13)), 0); "Unknown tag id")]
+    fn test_new_tag(id: u8, data: &[u8]) -> (Result<Tag, Error>, usize) {
+        let mut offset = 0;
+        (Tag::new(id, data, &mut offset), offset)
+    }
+
+    #[test_case(Tag::End => 0; "End tag")]
+    #[test_case(Tag::Byte(10) => 1; "Byte tag")]
+    #[test_case(Tag::Short(10) => 2; "Short tag")]
+    #[test_case(Tag::Int(10) => 3; "Int tag")]
+    #[test_case(Tag::Long(10) => 4; "Long tag")]
+    #[test_case(Tag::Float(10.0) => 5; "Float tag")]
+    #[test_case(Tag::Double(10.0) => 6; "Double tag")]
+    #[test_case(Tag::ByteArray(Array(vec![1, 2])) => 7; "Byte array tag")]
+    #[test_case(Tag::String("Hello".to_owned()) => 8; "String tag")]
+    #[test_case(Tag::List(List(vec![Tag::Byte(1), Tag::Byte(2), Tag::Byte(3)])) => 9; "List tag")]
+    #[test_case(Tag::Compound(HashMap::from_iter(vec![("A".to_owned(), Tag::Byte(32)), ("B".to_owned(), Tag::String("Bit".to_owned()))].into_iter())) => 10; "Map tag")]
+    #[test_case(Tag::IntArray(Array(vec![1, 2])) => 11; "Int array tag")]
+    #[test_case(Tag::LongArray(Array(vec![1, 2])) => 12; "Long array tag")]
+    fn test_get_id_from_tag(tag: Tag) -> u8 {
+        tag.get_id()
+    }
+
     #[test_case(Tag::List(List(vec![Tag::Byte(10), Tag::Byte(20), Tag::Byte(30)])) => Ok(List(vec![10, 20, 30])); "List of bytes")]
     #[test_case(Tag::Byte(10) => Err(Error::InvalidValue); "Not a list")]
     #[test_case(Tag::List(List(vec![Tag::Byte(10), Tag::Int(20), Tag::Byte(30)])) => Err(Error::InvalidValue); "Wrong data type")]
@@ -461,13 +501,13 @@ mod tests {
     }
 
     #[test_case(
-        Tag::Compound(HashMap::from_iter([("A".to_owned(), Tag::Byte(10)), ("B".to_owned(), Tag::Byte(20)), ("C".to_owned(), Tag::Byte(30))].into_iter())) => 
-        Ok(HashMap::from_iter(vec![("A".to_string(), 10), ("B".to_string(), 20), ("C".to_string(), 30)].into_iter())); 
+        Tag::Compound(HashMap::from_iter([("A".to_owned(), Tag::Byte(10)), ("B".to_owned(), Tag::Byte(20)), ("C".to_owned(), Tag::Byte(30))].into_iter())) =>
+        Ok(HashMap::from_iter(vec![("A".to_string(), 10), ("B".to_string(), 20), ("C".to_string(), 30)].into_iter()));
         "Map of bytes"
     )]
     #[test_case(Tag::Byte(10) => Err(Error::InvalidValue); "Not a map")]
     #[test_case(
-        Tag::Compound(HashMap::from_iter([("A".to_owned(), Tag::Byte(10)), ("B".to_owned(), Tag::Int(20)), ("C".to_owned(), Tag::Byte(30))].into_iter())) => 
+        Tag::Compound(HashMap::from_iter([("A".to_owned(), Tag::Byte(10)), ("B".to_owned(), Tag::Int(20)), ("C".to_owned(), Tag::Byte(30))].into_iter())) =>
         Err(Error::InvalidValue);
         "Mixed map"
     )]
