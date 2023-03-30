@@ -5,14 +5,14 @@ use crate::{
     nbt::Tag,
 };
 
-mod_try_from_tag!({
+mod_try_from_tag!(
     Item: [
-        "Count" => set_count test(10_i8 => count = 10),
-        "id" => set_id test("test_id".to_string() => id = "test_id".to_string()),
+        "Count" => set_count test(10_i8 => count = 10; ItemBuilderError::UnsetCount),
+        "id" => set_id test("test_id".to_string() => id = "test_id".to_string(); ItemBuilderError::UnsetId),
         "tag" => set_tag test(HashMap::new() => tag = Some(HashMap::new())),
     ],
     ItemWithSlot: parse_item_with_slot ? [ Item, ],
-});
+);
 
 fn parse_item_with_slot(
     builder: &mut ItemWithSlotBuilder,
@@ -51,17 +51,17 @@ mod tests {
         ("Count", Tag::Byte(10)),
         ("id", Tag::String("test_id".to_string())),
         ("tag", Tag::Compound(HashMap::new())),
-    ] => Err(ItemWithSlotError::ItemWithSlotBuilder(ItemWithSlotBuilderError::UnsetSlot)); "Missing slot")]
+    ] => Err(ItemWithSlotError::Builder(ItemWithSlotBuilderError::UnsetSlot)); "Missing slot")]
     #[test_case(vec![
         ("Slot", Tag::Byte(0)),
         ("id", Tag::String("test_id".to_string())),
         ("tag", Tag::Compound(HashMap::new())),
-    ] => Err(ItemWithSlotError::ItemField(FieldError::new("<internal> item", ItemError::ItemBuilder(ItemBuilderError::UnsetCount)))); "Missing count")]
+    ] => Err(ItemWithSlotError::ItemField(FieldError::new("<internal> item", ItemError::Builder(ItemBuilderError::UnsetCount)))); "Missing count")]
     #[test_case(vec![
         ("Slot", Tag::Byte(0)),
         ("Count", Tag::Byte(10)),
         ("tag", Tag::Compound(HashMap::new())),
-    ] => Err(ItemWithSlotError::ItemField(FieldError::new("<internal> item", ItemError::ItemBuilder(ItemBuilderError::UnsetId)))); "Missing id")]
+    ] => Err(ItemWithSlotError::ItemField(FieldError::new("<internal> item", ItemError::Builder(ItemBuilderError::UnsetId)))); "Missing id")]
     #[test_case(vec![
         ("Slot", Tag::Byte(0)),
         ("Count", Tag::Byte(10)),

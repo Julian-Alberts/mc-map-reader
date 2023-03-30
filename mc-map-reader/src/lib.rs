@@ -10,3 +10,5 @@ pub use load::*;
 mod compression;
 pub mod files;
 pub mod nbt;
+#[cfg(test)]
+pub mod test_util;

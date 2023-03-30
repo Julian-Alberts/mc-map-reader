@@ -96,8 +96,8 @@ fn parse_leash(mut nbt_data: HashMap<String, Tag>) -> Result<Leash, LeashError> 
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+pub mod tests {
+    use super::{*, macro_tests::{Entity_test_data_provider, Entity_test_result}};
     use test_case::test_case;
 
     #[test_case(vec![
@@ -128,7 +128,7 @@ mod tests {
         data.try_into()
     }
 
-    #[test_case(None, None => Ok(result_parse_mob()); "Success")]
+    #[test_case(None, None => Ok(mob_test_result()); "Success")]
     #[test_case(
         Some("Fire"), Some(Tag::Double(42.)) =>
         Err(MobError::EntityField(
@@ -144,7 +144,21 @@ mod tests {
     }
 
     fn data_parse_mob(key: Option<&str>, new_value: Option<Tag>) -> HashMap<String, Tag> {
-        let mut data = HashMap::from_iter([
+        let mut data = mob_test_data_provider();
+        match (key, new_value) {
+            (Some(key), Some(value)) => {
+                data.insert(key.to_string(), value);
+            }
+            (Some(key), None) => {
+                data.remove(key);
+            }
+            _ => {}
+        }
+        data
+    }
+
+    pub fn mob_test_data_provider() -> HashMap<String, Tag> {
+        let mut map = HashMap::from_iter([
             ("AbsorptionAmount", Tag::Float(42.)),
             ("ActiveEffects", List::from(vec![]).into()),
             ("ArmorDropChances", List::from(vec![]).into()),
@@ -197,19 +211,11 @@ mod tests {
                 Tag::Double(0.),
             ]).into()),
         ].map(|(k, v)| (k.to_string(), v)));
-        match (key, new_value) {
-            (Some(key), Some(value)) => {
-                data.insert(key.to_string(), value);
-            }
-            (Some(key), None) => {
-                data.remove(key);
-            }
-            _ => {}
-        }
-        data
+        map.extend(Entity_test_data_provider().into_iter());
+        map
     }
 
-    fn result_parse_mob() -> Mob {
+    pub fn mob_test_result() -> Mob {
         Mob {
             absorption_amount: Some(42.),
             active_effects: Some(List::from(vec![])),
@@ -224,28 +230,7 @@ mod tests {
             fall_flying: Some(false),
             health: Some(0.),
             hurt_by_timestamp: Some(0),
-            entity: Entity {
-                air: Some(1),
-                custom_name: Some("name".to_string()),
-                custom_name_visible: Some(false),
-                fall_distance: Some(0.),
-                fire: 1,
-                glowing: false,
-                has_visual_fire: false,
-                id: Some("id".to_string()),
-                invulnerable: false,
-                motion: Some(List::from(vec![0., 0., 0.])),
-                no_gravity: false,
-                on_ground: false,
-                passengers: Some(List::from(vec![])),
-                portal_colldown: 0,
-                pos: Some(List::from(vec![0., 0., 0.])),
-                rotation: Some(List::from(vec![0., 0.])),
-                silent: false,
-                tags: Some(HashMap::new()),
-                ticks_frozen: Some(0),
-                uuid: Some(Array::from(vec![1, 2, 3, 4])),
-            },
+            entity: Entity_test_result(),
             hand_drop_chances: Some(List::from(vec![])),
             hand_items: Some(List::from(vec![])),
             hurt_time: Some(0),

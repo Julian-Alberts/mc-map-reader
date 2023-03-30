@@ -24,7 +24,7 @@ macro_rules! mod_try_from_tag {
     (
         $($(if feature = $type_feature:literal)? $name: ty:
             $(
-                [$($(if feature = $feature:literal)? $key:literal => $setter:ident test($($nbt_input_value:expr)? => $prop:ident = $test_value:expr),)*]
+                [$($(if feature = $feature:literal)? $key:literal => $setter:ident test($($nbt_input_value:expr)? => $prop:ident = $test_value:expr $(; $missing_err:expr)?),)*]
                 $(? [$($(if feature = $error_feature:literal)? $data_type:ty,)*])?
             )?
             $(
@@ -50,25 +50,38 @@ macro_rules! mod_try_from_tag {
         )*
 
         #[allow(non_snake_case)]
+        #[allow(unused_imports)]
         #[cfg(test)]
-        mod macro_tests {
+        pub mod macro_tests {
+            use super::*;
+            use crate::nbt::*;
+            use std::collections::HashMap;
+            use test_case::test_case;
             paste::paste!{
             $(
                 $(#[cfg(feature = $type_feature)])?
                 $(
-                #[test]
-                fn [<test_ $name>]() {
+                #[test_case([< $name _test_data_provider >]() => Ok([< $name _test_result >]()); "Success")]
+                $($(
+                    #[test_case($crate::test_util::without(&[< $name _test_data_provider >], $key) => Err($missing_err.into()); $key)]
+                )?)*
+                fn [<test_ $name>](tag: HashMap<String, Tag>) -> Result<$name, [< $name Error >]> {
                     use super::*;
-                    let tag = crate::nbt::Tag::Compound(std::collections::HashMap::from_iter(
-                        [$(
+                    $name::try_from(tag)
+                }
+
+                pub fn [< $name _test_data_provider >]() -> HashMap<String, Tag> {
+                    HashMap::from_iter([
+                        $(
                             $(($key.to_string(), $nbt_input_value.into()),)?
-                        )*]
-                    ));
-                    let actual = $name::try_from(tag);
-                    let expected = $name {$(
+                        )*
+                    ])
+                }
+
+                pub fn [< $name _test_result >]() -> $name {
+                    $name {$(
                         $prop: $test_value,
-                    )*};
-                    assert_eq!(actual, Ok(expected));
+                    )*}
                 }
                 )?
             )*
@@ -172,7 +185,7 @@ macro_rules! try_from_tag {
                 NbtField(#[from] $crate::data::FieldError<crate::nbt::Error>),
                 $(
                     #[error(transparent)]
-                    $b_err(#[from] [<$b_err Error>]),
+                    Builder(#[from] [<$b_err Error>]),
                 )?
                 $(
                     $(#[cfg(feature = $feature)])?
