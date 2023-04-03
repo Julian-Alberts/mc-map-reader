@@ -93,3 +93,12 @@ pub fn load_region(
 
     Ok(AnvilSave::new(header, chunks))
 }
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_load_region_file_success() {
+    }
+
+}
