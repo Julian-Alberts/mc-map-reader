@@ -9,3 +9,13 @@ pub fn without(f: &TestDataProvider<HashMap<String, Tag>>, key: &str) -> HashMap
     map.remove(key);
     map
 }
+
+pub fn with(mut map: HashMap<String, Tag>, key: &str, value: Tag) -> HashMap<String, Tag> {
+    map.insert(key.to_string(), value);
+    map
+}
+
+pub fn merge(mut map: HashMap<String, Tag>, other: HashMap<String, Tag>) -> HashMap<String, Tag> {
+    map.extend(other);
+    map
+}

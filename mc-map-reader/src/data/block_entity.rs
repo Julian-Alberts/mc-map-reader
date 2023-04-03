@@ -283,7 +283,6 @@ pub struct Spawner {
 pub struct PotentialSpawn {
     pub weight: i32,
     pub data: HashMap<String, Tag>,
-    pub custom_spawn_rules: Option<CustomSpawnRules>,
 }
 
 #[derive(Debug, Builder, Clone, PartialEq)]
@@ -534,7 +533,9 @@ pub trait InventoryBlock {
     fn loot_table(&self) -> Option<&String>;
     fn loot_table_seed(&self) -> Option<i64>;
 }
-pub trait InventoryBlockEntityBuilder {
+pub trait InventoryBlockEntityBuilder
+    where Self::InventoryBlockError: From<FieldError<crate::nbt::Error>> + From<FieldError<ItemWithSlotError>>
+{
     type InventoryBlockError;
     type Target;
     fn set_custom_name(&mut self, custom_name: String);
