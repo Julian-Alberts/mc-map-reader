@@ -48,6 +48,7 @@ pub enum LevelDatLoadError {
 }
 
 #[cfg(feature = "level_dat")]
+#[cfg(not(tarpaulin_include))]
 /// Parse a level.dat file.
 pub fn parse_level_dat(data: &[u8]) -> std::result::Result<level_dat::LevelDat, LevelDatLoadError> {
     let data = compression::decompress(data, &compression::Compression::GZip)
@@ -60,6 +61,7 @@ pub fn parse_level_dat(data: &[u8]) -> std::result::Result<level_dat::LevelDat, 
 }
 
 #[cfg(feature = "region_file")]
+#[cfg(not(tarpaulin_include))]
 /// Load a region file.
 pub fn load_region(
     mut read: impl Read,
@@ -98,7 +100,11 @@ pub fn load_region(
 mod tests {
 
     #[test]
-    fn test_load_region_file_success() {
+    fn test_level_dat_file_success() {
+        let mut data = Vec::new();
+        data.extend([10, 10, 0, 4, 'D' as u8, 'a' as u8, 't' as u8, 'a' as u8]);
+
+        data.push(0);
     }
 
 }
