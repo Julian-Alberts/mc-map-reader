@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn test_mc_region_header_from() {
-        let raw = (0..CHUNKS_PER_FILE as u32).map(|i| i).fold(
+        let raw = (0..CHUNKS_PER_FILE as u32).fold(
             Vec::with_capacity(MC_REGION_HEADER_SIZE),
             |mut vec, index| {
                 let bytes = index.to_be_bytes();

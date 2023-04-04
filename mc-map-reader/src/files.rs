@@ -88,7 +88,7 @@ mod tests {
         let mut expected = Vec::new();
         for x in -2..=2 {
             for z in -2..=2 {
-                expected.push(format!("r.{}.{}.mca", x, z))
+                expected.push(format!("r.{x}.{z}.mca"))
             }
         }
         dbg!(&actual);
@@ -130,7 +130,7 @@ mod tests {
             .map(|(x, z)| {
                 let mut path = get_test_world_dir();
                 path.push("region");
-                path.push(format!("r.{}.{}.mca", x, z));
+                path.push(format!("r.{x}.{z}.mca"));
                 path
             })
             .collect::<Vec<_>>();

@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn test_level_dat_file_success() {
         let mut data = Vec::new();
-        data.extend([10, 10, 0, 4, 'D' as u8, 'a' as u8, 't' as u8, 'a' as u8]);
+        data.extend([10, 10, 0, 4, b'D', b'a', b't', b'a']);
 
         data.push(0);
     }
