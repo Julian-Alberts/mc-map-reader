@@ -57,3 +57,32 @@ impl Display for LogLevel {
         log::LevelFilter::fmt(&(*self).into(), f)
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use log::LevelFilter;
+    use test_case::test_case;
+    use super::*;
+
+    #[test_case(LogLevel::Off => LevelFilter::Off; "Off")]
+    #[test_case(LogLevel::Error => LevelFilter::Error; "Error")]
+    #[test_case(LogLevel::Warn => LevelFilter::Warn; "Warn")]
+    #[test_case(LogLevel::Info => LevelFilter::Info; "Info")]
+    #[test_case(LogLevel::Debug => LevelFilter::Debug; "Debug")]
+    #[test_case(LogLevel::Trace => LevelFilter::Trace; "Trace")]
+    fn test_level_filer_from_log_level(level: LogLevel) -> LevelFilter {
+        level.into()
+    }
+
+    #[test_case(LogLevel::Off => "OFF"; "Off")]
+    #[test_case(LogLevel::Error => "ERROR"; "Error")]
+    #[test_case(LogLevel::Warn => "WARN"; "Warn")]
+    #[test_case(LogLevel::Info => "INFO"; "Info")]
+    #[test_case(LogLevel::Debug => "DEBUG"; "Debug")]
+    #[test_case(LogLevel::Trace => "TRACE"; "Trace")]
+    fn test_level_filer_from_log_level_display(level: LogLevel) -> String {
+        level.to_string()
+    }
+
+}

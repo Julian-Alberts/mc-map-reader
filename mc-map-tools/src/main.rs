@@ -32,14 +32,15 @@ use crate::arguments::Args;
 fn main() {
     let args = Args::parse();
     setup_logger(args.log_level.into());
-    let config = if let Some(config_file) = args.config_file {
+    let config = if let Some(config_file) = args.config_file.map(File::open) {
         log::info!("Reading config file :\"{config_file:#?}\"");
-        Config::try_from(config_file).expect("Failed to load config")
+        let config_file = config_file.expect("Failed to open config file");
+        Config::new(config_file).expect("Failed to load config")
     } else {
         let path: PathBuf = paths::Files::ConfigFile.into();
         if path.exists() {
             log::info!("Reading config file :\"{path:#?}\"");
-            Config::try_from(path).expect("Invalid config file")
+            Config::new(File::open(path).expect("Failed to open config file")).expect("Invalid config file")
         } else {
             log::info!("Using default config");
             Config::default()

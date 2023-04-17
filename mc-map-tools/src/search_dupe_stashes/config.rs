@@ -11,12 +11,12 @@ pub struct SearchDupeStashesConfig {
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Group {
-    pub items: Vec<Item>,
+    pub items: Vec<GroupEntry>,
     pub threshold: usize,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
-pub struct Item {
+pub struct GroupEntry {
     pub id: Option<Wildcard>,
     pub nbt: Option<Nbt>,
     #[serde(default = "default_multiplier")]
@@ -58,11 +58,11 @@ impl<'de> Deserialize<'de> for Wildcard {
 
 impl Group {
     pub fn matches(&self, item: &mc_map_reader::data::item::Item) -> bool {
-        self.items.iter().any(|i| i.matches(item))
+        self.items.iter().any(|entry| entry.matches(item))
     }
 }
 
-impl Item {
+impl GroupEntry {
     pub fn matches(&self, item: &mc_map_reader::data::item::Item) -> bool {
         self.matches_id(item) && self.matches_nbt(item)
     }
@@ -150,4 +150,101 @@ fn filter_nbt_eq_to_item_nbt(
             _ => false,
         }
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use crate::search_dupe_stashes::config::default_multiplier;
+
+    use super::Wildcard;
+    use serde_json::json;
+    use test_case::test_case;
+
+    #[test]
+    fn test_default_multiplier() {
+        assert_eq!(default_multiplier(), 1)
+    }
+
+    #[test]
+    fn test_default_search_dupe_stashes_config() {
+        // This test is just to make sure that the default config is valid
+        super::SearchDupeStashesConfig::default();
+    }
+
+    #[test]
+    fn test_wildcard() {
+        let wildcard = Wildcard::from("fo*ar");
+        assert_eq!(wildcard.0, wildmatch::WildMatch::new("fo*ar"));
+    }
+
+    #[test_case(Some("foo*") => true; "Does match")]
+    #[test_case(Some("foo") => false; "Does not match")]
+    #[test_case(None => true; "No pattern")]
+    fn test_group_entry_matches_id(id: Option<&str>) -> bool {
+        let entry = super::GroupEntry {
+            id: id.map(Wildcard::from),
+            nbt: None,
+            multiplier: 1,
+        };
+        let item = mc_map_reader::data::item::Item {
+            id: "foobar".to_string(),
+            count: 1,
+            tag: None,
+        };
+        entry.matches_id(&item)
+    }
+
+    #[test_case(None, None => true; "Nbt not required")]
+    #[test_case(json!({}).as_object(), None => true; "Required Nbt is empty")]
+    #[test_case(json!({"a": 1}).as_object(), None => false; "Required Nbt is not empty")]
+    #[test_case(json!({"a": 1}).as_object(), Some(HashMap::from_iter([
+        ("a".to_string(), mc_map_reader::nbt::Tag::Int(1))
+    ])) => true; "Objects with single entry")]
+    #[test_case(json!({"a": 1, "b": "test"}).as_object(), Some(HashMap::from_iter([
+        ("a".to_string(), mc_map_reader::nbt::Tag::Int(1)),
+        ("b".to_string(), mc_map_reader::nbt::Tag::String("test".to_string()))
+    ])) => true; "Objects with multiple entries")]
+    fn test_group_entry_matches_nbt(
+        required_nbt: Option<&serde_json::Map<String, serde_json::Value>>,
+        item_nbt: Option<std::collections::HashMap<String, mc_map_reader::nbt::Tag>>,
+    ) -> bool {
+        let entry = super::GroupEntry {
+            id: None,
+            nbt: required_nbt.map(Clone::clone),
+            multiplier: 1,
+        };
+        let item = mc_map_reader::data::item::Item {
+            id: "foobar".to_string(),
+            count: 1,
+            tag: item_nbt,
+        };
+        entry.matches_nbt(&item)
+    }
+
+    #[test_case(None, None, "foobar", None => true; "No id or nbt required")]
+    #[test_case(Some("foo*"), None, "foobar", None => true; "Id matches")]
+    #[test_case(Some("foo*"), None, "bar", None => false; "Id does not match")]
+    #[test_case(None, json!({}).as_object(), "foobar", None => true; "Nbt is empty")]
+    #[test_case(None, json!({"a": 1}).as_object(), "foobar", None => false; "Nbt is not empty")]
+    fn test_group_entry_matches(
+        id: Option<&str>,
+        required_nbt: Option<&serde_json::Map<String, serde_json::Value>>,
+        item_id: &str,
+        item_nbt: Option<std::collections::HashMap<String, mc_map_reader::nbt::Tag>>,
+    ) -> bool {
+        let entry = super::GroupEntry {
+            id: id.map(Wildcard::from),
+            nbt: required_nbt.map(Clone::clone),
+            multiplier: 1,
+        };
+        let item = mc_map_reader::data::item::Item {
+            id: item_id.to_string(),
+            count: 1,
+            tag: item_nbt,
+        };
+        entry.matches(&item)
+    }
+
 }

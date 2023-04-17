@@ -1,4 +1,4 @@
-use std::{fs::File, path::PathBuf};
+use std::io::Read;
 
 use serde::Deserialize;
 use thiserror::Error;
@@ -10,11 +10,11 @@ pub struct Config {
     pub search_dupe_stashes: SearchDupeStashesConfig,
 }
 
-impl TryFrom<PathBuf> for Config {
-    type Error = ConfigLoadError;
-    fn try_from(value: PathBuf) -> Result<Self, Self::Error> {
-        let file = File::open(value)?;
-        let config = serde_json::from_reader(file)?;
+impl Config {
+    pub fn new<R>(reader: R) -> Result<Self, ConfigLoadError>
+        where R: Read
+    {
+        let config = serde_json::from_reader(reader)?;
         Ok(config)
     }
 }
@@ -25,4 +25,21 @@ pub enum ConfigLoadError {
     Io(#[from] std::io::Error),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+
+    use super::*;
+
+    #[test]
+    fn test_config() {
+        let config = Config::new(r#"{"search_dupe_stashes": {"groups": {}}}"#.as_bytes()).unwrap();
+        assert_eq!(config, Config {
+            search_dupe_stashes: SearchDupeStashesConfig {
+                groups: HashMap::new(),
+            }
+        });
+    }
 }
