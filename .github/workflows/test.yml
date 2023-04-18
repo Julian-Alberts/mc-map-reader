@@ -28,7 +28,6 @@ jobs:
       - run: echo "eula=true" > eula.txt
       - run: java -Xmx1024M -Xms1024M -jar server.jar nogui &
       - run: sleep 30
-      - run: kill $!
       - uses: actions-rs/cargo@v1
         with:
           command: run
