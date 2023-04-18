@@ -534,7 +534,9 @@ pub trait InventoryBlock {
     fn loot_table_seed(&self) -> Option<i64>;
 }
 pub trait InventoryBlockEntityBuilder
-    where Self::InventoryBlockError: From<FieldError<crate::nbt::Error>> + From<FieldError<ItemWithSlotError>>
+where
+    Self::InventoryBlockError:
+        From<FieldError<crate::nbt::Error>> + From<FieldError<ItemWithSlotError>>,
 {
     type InventoryBlockError;
     type Target;
@@ -623,7 +625,8 @@ mod tests {
     fn test_barrel() {
         let mut builder = BarrelBuilder::default();
         test_inventory_block_entity(&mut builder);
-        let barrel = InventoryBlockEntityBuilder::try_build(builder).expect("Error building barrel");
+        let barrel =
+            InventoryBlockEntityBuilder::try_build(builder).expect("Error building barrel");
         assert_inventory_block_entity(&barrel);
     }
 
@@ -639,7 +642,8 @@ mod tests {
     fn test_dispenser() {
         let mut builder = DispenserBuilder::default();
         test_inventory_block_entity(&mut builder);
-        let dispenser = InventoryBlockEntityBuilder::try_build(builder).expect("Error building dispenser");
+        let dispenser =
+            InventoryBlockEntityBuilder::try_build(builder).expect("Error building dispenser");
         assert_inventory_block_entity(&dispenser);
     }
 
@@ -647,7 +651,8 @@ mod tests {
     fn test_dropper() {
         let mut builder = DropperBuilder::default();
         test_inventory_block_entity(&mut builder);
-        let dropper = InventoryBlockEntityBuilder::try_build(builder).expect("Error building dropper");
+        let dropper =
+            InventoryBlockEntityBuilder::try_build(builder).expect("Error building dropper");
         assert_inventory_block_entity(&dropper);
     }
 
@@ -655,7 +660,8 @@ mod tests {
     fn test_hopper() {
         let mut builder = HopperBuilder::default();
         test_inventory_block_entity(&mut builder);
-        let hopper = InventoryBlockEntityBuilder::try_build(builder).expect("Error building hopper");
+        let hopper =
+            InventoryBlockEntityBuilder::try_build(builder).expect("Error building hopper");
         assert_inventory_block_entity(&hopper);
     }
 
@@ -663,7 +669,8 @@ mod tests {
     fn test_shulker_box() {
         let mut builder = ShulkerBoxBuilder::default();
         test_inventory_block_entity(&mut builder);
-        let shulker_box = InventoryBlockEntityBuilder::try_build(builder).expect("Error building shulker box");
+        let shulker_box =
+            InventoryBlockEntityBuilder::try_build(builder).expect("Error building shulker box");
         assert_inventory_block_entity(&shulker_box);
     }
 
@@ -671,7 +678,8 @@ mod tests {
     fn test_trapped_chest() {
         let mut builder = TrappedChestBuilder::default();
         test_inventory_block_entity(&mut builder);
-        let trapped_chest = InventoryBlockEntityBuilder::try_build(builder).expect("Error building trapped chest");
+        let trapped_chest =
+            InventoryBlockEntityBuilder::try_build(builder).expect("Error building trapped chest");
         assert_inventory_block_entity(&trapped_chest);
     }
 
@@ -679,7 +687,8 @@ mod tests {
     fn test_blast_furnace() {
         let mut builder = BlastFurnaceBuilder::default();
         test_cooking_block_entity(&mut builder);
-        let blast_furnace = CookingBlockEntityBuilder::try_build(builder).expect("Error building blast furnace");
+        let blast_furnace =
+            CookingBlockEntityBuilder::try_build(builder).expect("Error building blast furnace");
         assert_cooking_block_entity(&blast_furnace);
     }
 
@@ -687,7 +696,8 @@ mod tests {
     fn test_furnace() {
         let mut builder = FurnaceBuilder::default();
         test_cooking_block_entity(&mut builder);
-        let furnace = CookingBlockEntityBuilder::try_build(builder).expect("Error building furnace");
+        let furnace =
+            CookingBlockEntityBuilder::try_build(builder).expect("Error building furnace");
         assert_cooking_block_entity(&furnace);
     }
 

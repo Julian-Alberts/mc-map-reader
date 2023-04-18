@@ -5,3 +5,4 @@ perf.*
 lcov.info
 tarpaulin-report.html
 build_rs_cov.profraw
+default_*.profraw

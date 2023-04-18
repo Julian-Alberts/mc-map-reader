@@ -97,7 +97,10 @@ fn parse_leash(mut nbt_data: HashMap<String, Tag>) -> Result<Leash, LeashError> 
 
 #[cfg(test)]
 pub mod tests {
-    use super::{*, macro_tests::{Entity_test_data_provider, Entity_test_result}};
+    use super::{
+        macro_tests::{Entity_test_data_provider, Entity_test_result},
+        *,
+    };
     use test_case::test_case;
 
     #[test_case(vec![
@@ -158,59 +161,67 @@ pub mod tests {
     }
 
     pub fn mob_test_data_provider() -> HashMap<String, Tag> {
-        let mut map = HashMap::from_iter([
-            ("AbsorptionAmount", Tag::Float(42.)),
-            ("ActiveEffects", List::from(vec![]).into()),
-            ("ArmorDropChances", List::from(vec![]).into()),
-            ("ArmorItems", List::from(vec![]).into()),
-            ("Attributes", List::from(vec![]).into()),
-            ("Brain", HashMap::new().into()),
-            ("CanPickUpLoot", Tag::Byte(0)),
-            ("DeathLootTable", Tag::String("loot_table".to_string())),
-            ("DeathLootTableSeed", Tag::Long(0)),
-            ("DeathTime", Tag::Short(0)),
-            ("FallFlying", Tag::Byte(0)),
-            ("Health", Tag::Float(0.)),
-            ("HurtByTimestamp", Tag::Int(0)),
-            ("HurtTime", Tag::Short(0)),
-            ("HandDropChances", List::from(vec![]).into()),
-            ("HandItems", List::from(vec![]).into()),
-            ("Leash", Tag::Compound(HashMap::from_iter([
-                ("UUID".to_string(), Tag::IntArray(Array::from(vec![1, 2, 3, 4]))),
-            ]))),
-            ("LeftHanded", Tag::Byte(0)),
-            ("NoAI", Tag::Byte(0)),
-            ("PersistenceRequired", Tag::Byte(0)),
-            ("SleepingX", Tag::Int(0)),
-            ("SleepingY", Tag::Int(0)),
-            ("SleepingZ", Tag::Int(0)),
-            ("Team", Tag::String(String::new())),
-            ("Air", Tag::Short(1)),
-            ("CustomName", Tag::String(String::from("name"))),
-            ("CustomNameVisible", Tag::Byte(0)),
-            ("FallDistance", Tag::Float(0.)),
-            ("Fire", Tag::Short(1)),
-            ("Glowing", Tag::Byte(0)),
-            ("Invulnerable", Tag::Byte(0)),
-            ("OnGround", Tag::Byte(0)),
-            ("Passengers", List::from(vec![]).into()),
-            ("PortalCooldown", Tag::Int(0)),
-            ("Pos", List::from(vec![
-                Tag::Float(0.),
-                Tag::Float(0.),
-                Tag::Float(0.),
-            ]).into()),
-            ("Tags", HashMap::new().into()),
-            ("TicksFrozen", Tag::Int(0)),
-            ("Rotation", List::from(vec![Tag::Float(0.), Tag::Float(0.)]).into()),
-            ("UUID", Tag::IntArray(Array::from(vec![1, 2, 3, 4]))),
-            ("id", Tag::String(String::from("id"))),
-            ("Motion", List::from(vec![
-                Tag::Double(0.),
-                Tag::Double(0.),
-                Tag::Double(0.),
-            ]).into()),
-        ].map(|(k, v)| (k.to_string(), v)));
+        let mut map = HashMap::from_iter(
+            [
+                ("AbsorptionAmount", Tag::Float(42.)),
+                ("ActiveEffects", List::from(vec![]).into()),
+                ("ArmorDropChances", List::from(vec![]).into()),
+                ("ArmorItems", List::from(vec![]).into()),
+                ("Attributes", List::from(vec![]).into()),
+                ("Brain", HashMap::new().into()),
+                ("CanPickUpLoot", Tag::Byte(0)),
+                ("DeathLootTable", Tag::String("loot_table".to_string())),
+                ("DeathLootTableSeed", Tag::Long(0)),
+                ("DeathTime", Tag::Short(0)),
+                ("FallFlying", Tag::Byte(0)),
+                ("Health", Tag::Float(0.)),
+                ("HurtByTimestamp", Tag::Int(0)),
+                ("HurtTime", Tag::Short(0)),
+                ("HandDropChances", List::from(vec![]).into()),
+                ("HandItems", List::from(vec![]).into()),
+                (
+                    "Leash",
+                    Tag::Compound(HashMap::from_iter([(
+                        "UUID".to_string(),
+                        Tag::IntArray(Array::from(vec![1, 2, 3, 4])),
+                    )])),
+                ),
+                ("LeftHanded", Tag::Byte(0)),
+                ("NoAI", Tag::Byte(0)),
+                ("PersistenceRequired", Tag::Byte(0)),
+                ("SleepingX", Tag::Int(0)),
+                ("SleepingY", Tag::Int(0)),
+                ("SleepingZ", Tag::Int(0)),
+                ("Team", Tag::String(String::new())),
+                ("Air", Tag::Short(1)),
+                ("CustomName", Tag::String(String::from("name"))),
+                ("CustomNameVisible", Tag::Byte(0)),
+                ("FallDistance", Tag::Float(0.)),
+                ("Fire", Tag::Short(1)),
+                ("Glowing", Tag::Byte(0)),
+                ("Invulnerable", Tag::Byte(0)),
+                ("OnGround", Tag::Byte(0)),
+                ("Passengers", List::from(vec![]).into()),
+                ("PortalCooldown", Tag::Int(0)),
+                (
+                    "Pos",
+                    List::from(vec![Tag::Float(0.), Tag::Float(0.), Tag::Float(0.)]).into(),
+                ),
+                ("Tags", HashMap::new().into()),
+                ("TicksFrozen", Tag::Int(0)),
+                (
+                    "Rotation",
+                    List::from(vec![Tag::Float(0.), Tag::Float(0.)]).into(),
+                ),
+                ("UUID", Tag::IntArray(Array::from(vec![1, 2, 3, 4]))),
+                ("id", Tag::String(String::from("id"))),
+                (
+                    "Motion",
+                    List::from(vec![Tag::Double(0.), Tag::Double(0.), Tag::Double(0.)]).into(),
+                ),
+            ]
+            .map(|(k, v)| (k.to_string(), v)),
+        );
         map.extend(Entity_test_data_provider().into_iter());
         map
     }

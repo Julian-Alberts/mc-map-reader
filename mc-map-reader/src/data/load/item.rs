@@ -31,7 +31,7 @@ fn parse_item_with_slot(
 
 #[cfg(test)]
 pub mod tests {
-    use super::{*, macro_tests::*};
+    use super::{macro_tests::*, *};
     use test_case::test_case;
 
     #[test_case(vec![
@@ -84,9 +84,7 @@ pub mod tests {
     }
 
     pub fn item_with_slot_test_data_provider() -> HashMap<String, Tag> {
-        let map = [
-            ("Slot", Tag::Byte(0)),
-        ].map(|(k, v)| (k.to_string(), v));
+        let map = [("Slot", Tag::Byte(0))].map(|(k, v)| (k.to_string(), v));
         let mut map = HashMap::from_iter(map);
         map.extend(Item_test_data_provider());
         map

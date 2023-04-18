@@ -399,9 +399,7 @@ fn parse_block_entity(
             .try_into()
             .map(BlockEntityType::TrappedChest)
             .map_err(|e| FieldError::new(ENTITY_TYPE_KEY, e))?,
-        _ => {
-            BlockEntityType::Other(nbt_data)
-        },
+        _ => BlockEntityType::Other(nbt_data),
     };
     builder.set_entity_type(ty);
     Ok(())
@@ -452,7 +450,7 @@ fn parse_inventory_block_entity<B>(
     mut nbt_data: HashMap<String, Tag>,
 ) -> Result<(), B::InventoryBlockError>
 where
-    B: InventoryBlockEntityBuilder
+    B: InventoryBlockEntityBuilder,
 {
     add_data_to_builder!(builder, nbt_data => [
         "CustomName": set_custom_name,
@@ -464,7 +462,10 @@ where
     Ok(())
 }
 
-fn parse_hopper(builder: &mut HopperBuilder, mut nbt_data: HashMap<String, Tag>) -> Result<(), HopperError> {
+fn parse_hopper(
+    builder: &mut HopperBuilder,
+    mut nbt_data: HashMap<String, Tag>,
+) -> Result<(), HopperError> {
     add_data_to_builder!(builder, nbt_data => [
         "TransferCooldown": set_transfer_cooldown,
     ]);
@@ -474,11 +475,16 @@ fn parse_hopper(builder: &mut HopperBuilder, mut nbt_data: HashMap<String, Tag>)
 
 #[cfg(test)]
 mod tests {
-    use super::{BlastFurnaceBuilder, parse_inventory_block_entity, parse_block_entity, BlockEntityError};
-    use crate::{data::{block_entity::*, load::{block_entity::parse_hopper}}, nbt::*};
+    use super::macro_tests::*;
+    use super::{
+        parse_block_entity, parse_inventory_block_entity, BlastFurnaceBuilder, BlockEntityError,
+    };
+    use crate::{
+        data::{block_entity::*, load::block_entity::parse_hopper},
+        nbt::*,
+    };
     use std::collections::HashMap;
     use test_case::test_case;
-    use super::macro_tests::*;
 
     #[test_case(
         crate::test_util::merge(
@@ -680,7 +686,7 @@ mod tests {
             ("x".to_string(), Tag::Int(123)),
             ("y".to_string(), Tag::Int(123)),
             ("z".to_string(), Tag::Int(123)),
-            ("id".to_string(), Tag::String("test".to_string()))
+            ("id".to_string(), Tag::String("test".to_string())),
         ])
     }
 
@@ -692,7 +698,7 @@ mod tests {
             ("CustomName".to_string(), Tag::String("test".to_string())),
             ("Items".to_string(), Tag::List(List::from_iter([]))),
             ("Lock".to_string(), Tag::String("test".to_string())),
-            ("RecipesUsed".to_string(), Tag::Compound(HashMap::new()))
+            ("RecipesUsed".to_string(), Tag::Compound(HashMap::new())),
         ])
     }
 
@@ -702,14 +708,12 @@ mod tests {
             ("Items".to_string(), Tag::List(List::from_iter([]))),
             ("Lock".to_string(), Tag::String("test".to_string())),
             ("LootTable".to_string(), Tag::String("test".to_string())),
-            ("LootTableSeed".to_string(), Tag::Long(123))
+            ("LootTableSeed".to_string(), Tag::Long(123)),
         ])
     }
 
     fn hopper_test_data_provider() -> HashMap<String, Tag> {
-        let mut map = HashMap::from_iter([
-            ("TransferCooldown".to_string(), Tag::Int(123))
-        ]);
+        let mut map = HashMap::from_iter([("TransferCooldown".to_string(), Tag::Int(123))]);
         map.extend(inventory_block_test_data_provider());
         map
     }
@@ -756,7 +760,9 @@ mod tests {
         loot_table: Some("test".to_string()),
         loot_table_seed: Some(123)
     }); "TrappedChest")]
-    fn test_parse_inventory_block_entity<B>(mut builder: B) -> Result<B::Target, B::InventoryBlockError>
+    fn test_parse_inventory_block_entity<B>(
+        mut builder: B,
+    ) -> Result<B::Target, B::InventoryBlockError>
     where
         B: InventoryBlockEntityBuilder,
     {
@@ -773,7 +779,7 @@ mod tests {
             lock: Some("test".to_string()),
             transfer_cooldown: 123,
             loot_table: Some("test".to_string()),
-            loot_table_seed: Some(123)
+            loot_table_seed: Some(123),
         });
         let nbt_data = hopper_test_data_provider();
         let mut builder = HopperBuilder::default();

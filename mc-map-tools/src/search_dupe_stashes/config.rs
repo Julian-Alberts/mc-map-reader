@@ -91,65 +91,67 @@ fn filter_nbt_eq_to_item_nbt(
     required_nbt: &serde_json::Map<String, serde_json::Value>,
     item_nbt: &std::collections::HashMap<String, mc_map_reader::nbt::Tag>,
 ) -> bool {
-    use mc_map_reader::nbt::Tag as NbtValue;
-    use serde_json::Value as JsonValue;
     required_nbt.iter().all(|(required_key, required_value)| {
         let item_value = item_nbt.get(required_key);
-
-        match (required_value, item_value) {
-            (JsonValue::Array(_), Some(NbtValue::IntArray(_))) => {
-                unimplemented!()
-            }
-            (JsonValue::Array(_), Some(NbtValue::ByteArray(_))) => {
-                unimplemented!()
-            }
-            (JsonValue::Array(_), Some(NbtValue::LongArray(_))) => {
-                unimplemented!()
-            }
-            (JsonValue::Array(_), Some(NbtValue::List(_))) => {
-                unimplemented!()
-            }
-            (JsonValue::Bool(required_value), Some(NbtValue::Byte(item_value))) => {
-                *required_value == ((item_value & 1) == 1)
-            }
-            (JsonValue::Number(required_value), Some(NbtValue::Byte(item_value))) => {
-                required_value.is_i64()
-                    && required_value.as_i64().expect("Error converting number") as i8
-                        == *item_value
-            }
-            (JsonValue::Number(required_value), Some(NbtValue::Double(item_value))) => {
-                required_value.is_f64()
-                    && required_value.as_f64().expect("Error converting number") == *item_value
-            }
-            (JsonValue::Number(required_value), Some(NbtValue::Float(item_value))) => {
-                required_value.is_f64()
-                    && required_value.as_f64().expect("Error converting number") as f32
-                        == *item_value
-            }
-            (JsonValue::Number(required_value), Some(NbtValue::Int(item_value))) => {
-                required_value.is_i64()
-                    && required_value.as_i64().expect("Error converting number") as i32
-                        == *item_value
-            }
-            (JsonValue::Number(required_value), Some(NbtValue::Long(item_value))) => {
-                required_value.is_i64()
-                    && required_value.as_i64().expect("Error converting number") == *item_value
-            }
-            (JsonValue::Number(required_value), Some(NbtValue::Short(item_value))) => {
-                required_value.is_i64()
-                    && required_value.as_i64().expect("Error converting number") as i16
-                        == *item_value
-            }
-            (JsonValue::Object(required_value), Some(NbtValue::Compound(item_value))) => {
-                filter_nbt_eq_to_item_nbt(required_value, item_value)
-            }
-            (JsonValue::String(required_value), Some(NbtValue::String(item_value))) => {
-                required_value == item_value
-            }
-            (JsonValue::Null, None) => true,
-            _ => false,
-        }
+        cmp_value(required_value, item_value)
     })
+}
+
+fn cmp_value(
+    required_value: &serde_json::Value,
+    item_value: Option<&mc_map_reader::nbt::Tag>,
+) -> bool {
+    use mc_map_reader::nbt::Tag as NbtValue;
+    use serde_json::Value as JsonValue;
+    match (required_value, item_value) {
+        (JsonValue::Array(_), Some(NbtValue::IntArray(_))) => {
+            unimplemented!()
+        }
+        (JsonValue::Array(_), Some(NbtValue::ByteArray(_))) => {
+            unimplemented!()
+        }
+        (JsonValue::Array(_), Some(NbtValue::LongArray(_))) => {
+            unimplemented!()
+        }
+        (JsonValue::Array(_), Some(NbtValue::List(_))) => {
+            unimplemented!()
+        }
+        (JsonValue::Bool(required_value), Some(NbtValue::Byte(item_value))) => {
+            *required_value == ((item_value & 1) == 1)
+        }
+        (JsonValue::Number(required_value), Some(NbtValue::Byte(item_value))) => {
+            required_value.is_i64()
+                && required_value.as_i64().expect("Error converting number") == *item_value as i64
+        }
+        (JsonValue::Number(required_value), Some(NbtValue::Double(item_value))) => {
+            required_value.is_f64()
+                && required_value.as_f64().expect("Error converting number") == *item_value
+        }
+        (JsonValue::Number(required_value), Some(NbtValue::Float(item_value))) => {
+            required_value.is_f64()
+                && required_value.as_f64().expect("Error converting number") == *item_value as f64
+        }
+        (JsonValue::Number(required_value), Some(NbtValue::Int(item_value))) => {
+            required_value.is_i64()
+                && required_value.as_i64().expect("Error converting number") == *item_value as i64
+        }
+        (JsonValue::Number(required_value), Some(NbtValue::Long(item_value))) => {
+            required_value.is_i64()
+                && required_value.as_i64().expect("Error converting number") == *item_value
+        }
+        (JsonValue::Number(required_value), Some(NbtValue::Short(item_value))) => {
+            required_value.is_i64()
+                && required_value.as_i64().expect("Error converting number") == *item_value as i64
+        }
+        (JsonValue::Object(required_value), Some(NbtValue::Compound(item_value))) => {
+            filter_nbt_eq_to_item_nbt(required_value, item_value)
+        }
+        (JsonValue::String(required_value), Some(NbtValue::String(item_value))) => {
+            required_value == item_value
+        }
+        (JsonValue::Null, None) => true,
+        _ => false,
+    }
 }
 
 #[cfg(test)]
@@ -158,7 +160,11 @@ mod tests {
 
     use crate::search_dupe_stashes::config::default_multiplier;
 
-    use super::Wildcard;
+    use super::{Group, GroupEntry, Wildcard};
+    use mc_map_reader::{
+        data::item::Item as McItem,
+        nbt::{Array, List, Tag},
+    };
     use serde_json::json;
     use test_case::test_case;
 
@@ -194,6 +200,36 @@ mod tests {
             tag: None,
         };
         entry.matches_id(&item)
+    }
+
+    #[test_case(Group {
+        items: vec![
+            GroupEntry { id: Some(Wildcard::from("item")), nbt: None, multiplier: 1 }
+        ],
+        threshold: 1
+    }, McItem { id: String::from("item"), tag: None, count: 1 } => true; "Is Equals single")]
+    #[test_case(Group {
+        items: vec![
+            GroupEntry { id: Some(Wildcard::from("test")), nbt: None, multiplier: 1 },
+            GroupEntry { id: Some(Wildcard::from("item")), nbt: None, multiplier: 1 }
+        ],
+        threshold: 1
+    }, McItem { id: String::from("item"), tag: None, count: 1 } => true; "Is Equals multiple")]
+    #[test_case(Group {
+        items: vec![
+            GroupEntry { id: Some(Wildcard::from("item2")), nbt: None, multiplier: 1 }
+        ],
+        threshold: 1
+    }, McItem { id: String::from("item"), tag: None, count: 1 } => false; "Is Not Equals single")]
+    #[test_case(Group {
+        items: vec![
+            GroupEntry { id: Some(Wildcard::from("test")), nbt: None, multiplier: 1 },
+            GroupEntry { id: Some(Wildcard::from("item2")), nbt: None, multiplier: 1 }
+        ],
+        threshold: 1
+    }, McItem { id: String::from("item"), tag: None, count: 1 } => false; "Is not equals multiple")]
+    fn test_group_matches(group: Group, item: McItem) -> bool {
+        group.matches(&item)
     }
 
     #[test_case(None, None => true; "Nbt not required")]
@@ -247,4 +283,48 @@ mod tests {
         entry.matches(&item)
     }
 
+    #[test]
+    #[should_panic(expected = "not implemented")]
+    fn test_cmp_array_with_int_array() {
+        super::cmp_value(&json!([]), Some(&Tag::IntArray(Array::from(vec![]))));
+    }
+
+    #[test]
+    #[should_panic(expected = "not implemented")]
+    fn test_cmp_array_with_byte_array() {
+        super::cmp_value(&json!([]), Some(&Tag::ByteArray(Array::from(vec![]))));
+    }
+
+    #[test]
+    #[should_panic(expected = "not implemented")]
+    fn test_cmp_array_with_long_array() {
+        super::cmp_value(&json!([]), Some(&Tag::LongArray(Array::from(vec![]))));
+    }
+
+    #[test]
+    #[should_panic(expected = "not implemented")]
+    fn test_cmp_array_with_list() {
+        super::cmp_value(&json!([]), Some(&Tag::List(List::from(vec![]))));
+    }
+
+    #[test_case(json!(true), Some(&Tag::Byte(1)) => true; "Bool equals true")]
+    #[test_case(json!(false), Some(&Tag::Byte(0)) => true; "Bool equals false")]
+    #[test_case(json!(false), Some(&Tag::Byte(1)) => false; "Bool not equals")]
+    #[test_case(json!(23), Some(&Tag::Byte(23)) => true; "Byte equals")]
+    #[test_case(json!(23), Some(&Tag::Byte(32)) => false; "Byte not equals")]
+    #[test_case(json!(23.), Some(&Tag::Double(23.)) => true; "Double equals")]
+    #[test_case(json!(23.), Some(&Tag::Double(32.)) => false; "Double not equals")]
+    #[test_case(json!(23.), Some(&Tag::Float(23.)) => true; "Float equals")]
+    #[test_case(json!(23.), Some(&Tag::Float(32.)) => false; "Float not equals")]
+    #[test_case(json!(23), Some(&Tag::Int(23)) => true; "Int equals")]
+    #[test_case(json!(23), Some(&Tag::Int(32)) => false; "Int not equals")]
+    #[test_case(json!(23), Some(&Tag::Long(23)) => true; "Long equals")]
+    #[test_case(json!(23), Some(&Tag::Long(32)) => false; "Long not equals")]
+    #[test_case(json!(23), Some(&Tag::Short(23)) => true; "Short equals")]
+    #[test_case(json!(23), Some(&Tag::Short(32)) => false; "Short not equals")]
+    #[test_case(json!(null), None => true; "Null equals")]
+    #[test_case(json!(null), Some(&Tag::Int(32)) => false; "Null not equals")]
+    fn test_cmp_json_with_nbt(json: serde_json::Value, nbt: Option<&Tag>) -> bool {
+        super::cmp_value(&json, nbt)
+    }
 }

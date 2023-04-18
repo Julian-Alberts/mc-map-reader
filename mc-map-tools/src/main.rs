@@ -40,7 +40,8 @@ fn main() {
         let path: PathBuf = paths::Files::ConfigFile.into();
         if path.exists() {
             log::info!("Reading config file :\"{path:#?}\"");
-            Config::new(File::open(path).expect("Failed to open config file")).expect("Invalid config file")
+            Config::new(File::open(path).expect("Failed to open config file"))
+                .expect("Invalid config file")
         } else {
             log::info!("Using default config");
             Config::default()

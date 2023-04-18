@@ -66,7 +66,10 @@ mod tests {
 
     #[test]
     fn test_default_search_dupe_stashes_mode() {
-        assert_eq!(super::SearchDupeStashesMode::default(), super::SearchDupeStashesMode::Absolute);
+        assert_eq!(
+            super::SearchDupeStashesMode::default(),
+            super::SearchDupeStashesMode::Absolute
+        );
     }
 
     #[test_case("1,2" => Some((1, 2)); "Success")]
@@ -88,5 +91,4 @@ mod tests {
     fn test_parse_area(v: &str) -> Result<Area, String> {
         parse_area(v)
     }
-
 }

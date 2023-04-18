@@ -115,10 +115,22 @@ fn parse_player(
 
 #[cfg(test)]
 pub mod tests {
-    use std::collections::HashMap;
     use super::macro_tests::*;
+    use std::collections::HashMap;
 
-    use crate::{nbt::{Tag, List}, data::{load::{entity::{macro_tests::{Entity_test_data_provider, Entity_test_result}, tests::{mob_test_data_provider, mob_test_result}}, item::macro_tests::{Item_test_data_provider, Item_test_result}}, file_format::player_dat::Player}};
+    use crate::{
+        data::{
+            file_format::player_dat::Player,
+            load::{
+                entity::{
+                    macro_tests::{Entity_test_data_provider, Entity_test_result},
+                    tests::{mob_test_data_provider, mob_test_result},
+                },
+                item::macro_tests::{Item_test_data_provider, Item_test_result},
+            },
+        },
+        nbt::{List, Tag},
+    };
 
     #[test]
     fn test_parse_player() {
@@ -134,13 +146,19 @@ pub mod tests {
             ("DataVersion", Tag::Int(1)),
             ("Dimension", Tag::String("minecraft:overworld".to_string())),
             ("EnderItems", Tag::List(List::from(vec![]))),
-            ("enteredNetherPosition", EnteredNetherPosition_test_data_provider().into()),
+            (
+                "enteredNetherPosition",
+                EnteredNetherPosition_test_data_provider().into(),
+            ),
             ("foodExhaustionLevel", Tag::Float(2.)),
             ("foodLevel", Tag::Int(4)),
             ("foodSaturationLevel", Tag::Float(4.)),
             ("foodTickTimer", Tag::Int(5)),
             ("Inventory", Tag::List(List::from(vec![]))),
-            ("LastDeathLocation", LastDeathLocation_test_data_provider().into()),
+            (
+                "LastDeathLocation",
+                LastDeathLocation_test_data_provider().into(),
+            ),
             ("playerGameType", Tag::Int(34)),
             ("previousPlayerGameType", Tag::Int(54)),
             ("recipeBook", RecipeBook_test_data_provider().into()),
@@ -152,17 +170,25 @@ pub mod tests {
             ("ShoulderEntityLeft", Entity_test_data_provider().into()),
             ("ShoulderEntityRight", Entity_test_data_provider().into()),
             ("SleepTimer", Tag::Int(12)),
-            ("SpawnDimension", Tag::String("minecraft:overworld".to_string())),
+            (
+                "SpawnDimension",
+                Tag::String("minecraft:overworld".to_string()),
+            ),
             ("SpawnForced", Tag::Byte(1)),
             ("SpawnX", Tag::Int(12)),
             ("SpawnY", Tag::Int(75)),
             ("SpawnZ", Tag::Int(13)),
-            ("warden_spawn_tracker", WardenSpawnTracker_test_data_provider().into()),
+            (
+                "warden_spawn_tracker",
+                WardenSpawnTracker_test_data_provider().into(),
+            ),
             ("XpLevel", Tag::Int(123)),
             ("XpP", Tag::Float(45.)),
             ("XpSeed", Tag::Int(96)),
             ("XpTotal", Tag::Int(12)),
-        ].map(|(k, v)| (k.to_string(), v)).into();
+        ]
+        .map(|(k, v)| (k.to_string(), v))
+        .into();
         map.extend(mob_test_data_provider().into_iter());
         map
     }
@@ -201,8 +227,7 @@ pub mod tests {
             xp_p: 45.,
             xp_seed: 96,
             xp_total: 12,
-            mob: mob_test_result()
+            mob: mob_test_result(),
         }
     }
-
 }

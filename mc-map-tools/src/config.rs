@@ -12,7 +12,8 @@ pub struct Config {
 
 impl Config {
     pub fn new<R>(reader: R) -> Result<Self, ConfigLoadError>
-        where R: Read
+    where
+        R: Read,
     {
         let config = serde_json::from_reader(reader)?;
         Ok(config)
@@ -36,10 +37,13 @@ mod tests {
     #[test]
     fn test_config() {
         let config = Config::new(r#"{"search_dupe_stashes": {"groups": {}}}"#.as_bytes()).unwrap();
-        assert_eq!(config, Config {
-            search_dupe_stashes: SearchDupeStashesConfig {
-                groups: HashMap::new(),
+        assert_eq!(
+            config,
+            Config {
+                search_dupe_stashes: SearchDupeStashesConfig {
+                    groups: HashMap::new(),
+                }
             }
-        });
+        );
     }
 }

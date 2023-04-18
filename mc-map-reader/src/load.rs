@@ -106,5 +106,4 @@ mod tests {
 
         data.push(0);
     }
-
 }

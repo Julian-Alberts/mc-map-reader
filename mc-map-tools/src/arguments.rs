@@ -61,9 +61,9 @@ impl Display for LogLevel {
 #[cfg(test)]
 mod tests {
 
+    use super::*;
     use log::LevelFilter;
     use test_case::test_case;
-    use super::*;
 
     #[test_case(LogLevel::Off => LevelFilter::Off; "Off")]
     #[test_case(LogLevel::Error => LevelFilter::Error; "Error")]
@@ -84,5 +84,4 @@ mod tests {
     fn test_level_filer_from_log_level_display(level: LogLevel) -> String {
         level.to_string()
     }
-
 }

@@ -1,0 +1,52 @@
+name: mc-map-tools-tests
+run-name: mc map tools tests
+on: [push]
+
+jobs:
+  unit-test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --release --all-features
+  end-to-end-test:
+    name: Run end-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: cd e2e
+      - run: wget https://piston-data.mojang.com/v1/objects/8f3112a1049751cc472ec13e397eade5336ca7ae/server.jar
+      - run: echo "eula=true" > eula.txt
+      - run: java -Xmx1024M -Xms1024M -jar server.jar nogui &
+      - run: sleep 30
+      - run: kill $!
+      - uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: --release --all-features -- ./world search-dupe-stashes
+  lints:
+    name: Lints
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings

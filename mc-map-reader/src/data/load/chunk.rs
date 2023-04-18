@@ -153,10 +153,16 @@ impl TryFrom<crate::nbt::Tag> for ChunkStatus {
 
 #[cfg(test)]
 mod tests {
+    use crate::{
+        data::{
+            chunk::{ChunkData, ChunkStatus},
+            file_format::anvil::ChunkInfo,
+        },
+        nbt::Tag,
+    };
     use test_case::test_case;
-    use crate::{nbt::Tag, data::{chunk::{ChunkStatus, ChunkData}, file_format::anvil::ChunkInfo}};
 
-    use super::{ChunkStatusError, load_chunk, LoadChunkDataError};
+    use super::{load_chunk, ChunkStatusError, LoadChunkDataError};
 
     #[test_case(Tag::String("empty".to_string()) => Ok(ChunkStatus::Empty); "empty")]
     #[test_case(Tag::String("structure_starts".to_string()) => Ok(ChunkStatus::StructureStarts); "structure_starts")]
@@ -195,11 +201,14 @@ mod tests {
         block_entities: None
     }); "Success")]
     fn test_load_chunk_status(raw: &[u8]) -> Result<ChunkData, LoadChunkDataError> {
-        load_chunk(raw, &ChunkInfo {
-            offset: 2,
-            sector_count: 0,
-            timestamp: 0,
-        })
+        load_chunk(
+            raw,
+            &ChunkInfo {
+                offset: 2,
+                sector_count: 0,
+                timestamp: 0,
+            },
+        )
     }
 
     fn valid_chunk_data() -> Vec<u8> {
@@ -240,5 +249,4 @@ mod tests {
         data[0..4].copy_from_slice(&data_len);
         data
     }
-
 }
