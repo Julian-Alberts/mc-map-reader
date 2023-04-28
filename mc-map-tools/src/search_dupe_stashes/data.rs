@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fmt::Display};
 
-use crate::quadtree::{Bounded, Bounds};
+use qutree::Point;
 
 #[derive(Debug)]
 pub struct FoundInventory<'a> {
@@ -37,20 +37,9 @@ pub struct PotentialStashLocationsByGroup<'a> {
 
 pub struct PotentialStashLocations<'a>(pub Vec<PotentialStashLocationsByGroup<'a>>);
 
-impl Bounded for FoundItem<'_> {
-    fn bounds(&self) -> Bounds {
-        self.position.into()
-    }
-}
-
-impl From<Position> for Bounds {
+impl From<Position> for Point<i32> {
     fn from(pos: Position) -> Self {
-        Bounds {
-            x: pos.x as f32,
-            y: pos.z as f32,
-            width: 1.,
-            height: 1.,
-        }
+        (pos.x, pos.z).into()
     }
 }
 
@@ -73,16 +62,16 @@ impl Display for PotentialStashLocations<'_> {
 #[cfg(test)]
 mod tests {
     use super::{
-        FoundItem, Position, PotentialStashLocation, PotentialStashLocations,
+        Position, PotentialStashLocation, PotentialStashLocations,
         PotentialStashLocationsByGroup,
     };
-    use crate::quadtree::{Bounded, Bounds};
+    use qutree::Point;
     use test_case::test_case;
 
-    #[test_case(FoundItem { group_key: "test", count: 1, position: Position { x: 0, y: 0, z: 0 } } => Bounds { x: 0., y: 0., width: 1., height: 1. })]
-    #[test_case(FoundItem { group_key: "test", count: 1, position: Position { x: 2, y: 0, z: 4 } } => Bounds { x: 2., y: 4., width: 1., height: 1. })]
-    fn test_found_item_to_bounds(item: FoundItem) -> Bounds {
-        item.bounds()
+    #[test_case(Position { x: 0, y: 0, z: 0 } => Point::from((0, 0)) )]
+    #[test_case(Position { x: 2, y: 0, z: 4 } => Point::from((2, 4) ))]
+    fn position_to_point(position: Position) -> Point<i32> {
+        position.into()
     }
 
     #[test]

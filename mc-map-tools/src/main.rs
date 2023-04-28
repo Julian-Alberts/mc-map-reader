@@ -16,7 +16,6 @@ mod arguments;
 mod config;
 mod find_inventories;
 mod paths;
-mod quadtree;
 #[cfg(feature = "experimental")]
 mod read_level_dat;
 mod search_dupe_stashes;

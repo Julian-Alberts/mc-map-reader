@@ -3,6 +3,7 @@ pub mod config;
 mod data;
 
 use data::*;
+use qutree::{QuadTree, Boundary};
 #[cfg(feature = "parallel")]
 use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashMap, fs::OpenOptions, path::Path, sync::Mutex};
@@ -18,7 +19,6 @@ use mc_map_reader::{
 
 use crate::{
     config::Config,
-    quadtree::{Bounds, QuadTree},
     read_file,
 };
 
@@ -99,18 +99,10 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     );
     log::debug!("Bounds: ({x1}, {z1}) - ({x2}, {z2})");
     assert!(x1 <= x2 && z1 <= z2, "{x1} <= {x2} && {z1} <= {z2}");
-    let x_direction = x2 - x1;
-    let z_direction = z2 - z1;
-    assert!(x_direction >= 0 && z_direction >= 0);
-    let bounds = Bounds {
-        height: z_direction as f32,
-        width: x_direction as f32,
-        x: x1 as f32,
-        y: z1 as f32,
-    };
+    let bounds = Boundary::between_points((x1, z1), (x2, z2));
     let mut inventory_trees = HashMap::new();
     for name in config.groups.keys() {
-        inventory_trees.insert(name, Mutex::new(QuadTree::new(bounds.clone())));
+        inventory_trees.insert(name, Mutex::new(QuadTree::<_,_,32>::new(bounds.clone())));
     }
 
     #[cfg(feature = "parallel")]
@@ -123,7 +115,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
                 .get(group_key)
                 .expect("Could not find group key");
             let mut tree = tree.lock().expect("Error locking tree");
-            tree.insert(item);
+            debug_assert!(tree.insert_at(item.position, item).is_ok());
         });
     });
     let inventory_trees = inventory_trees
@@ -306,14 +298,8 @@ fn add_item_to_map<'a, 'b>(
         });
 }
 
-fn count_items_in_area(radius: u32, x: i32, z: i32, inventories: &QuadTree<FoundItem>) -> usize {
-    let radius_f32 = radius as f32;
-    let area = Bounds {
-        x: x as f32 - radius_f32,
-        y: z as f32 - radius_f32,
-        width: (radius * 2) as f32,
-        height: (radius * 2) as f32,
-    };
+fn count_items_in_area<const CAPACITY: usize>(radius: u32, x: i32, z: i32, inventories: &QuadTree<i32, &FoundItem, CAPACITY>) -> usize {
+    let area = Boundary::new((x,z), radius as i32 * 2, radius as i32 * 2);
 
-    inventories.query(&area).map(|i| i.count).sum()
+    inventories.query(area).map(|i| i.count).sum()
 }
