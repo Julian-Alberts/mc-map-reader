@@ -36,7 +36,8 @@ mod tests {
 
     #[test]
     fn test_config() {
-        let config = Config::new(r#"{"search_dupe_stashes": {"groups": {}}}"#.as_bytes()).unwrap();
+        let config = Config::new(r#"{"search_dupe_stashes": {"groups": {}}}"#.as_bytes())
+            .expect("Invalid config");
         assert_eq!(
             config,
             Config {

@@ -3,7 +3,7 @@ pub mod config;
 mod data;
 
 use data::*;
-use qutree::{QuadTree, Boundary};
+use qutree::{Boundary, QuadTree};
 #[cfg(feature = "parallel")]
 use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashMap, fs::OpenOptions, path::Path, sync::Mutex};
@@ -17,10 +17,7 @@ use mc_map_reader::{
     RegionLoadError,
 };
 
-use crate::{
-    config::Config,
-    read_file,
-};
+use crate::{config::Config, read_file};
 
 use self::config::SearchDupeStashesConfig;
 
@@ -102,7 +99,7 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let bounds = Boundary::between_points((x1, z1), (x2, z2));
     let mut inventory_trees = HashMap::new();
     for name in config.groups.keys() {
-        inventory_trees.insert(name, Mutex::new(QuadTree::<_,_,32>::new(bounds.clone())));
+        inventory_trees.insert(name, Mutex::new(QuadTree::<_, _, 32>::new(bounds.clone())));
     }
 
     #[cfg(feature = "parallel")]
@@ -298,8 +295,13 @@ fn add_item_to_map<'a, 'b>(
         });
 }
 
-fn count_items_in_area<const CAPACITY: usize>(radius: u32, x: i32, z: i32, inventories: &QuadTree<i32, &FoundItem, CAPACITY>) -> usize {
-    let area = Boundary::new((x,z), radius as i32 * 2, radius as i32 * 2);
+fn count_items_in_area<const CAPACITY: usize>(
+    radius: u32,
+    x: i32,
+    z: i32,
+    inventories: &QuadTree<i32, &FoundItem, CAPACITY>,
+) -> usize {
+    let area = Boundary::new((x, z), radius as i32 * 2, radius as i32 * 2);
 
     inventories.query(area).map(|i| i.count).sum()
 }

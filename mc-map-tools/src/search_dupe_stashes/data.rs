@@ -62,8 +62,7 @@ impl Display for PotentialStashLocations<'_> {
 #[cfg(test)]
 mod tests {
     use super::{
-        Position, PotentialStashLocation, PotentialStashLocations,
-        PotentialStashLocationsByGroup,
+        Position, PotentialStashLocation, PotentialStashLocations, PotentialStashLocationsByGroup,
     };
     use qutree::Point;
     use test_case::test_case;
