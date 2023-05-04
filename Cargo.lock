@@ -330,7 +330,7 @@ dependencies = [
  "dirs",
  "log",
  "mc-map-reader",
- "qutree",
+ "qutee",
  "rayon",
  "serde",
  "serde_json",
@@ -511,9 +511,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "qutree"
+name = "qutee"
 version = "0.1.0"
-source = "git+https://github.com/Julian-Alberts/qutree.git#43c531cf9576838972c95b259a3946ea01d25130"
+source = "git+https://github.com/Julian-Alberts/qutee.git#2a4e9d4db748216e4eaafa4207c1ec14d2864b53"
 dependencies = [
  "num-traits",
 ]

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fmt::Display};
 
-use qutree::Point;
+use qutee::Point;
 
 #[derive(Debug)]
 pub struct FoundInventory<'a> {
@@ -64,7 +64,7 @@ mod tests {
     use super::{
         Position, PotentialStashLocation, PotentialStashLocations, PotentialStashLocationsByGroup,
     };
-    use qutree::Point;
+    use qutee::Point;
     use test_case::test_case;
 
     #[test_case(Position { x: 0, y: 0, z: 0 } => Point::from((0, 0)) )]

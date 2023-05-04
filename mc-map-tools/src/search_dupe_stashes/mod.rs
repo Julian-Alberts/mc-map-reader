@@ -3,7 +3,7 @@ pub mod config;
 mod data;
 
 use data::*;
-use qutree::{Boundary, QuadTree};
+use qutee::{Boundary, ConstCap};
 #[cfg(feature = "parallel")]
 use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::{collections::HashMap, fs::OpenOptions, path::Path, sync::Mutex};
@@ -20,6 +20,8 @@ use mc_map_reader::{
 use crate::{config::Config, read_file};
 
 use self::config::SearchDupeStashesConfig;
+
+type QuadTree<'a> = qutee::QuadTree<i32, &'a FoundItem<'a>, ConstCap<16>>;
 
 #[derive(Debug, thiserror::Error)]
 enum Error {
@@ -99,7 +101,10 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     let bounds = Boundary::between_points((x1, z1), (x2, z2));
     let mut inventory_trees = HashMap::new();
     for name in config.groups.keys() {
-        inventory_trees.insert(name, Mutex::new(QuadTree::<_, _, 32>::new(bounds.clone())));
+        inventory_trees.insert(
+            name,
+            Mutex::new(QuadTree::new_with_const_cap(bounds.clone())),
+        );
     }
 
     #[cfg(feature = "parallel")]
@@ -276,7 +281,7 @@ fn add_item_to_map<'a, 'b>(
         .iter()
         .filter(|(_, group)| group.matches(item))
         .for_each(|(group_name, group)| {
-            let mult = group
+            let mul = group
                 .items
                 .iter()
                 .find(|i| i.matches(item))
@@ -285,22 +290,17 @@ fn add_item_to_map<'a, 'b>(
             item_map
                 .entry(group_name)
                 .and_modify(|item_entry: &mut FoundItem| {
-                    item_entry.count += item.count as usize * mult;
+                    item_entry.count += item.count as usize * mul;
                 })
                 .or_insert_with(|| FoundItem {
                     group_key: group_name,
                     position: Position { x, y, z },
-                    count: item.count as usize * mult,
+                    count: item.count as usize * mul,
                 });
         });
 }
 
-fn count_items_in_area<const CAPACITY: usize>(
-    radius: u32,
-    x: i32,
-    z: i32,
-    inventories: &QuadTree<i32, &FoundItem, CAPACITY>,
-) -> usize {
+fn count_items_in_area(radius: u32, x: i32, z: i32, inventories: &QuadTree) -> usize {
     let area = Boundary::new((x, z), radius as i32 * 2, radius as i32 * 2);
 
     inventories.query(area).map(|i| i.count).sum()

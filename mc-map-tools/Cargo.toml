@@ -17,7 +17,7 @@ dirs = "4.0.0"
 log = "0.4.17"
 simplelog = "0.12.1"
 test-case = "3.0.0"
-qutree = { git = "https://github.com/Julian-Alberts/qutree.git", version = "0.1.0" }
+qutee = { git = "https://github.com/Julian-Alberts/qutee.git", version = "0.1.0" }
 
 [features]
 parallel = ["rayon", "mc-map-reader/parallel"]
