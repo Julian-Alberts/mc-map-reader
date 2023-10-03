@@ -16,7 +16,7 @@ use super::{load::item::ItemWithSlotError, FieldError};
 #[derive(Debug, Builder, Clone, PartialEq)]
 pub struct BlockEntity {
     pub id: String,
-    #[builder({default false})]
+    #[builder({default: false})]
     pub keep_packed: bool,
     pub x: i32,
     pub y: i32,
@@ -234,7 +234,7 @@ pub struct Hopper {
     pub lock: Option<String>,
     pub loot_table: Option<String>,
     pub loot_table_seed: Option<i64>,
-    #[builder({default 0})]
+    #[builder({default: 0})]
     pub transfer_cooldown: i32,
 }
 

@@ -39,7 +39,7 @@ pub struct LevelDat {
     pub initialized: bool,
     pub last_played: i64,
     pub level_name: String,
-    #[builder({default  true})]
+    #[builder({default: true})]
     pub map_features: bool,
     pub player: Option<Player>,
     pub raining: bool,
