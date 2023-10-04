@@ -5,20 +5,17 @@ use qutee::Point;
 #[derive(Debug)]
 pub struct FoundInventory<'a> {
     pub inventory_type: String,
-    pub x: i32,
-    pub y: i32,
-    pub z: i32,
-    pub items: HashMap<&'a String, FoundItem<'a>>,
+    pub position: Position,
+    pub items: HashMap<&'a str, FoundItem>,
 }
 
 #[derive(Debug)]
-pub struct FoundItem<'a> {
-    pub group_key: &'a str,
+pub struct FoundItem {
     pub count: usize,
     pub position: Position,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Position {
     pub x: i32,
     pub y: i32,
@@ -42,10 +39,15 @@ impl From<Position> for Point<i32> {
         (pos.x, pos.z).into()
     }
 }
+impl From<&Position> for Point<i32> {
+    fn from(pos: &Position) -> Self {
+        (pos.x, pos.z).into()
+    }
+}
 
 impl qutee::AsPoint<i32> for &FoundInventory<'_> {
     fn as_point(&self) -> Point<i32> {
-        (self.x, self.z).into()
+        Point::from(&self.position)
     }
 }
 

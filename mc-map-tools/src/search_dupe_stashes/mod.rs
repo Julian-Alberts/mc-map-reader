@@ -2,6 +2,7 @@ pub mod args;
 pub mod config;
 mod data;
 mod detection_method;
+mod inventory_file;
 
 use data::*;
 use qutee::{Boundary, ConstCap};
@@ -86,7 +87,7 @@ pub fn main(
 
     let (x1, z1, x2, z2) = inventories
         .iter()
-        .fold((i32::MAX, i32::MAX, i32::MIN, i32::MIN), find_corners);
+        .fold((i32::MAX, i32::MAX, i32::MIN, i32::MIN), |v, inv| find_corners(v, &inv.position));
     log::debug!("Bounds: ({x1}, {z1}) - ({x2}, {z2})");
     assert!(x1 <= x2 && z1 <= z2, "{x1} <= {x2} && {z1} <= {z2}");
     let bounds = Boundary::between_points((x1, z1), (x2, z2));
@@ -129,14 +130,14 @@ fn collect_items_in_area<'a>(
     inventory_tree: &'a QuadTree,
     detection_method: &dyn DetectionMethod,
 ) -> (Position, HashMap<&'a str, usize>) {
-    let boundary = Boundary::new((inventory.x - radius, inventory.z - radius), radius, radius);
+    let boundary = Boundary::new((inventory.position.x - radius, inventory.position.z - radius), radius, radius);
     let mut items_in_area_by_group =
         inventory_tree
             .query(boundary)
             .fold(HashMap::new(), |mut items_in_area, inv| {
-                inv.items.iter().for_each(|(_key, item)| {
+                inv.items.iter().for_each(|(key, item)| {
                     items_in_area
-                        .entry(item.group_key)
+                        .entry(*key)
                         .and_modify(|count| *count += item.count)
                         .or_insert(item.count);
                 });
@@ -144,11 +145,7 @@ fn collect_items_in_area<'a>(
             });
     items_in_area_by_group.retain(|group, count| detection_method.exceeds_max(group, *count));
     (
-        Position {
-            x: inventory.x,
-            y: inventory.y,
-            z: inventory.z,
-        },
+        inventory.position.clone(),
         items_in_area_by_group,
     )
 }
@@ -237,9 +234,9 @@ where
     Some(FoundInventory {
         inventory_type: base_entity.id.clone(),
         items,
-        x,
-        y,
-        z,
+        position: Position {
+            x,y,z
+        }
     })
 }
 
@@ -250,7 +247,7 @@ fn item_is_shulker_box(id: &str) -> bool {
 
 fn search_subinventory<'a, 'b>(
     item: &Item,
-    item_map: &mut HashMap<&'a String, FoundItem<'a>>,
+    item_map: &mut HashMap<&'a str, FoundItem>,
     config: &'b SearchDupeStashesConfig,
     x: i32,
     y: i32,
@@ -276,7 +273,7 @@ fn search_subinventory<'a, 'b>(
 
 fn add_item_to_map<'a, 'b>(
     item: &mc_map_reader::data::item::ItemWithSlot,
-    item_map: &mut HashMap<&'a String, FoundItem<'a>>,
+    item_map: &mut HashMap<&'a str, FoundItem>,
     config: &'b SearchDupeStashesConfig,
     x: i32,
     y: i32,
@@ -302,7 +299,6 @@ fn add_item_to_map<'a, 'b>(
                     item_entry.count += item.count as usize * mul;
                 })
                 .or_insert_with(|| FoundItem {
-                    group_key: group_name,
                     position: Position { x, y, z },
                     count: item.count as usize * mul,
                 });
@@ -311,7 +307,7 @@ fn add_item_to_map<'a, 'b>(
 
 fn find_corners(
     (mut x1, mut z1, mut x2, mut z2): (i32, i32, i32, i32),
-    inv: &FoundInventory,
+    inv: &Position,
 ) -> (i32, i32, i32, i32) {
     x1 = x1.min(inv.x);
     z1 = z1.min(inv.z);
