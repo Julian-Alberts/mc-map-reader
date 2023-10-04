@@ -1,12 +1,14 @@
 pub mod args;
 pub mod config;
 mod data;
+mod detection_method;
 
 use data::*;
 use qutee::{Boundary, ConstCap};
 #[cfg(feature = "parallel")]
 use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use std::{collections::HashMap, fs::OpenOptions, path::Path, sync::Mutex};
+use std::io::Write;
+use std::{collections::HashMap, fs::OpenOptions, path::Path};
 
 use mc_map_reader::{
     data::{
@@ -17,11 +19,12 @@ use mc_map_reader::{
     RegionLoadError,
 };
 
+use crate::search_dupe_stashes::detection_method::DetectionMethod;
 use crate::{config::Config, read_file};
 
 use self::config::SearchDupeStashesConfig;
 
-type QuadTree<'a> = qutee::QuadTree<i32, &'a FoundItem<'a>, ConstCap<16>>;
+type QuadTree<'a> = qutee::QuadTree<i32, &'a FoundInventory<'a>, ConstCap<32>>;
 
 #[derive(Debug, thiserror::Error)]
 enum Error {
@@ -31,7 +34,15 @@ enum Error {
     RegionLoadError(#[from] RegionLoadError),
 }
 
-pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
+pub fn main(
+    world_dir: &Path,
+    data: args::SearchDupeStashes,
+    config: Config,
+    writer: &mut dyn Write,
+) {
+    let detection_method = Box::new(detection_method::Absolute::new(
+        &config.search_dupe_stashes.groups,
+    ));
     let region_groups = if let Some(area) = data.area {
         mc_map_reader::files::get_region_files_in_area(
             world_dir, None, area.x1, area.z1, area.x2, area.z2,
@@ -44,26 +55,13 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
         "Found {} region files {region_groups:#?}",
         region_groups.len()
     );
-    let config = config.search_dupe_stashes;
+    let config = &config.search_dupe_stashes;
     #[cfg(feature = "parallel")]
     let region_groups = region_groups.into_par_iter();
     #[cfg(not(feature = "parallel"))]
     let region_groups = region_groups.into_iter();
     let (inventories, errors) = region_groups
-        .map(|region| -> Result<Vec<FoundInventory>, Error> {
-            let region = OpenOptions::new().read(true).open(region)?;
-            let region = read_file(region)?;
-            let region = mc_map_reader::load_region(region.as_slice(), None)?;
-            let inv = region
-                .chunks
-                .iter()
-                .filter_map(|c| search_inventories_in_chunk(c, &config))
-                .fold(Vec::default(), |mut invnentories, mut new| {
-                    invnentories.append(&mut new);
-                    invnentories
-                });
-            Ok(inv)
-        })
+        .map(|region| search_inventories_in_region(&region, config))
         .collect::<Vec<Result<_, Error>>>()
         .into_iter()
         .fold(
@@ -86,80 +84,91 @@ pub fn main(world_dir: &Path, data: args::SearchDupeStashes, config: Config) {
     }
     log::info!("Found {} inventories", inventories.len());
 
-    let (x1, z1, x2, z2) = inventories.iter().fold(
-        (i32::MAX, i32::MAX, i32::MIN, i32::MIN),
-        |(mut x1, mut z1, mut x2, mut z2), inv| {
-            x1 = x1.min(inv.x);
-            z1 = z1.min(inv.z);
-            x2 = x2.max(inv.x);
-            z2 = z2.max(inv.z);
-            (x1, z1, x2, z2)
-        },
-    );
+    let (x1, z1, x2, z2) = inventories
+        .iter()
+        .fold((i32::MAX, i32::MAX, i32::MIN, i32::MIN), find_corners);
     log::debug!("Bounds: ({x1}, {z1}) - ({x2}, {z2})");
     assert!(x1 <= x2 && z1 <= z2, "{x1} <= {x2} && {z1} <= {z2}");
     let bounds = Boundary::between_points((x1, z1), (x2, z2));
-    let mut inventory_trees = HashMap::new();
-    for name in config.groups.keys() {
-        inventory_trees.insert(
-            name,
-            Mutex::new(QuadTree::new_with_const_cap(bounds.clone())),
-        );
-    }
+    let mut inventory_tree: QuadTree = QuadTree::new_with_const_cap(bounds);
+
+    inventories
+        .iter()
+        .for_each(|inv| inventory_tree.insert_unchecked(inv));
 
     #[cfg(feature = "parallel")]
-    let inventories = inventories.par_iter();
+    let inventory_iter = inventories.par_iter();
     #[cfg(not(feature = "parallel"))]
-    let inventories = inventories.iter();
-    inventories.for_each(|inv| {
-        inv.items.iter().for_each(|(group_key, item)| {
-            let tree = inventory_trees
-                .get(group_key)
-                .expect("Could not find group key");
-            let mut tree = tree.lock().expect("Error locking tree");
-            debug_assert!(tree.insert_at(item.position, item).is_ok());
-        });
-    });
-    let inventory_trees = inventory_trees
-        .into_iter()
-        .map(|(k, v)| (k, v.into_inner().expect("Error unwrapping tree")))
-        .collect::<HashMap<_, _>>();
-    #[cfg(feature = "parallel")]
-    let inventory_trees = inventory_trees.into_par_iter();
-    #[cfg(not(feature = "parallel"))]
-    let inventory_trees = inventory_trees.into_iter();
-    let item_stashes = inventory_trees
-        .map(|(group_key, items)| {
-            let group = config
-                .groups
-                .get(group_key)
-                .expect("Error Could not find group key");
-            let threshold = group.threshold;
-            let counts: Vec<_> = items
-                .iter()
-                .map(|item| {
-                    let pos = item.position;
-                    let radius = data.radius;
-                    let count = count_items_in_area(radius, pos.x, pos.z, &items);
-                    PotentialStashLocation {
-                        position: pos,
-                        count,
-                    }
-                })
-                .filter(|location| location.count >= threshold)
-                .collect();
-            if counts.is_empty() {
-                return None;
-            }
-            Some(PotentialStashLocationsByGroup {
-                group_key,
-                locations: counts,
-            })
+    let inventory_iter = config.groups.iter();
+    let potential_stash_locations = inventory_iter
+        .map(|inventory| {
+            collect_items_in_area(
+                data.radius as i32,
+                inventory,
+                &inventory_tree,
+                detection_method.as_ref(),
+            )
         })
-        .filter_map(|x| x)
-        .collect::<Vec<_>>();
-    let item_stashes = PotentialStashLocations(item_stashes);
-    println!("{item_stashes}")
+        .filter(|(_, i)| !i.is_empty());
+
+    potential_stash_locations
+        .collect::<Vec<_>>()
+        .into_iter()
+        .for_each(|(Position { x, y, z }, sl)| {
+            sl.iter().for_each(|(item, count)| {
+                writer
+                    .write_all(format!("{x},{y},{z},{item},{count}").as_bytes())
+                    .expect("Error writing message");
+            })
+        });
+}
+
+fn collect_items_in_area<'a>(
+    radius: i32,
+    inventory: &FoundInventory,
+    inventory_tree: &'a QuadTree,
+    detection_method: &dyn DetectionMethod,
+) -> (Position, HashMap<&'a str, usize>) {
+    let boundary = Boundary::new((inventory.x - radius, inventory.z - radius), radius, radius);
+    let mut items_in_area_by_group =
+        inventory_tree
+            .query(boundary)
+            .fold(HashMap::new(), |mut items_in_area, inv| {
+                inv.items.iter().for_each(|(_key, item)| {
+                    items_in_area
+                        .entry(item.group_key)
+                        .and_modify(|count| *count += item.count)
+                        .or_insert(item.count);
+                });
+                items_in_area
+            });
+    items_in_area_by_group.retain(|group, count| detection_method.exceeds_max(group, *count));
+    (
+        Position {
+            x: inventory.x,
+            y: inventory.y,
+            z: inventory.z,
+        },
+        items_in_area_by_group,
+    )
+}
+
+fn search_inventories_in_region<'a>(
+    region: &Path,
+    config: &'a SearchDupeStashesConfig,
+) -> Result<Vec<FoundInventory<'a>>, Error> {
+    let region = OpenOptions::new().read(true).open(region)?;
+    let region = read_file(region)?;
+    let region = mc_map_reader::load_region(region.as_slice(), None)?;
+    let inv = region
+        .chunks
+        .iter()
+        .filter_map(|c| search_inventories_in_chunk(c, config))
+        .fold(Vec::default(), |mut invnentories, mut new| {
+            invnentories.append(&mut new);
+            invnentories
+        });
+    Ok(inv)
 }
 
 fn search_inventories_in_chunk<'a, 'b>(
@@ -170,7 +179,7 @@ where
     'b: 'a,
 {
     let Some(block_entities) = &chunk.block_entities else {
-        return None
+        return None;
     };
     let res = block_entities
         .iter()
@@ -249,10 +258,10 @@ fn search_subinventory<'a, 'b>(
 ) where
     'b: 'a,
 {
-    let Some (tag) = &item.tag else {
+    let Some(tag) = &item.tag else {
         return;
     };
-    let Some (block_entity_tag) = tag.get("BlockEntityTag").cloned() else {
+    let Some(block_entity_tag) = tag.get("BlockEntityTag").cloned() else {
         return;
     };
     let Ok(inventory) = ShulkerBox::try_from(block_entity_tag) else {
@@ -300,8 +309,13 @@ fn add_item_to_map<'a, 'b>(
         });
 }
 
-fn count_items_in_area(radius: u32, x: i32, z: i32, inventories: &QuadTree) -> usize {
-    let area = Boundary::new((x, z), radius as i32 * 2, radius as i32 * 2);
-
-    inventories.query(area).map(|i| i.count).sum()
+fn find_corners(
+    (mut x1, mut z1, mut x2, mut z2): (i32, i32, i32, i32),
+    inv: &FoundInventory,
+) -> (i32, i32, i32, i32) {
+    x1 = x1.min(inv.x);
+    z1 = z1.min(inv.z);
+    x2 = x2.max(inv.x);
+    z2 = z2.max(inv.z);
+    (x1, z1, x2, z2)
 }

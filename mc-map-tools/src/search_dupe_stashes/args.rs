@@ -46,7 +46,10 @@ pub struct Area {
 }
 
 fn parse_area(value: &str) -> Result<Area, String> {
-    let Some(((x1, z1), (x2, z2))) = value.split_once(';').and_then(|(pos1, pos2)| parse_point(pos1).zip(parse_point(pos2))) else {
+    let Some(((x1, z1), (x2, z2))) = value
+        .split_once(';')
+        .and_then(|(pos1, pos2)| parse_point(pos1).zip(parse_point(pos2)))
+    else {
         return Err(String::from("Can not parse provided area. Area must be give as followed: \"<x1>,<z1>;<x2>,<z2>\". Make sure that you have no spaces and all numbers are valid integers."));
     };
     Ok(Area { x1, z1, x2, z2 })

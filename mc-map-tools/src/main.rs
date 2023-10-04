@@ -51,7 +51,12 @@ fn main() {
     match args.action {
         Action::SearchDupeStashes(data) => {
             log::debug!("Running SearchDupeStashes with arguments: {data:?}");
-            search_dupe_stashes::main(args.save_directory.as_path(), data, config)
+            search_dupe_stashes::main(
+                args.save_directory.as_path(),
+                data,
+                config,
+                &mut std::io::stdout().lock(),
+            )
         }
         Action::FindInventories(sub_args) => {
             find_inventories::main(args.save_directory.as_path(), &sub_args)

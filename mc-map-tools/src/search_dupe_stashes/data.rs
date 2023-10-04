@@ -43,6 +43,12 @@ impl From<Position> for Point<i32> {
     }
 }
 
+impl qutee::AsPoint<i32> for &FoundInventory<'_> {
+    fn as_point(&self) -> Point<i32> {
+        (self.x, self.z).into()
+    }
+}
+
 impl Display for PotentialStashLocations<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for group in &self.0 {

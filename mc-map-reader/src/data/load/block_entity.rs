@@ -258,11 +258,9 @@ fn parse_block_entity(
     builder: &mut BlockEntityBuilder,
     mut nbt_data: HashMap<String, Tag>,
 ) -> Result<(), BlockEntityError> {
-    let Tag::String(id) = nbt_data
-        .get("id")
-        .ok_or(BlockEntityBuilderError::UnsetId)? else {
-            return Err(FieldError::new("id", crate::nbt::Error::InvalidValue).into());
-        };
+    let Tag::String(id) = nbt_data.get("id").ok_or(BlockEntityBuilderError::UnsetId)? else {
+        return Err(FieldError::new("id", crate::nbt::Error::InvalidValue).into());
+    };
     let id = id.clone();
     add_data_to_builder!(builder, nbt_data => [
         "id": set_id,

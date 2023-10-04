@@ -68,15 +68,13 @@ impl GroupEntry {
     }
 
     fn matches_id(&self, item: &mc_map_reader::data::item::Item) -> bool {
-        let Some(id) = &self.id else {
-            return true
-        };
+        let Some(id) = &self.id else { return true };
         id.0.matches(&item.id)
     }
 
     fn matches_nbt(&self, item: &mc_map_reader::data::item::Item) -> bool {
         let Some(required_nbt) = &self.nbt else {
-            return true
+            return true;
         };
         let item_nbt = if let Some(item_nbt) = &item.tag {
             item_nbt

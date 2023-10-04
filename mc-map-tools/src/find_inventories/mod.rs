@@ -37,7 +37,7 @@ pub fn main(world_dir: &Path, args: &SearchEntity) {
 
 fn search_block_entity(chunk_data: &ChunkData, wildcards: &[WildMatch]) {
     let Some(block_entities) = &chunk_data.block_entities else {
-        return
+        return;
     };
 
     block_entities
