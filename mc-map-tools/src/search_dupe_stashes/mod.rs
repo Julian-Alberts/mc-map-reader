@@ -218,9 +218,9 @@ where
     let y = base_entity.y;
     let items = if let Some(items) = inventory.items() {
         items.iter().fold(HashMap::default(), |mut item_map, item| {
-            add_item_to_map(item, &mut item_map, config, x, y, z);
+            add_item_to_map(item, &mut item_map, config);
             if item_is_shulker_box(&item.item.id) {
-                search_subinventory(&item.item, &mut item_map, config, x, y, z)
+                search_subinventory(&item.item, &mut item_map, config)
             }
             item_map
         })
@@ -249,9 +249,6 @@ fn search_subinventory<'a, 'b>(
     item: &Item,
     item_map: &mut HashMap<&'a str, FoundItem>,
     config: &'b SearchDupeStashesConfig,
-    x: i32,
-    y: i32,
-    z: i32,
 ) where
     'b: 'a,
 {
@@ -267,7 +264,7 @@ fn search_subinventory<'a, 'b>(
     if let Some(items) = inventory.items() {
         items
             .iter()
-            .for_each(|item| add_item_to_map(item, item_map, config, x, y, z))
+            .for_each(|item| add_item_to_map(item, item_map, config))
     }
 }
 
@@ -275,9 +272,6 @@ fn add_item_to_map<'a, 'b>(
     item: &mc_map_reader::data::item::ItemWithSlot,
     item_map: &mut HashMap<&'a str, FoundItem>,
     config: &'b SearchDupeStashesConfig,
-    x: i32,
-    y: i32,
-    z: i32,
 ) where
     'b: 'a,
 {
@@ -299,7 +293,6 @@ fn add_item_to_map<'a, 'b>(
                     item_entry.count += item.count as usize * mul;
                 })
                 .or_insert_with(|| FoundItem {
-                    position: Position { x, y, z },
                     count: item.count as usize * mul,
                 });
         });

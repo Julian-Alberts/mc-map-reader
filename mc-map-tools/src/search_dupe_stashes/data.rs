@@ -12,7 +12,6 @@ pub struct FoundInventory<'a> {
 #[derive(Debug)]
 pub struct FoundItem {
     pub count: usize,
-    pub position: Position,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
