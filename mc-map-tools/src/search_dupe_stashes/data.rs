@@ -1,6 +1,24 @@
+use std::collections::VecDeque;
+use std::path::PathBuf;
 use std::{collections::HashMap, fmt::Display};
+use std::fmt::format;
+use std::fs::File;
+use std::sync::Arc;
 
 use qutee::Point;
+use crate::file::region_inventories::RegionInventories;
+
+pub struct RegionInventoryCache {
+    regions: VecDeque<RegionInventoryCacheItem>,
+    cache_size: usize,
+    base_dir: PathBuf,
+}
+
+struct RegionInventoryCacheItem {
+    x: i32,
+    z: i32,
+    inventories: Arc<RegionInventories>,
+}
 
 #[derive(Debug)]
 pub struct FoundInventory<'a> {
@@ -32,6 +50,34 @@ pub struct PotentialStashLocationsByGroup<'a> {
 }
 
 pub struct PotentialStashLocations<'a>(pub Vec<PotentialStashLocationsByGroup<'a>>);
+
+impl RegionInventoryCache {
+    pub fn new(base_dir: PathBuf, cache_size: usize) -> Self {
+        Self {
+            cache_size,
+            regions: Default::default(),
+            base_dir,
+        }
+    }
+
+    pub async fn get(&self, x: i32, z: i32) -> std::io::Result<Arc<RegionInventories>> {
+        use async_std::fs::File;
+        let region = self
+            .regions
+            .iter()
+            .find(|reg| reg.x == x && reg.z == z);
+        if let Some(reg) = region {
+            return Ok(reg.inventories.clone());
+        }
+
+        let region = self.base_dir.join(format!("region_{x}_{z}.mtri"));
+        let file = File::open(region).await?;
+
+
+
+        todo!()
+    }
+}
 
 impl From<Position> for Point<i32> {
     fn from(pos: Position) -> Self {
@@ -81,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn test_display_potentiol_stash_locations() {
+    fn test_display_potential_stash_locations() {
         let locations = PotentialStashLocations(vec![
             PotentialStashLocationsByGroup {
                 group_key: "key1",
@@ -121,5 +167,15 @@ Group: key2
   Count: 4, Position: Position { x: 3, y: 0, z: 3 }
 "##
         )
+    }
+
+    mod cache {
+        use std::path::PathBuf;
+        use super::super::RegionInventoryCache;
+
+        #[test]
+        fn find() {
+            let cache = RegionInventoryCache::new(PathBuf::from(""), 5);
+        }
     }
 }

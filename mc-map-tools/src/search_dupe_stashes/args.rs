@@ -36,13 +36,13 @@ pub struct GrothRate {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Area {
     /// X value of first point
-    pub x1: i64,
+    pub x1: i32,
     /// Z value of first point
-    pub z1: i64,
+    pub z1: i32,
     /// X value of second point
-    pub x2: i64,
+    pub x2: i32,
     /// Z value of second point
-    pub z2: i64,
+    pub z2: i32,
 }
 
 fn parse_area(value: &str) -> Result<Area, String> {
@@ -55,7 +55,7 @@ fn parse_area(value: &str) -> Result<Area, String> {
     Ok(Area { x1, z1, x2, z2 })
 }
 
-fn parse_point(value: &str) -> Option<(i64, i64)> {
+fn parse_point(value: &str) -> Option<(i32, i32)> {
     value
         .split_once(',')
         .and_then(|(x, z)| x.parse().ok().zip(z.parse().ok()))
@@ -83,7 +83,7 @@ mod tests {
     #[test_case("1," => None; "Second value is missing")]
     #[test_case(",2" => None; "First value is missing")]
     #[test_case("-1,2" => Some((-1, 2)); "Negative values")]
-    fn test_parse_point(v: &str) -> Option<(i64, i64)> {
+    fn test_parse_point(v: &str) -> Option<(i32, i32)> {
         parse_point(v)
     }
 

@@ -19,8 +19,10 @@ mod paths;
 #[cfg(feature = "experimental")]
 mod read_level_dat;
 mod search_dupe_stashes;
+mod file;
 
 use std::{fs::File, io::Read, path::PathBuf};
+use async_std::io::ReadExt;
 
 use arguments::Action;
 use clap::Parser;
@@ -28,7 +30,8 @@ use config::Config;
 
 use crate::arguments::Args;
 
-fn main() {
+#[async_std::main]
+async fn main() {
     let args = Args::parse();
     setup_logger(args.log_level.into());
     let config = if let Some(config_file) = args.config_file.map(File::open) {
@@ -56,7 +59,7 @@ fn main() {
                 data,
                 config,
                 &mut std::io::stdout().lock(),
-            )
+            ).await
         }
         Action::FindInventories(sub_args) => {
             find_inventories::main(args.save_directory.as_path(), &sub_args)
@@ -66,9 +69,9 @@ fn main() {
     }
 }
 
-fn read_file(mut region_file: File) -> std::io::Result<Vec<u8>> {
+async fn read_file(mut region_file: async_std::fs::File) -> std::io::Result<Vec<u8>> {
     let mut buf = Vec::default();
-    region_file.read_to_end(&mut buf)?;
+    region_file.read_to_end(&mut buf).await?;
     Ok(buf)
 }
 

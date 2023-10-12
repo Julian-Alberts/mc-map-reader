@@ -1,5 +1,24 @@
 use std::path::{Path, PathBuf};
 
+#[derive(Debug)]
+pub struct RegionFile {
+    x: i32,
+    z: i32,
+    path: PathBuf,
+}
+
+impl RegionFile {
+    pub fn x(&self) -> i32 {
+        self.x
+    }
+    pub fn z(&self) -> i32 {
+        self.z
+    }
+    pub fn as_path(&self) -> &Path {
+        &self.path
+    }
+}
+
 /// Return a list of all region files in the given area.
 pub fn get_region_files_in_area(
     world_directory: &Path,
@@ -43,6 +62,52 @@ pub fn get_region_files_in_area(
         .collect()
 }
 
+pub fn get_regions_in_area(
+    world_directory: &Path,
+    dimension_directory: Option<&Path>,
+    chunk1_x: i32,
+    chunk1_z: i32,
+    chunk2_x: i32,
+    chunk2_z: i32,
+) -> Vec<RegionFile> {
+    let chunk1_x = chunk1_x >> 5;
+    let chunk1_z = chunk1_z >> 5;
+    let chunk2_x = chunk2_x >> 5;
+    let chunk2_z = chunk2_z >> 5;
+
+    let x_axis_values = if chunk1_x < chunk2_x {
+        chunk1_x..=chunk2_x
+    } else {
+        chunk2_x..=chunk1_x
+    };
+    let z_axis_values = if chunk1_z < chunk2_z {
+        chunk1_z..=chunk2_z
+    } else {
+        chunk2_z..=chunk1_z
+    };
+    x_axis_values
+        .into_iter()
+        .fold(Vec::new(), |mut vec, x| {
+            vec.extend(z_axis_values.clone().map(|z| (x, z)));
+            vec
+        })
+        .into_iter()
+        .map(|(x, z)| {
+            let mut region_file = PathBuf::from(world_directory);
+            if let Some(dimension) = dimension_directory {
+                region_file.push(dimension)
+            }
+            region_file.push(format!("region/r.{x}.{z}.mca"));
+            RegionFile {
+                z,
+                x,
+                path: region_file,
+            }
+        })
+        .filter(|region_file| region_file.path.exists())
+        .collect()
+}
+
 /// Return a list of all region files.
 pub fn get_region_files(
     world_dir: &Path,
@@ -55,6 +120,41 @@ pub fn get_region_files(
     region_dir.push("region");
     std::fs::read_dir(region_dir)?
         .map(|entry| entry.map(|e| e.path()))
+        .collect::<Result<_, _>>()
+}
+
+pub fn get_regions(
+    world_dir: &Path,
+    dimension_directory: Option<&Path>,
+) -> std::io::Result<Vec<RegionFile>> {
+    let mut region_dir = PathBuf::from(world_dir);
+    if let Some(dimension) = dimension_directory {
+        region_dir.push(dimension)
+    }
+    region_dir.push("region");
+    std::fs::read_dir(region_dir)?
+        .map(|entry| entry.map(|e| e.path()))
+        .filter_map(|entry| {
+            let res = entry.map(|path| {
+                let path_cow = path.to_string_lossy();
+                let mut split = path_cow.split('.').skip(1);
+                if let Some((x, z)) = split
+                    .next()
+                    .zip(split.next())
+                    .and_then(|(x, z)| x.parse().ok().zip(z.parse().ok()))
+                {
+                    Some(RegionFile { z, x, path })
+                } else {
+                    log::info!("Found file with unexpected format {}", path.display());
+                    None
+                }
+            });
+            match res {
+                Ok(None) => None,
+                Ok(Some(res)) => Some(Ok(res)),
+                Err(e) => Some(Err(e)),
+            }
+        })
         .collect::<Result<_, _>>()
 }
 

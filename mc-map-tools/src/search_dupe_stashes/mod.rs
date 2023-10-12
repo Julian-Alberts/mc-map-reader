@@ -2,14 +2,15 @@ pub mod args;
 pub mod config;
 mod data;
 mod detection_method;
-mod inventory_file;
 
 use data::*;
 use qutee::{Boundary, ConstCap};
 #[cfg(feature = "parallel")]
 use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use std::io::Write;
-use std::{collections::HashMap, fs::OpenOptions, path::Path};
+use std::{collections::HashMap, path::Path};
+use async_std::fs::OpenOptions;
+use futures::AsyncWriteExt;
 
 use mc_map_reader::{
     data::{
@@ -22,6 +23,8 @@ use mc_map_reader::{
 
 use crate::search_dupe_stashes::detection_method::DetectionMethod;
 use crate::{config::Config, read_file};
+use crate::file::FileItemWrite;
+use crate::file::region_inventories::RegionInventories;
 
 use self::config::SearchDupeStashesConfig;
 
@@ -35,7 +38,7 @@ enum Error {
     RegionLoadError(#[from] RegionLoadError),
 }
 
-pub fn main(
+pub async fn main(
     world_dir: &Path,
     data: args::SearchDupeStashes,
     config: Config,
@@ -44,41 +47,50 @@ pub fn main(
     let detection_method = Box::new(detection_method::Absolute::new(
         &config.search_dupe_stashes.groups,
     ));
-    let region_groups = if let Some(area) = data.area {
-        mc_map_reader::files::get_region_files_in_area(
+    let region_files = if let Some(area) = data.area {
+        mc_map_reader::files::get_regions_in_area(
             world_dir, None, area.x1, area.z1, area.x2, area.z2,
         )
     } else {
-        mc_map_reader::files::get_region_files(world_dir, None)
+        mc_map_reader::files::get_regions(world_dir, None)
             .expect("Could not read region directory")
     };
     log::debug!(
-        "Found {} region files {region_groups:#?}",
-        region_groups.len()
+        "Found {} region files {region_files:#?}",
+        region_files.len()
     );
     let config = &config.search_dupe_stashes;
-    #[cfg(feature = "parallel")]
-    let region_groups = region_groups.into_par_iter();
-    #[cfg(not(feature = "parallel"))]
-    let region_groups = region_groups.into_iter();
-    let (inventories, errors) = region_groups
-        .map(|region| search_inventories_in_region(&region, config))
-        .collect::<Vec<Result<_, Error>>>()
+
+    let mut inventories_dir = std::env::temp_dir();
+    inventories_dir.push(format!("mc-map-tools-{}", std::process::id()));
+    inventories_dir.push("inventories");
+
+    if let Err(e) = async_std::fs::create_dir(&inventories_dir).await {
+        log::error!("Error creating tmp directory: {e}");
+        return
+    }
+    let inventories_dir = inventories_dir.as_path();
+    let regions_future = region_files
         .into_iter()
-        .fold(
-            (Vec::default(), Vec::default()),
-            |(mut inv, mut err), new| {
-                match new {
-                    Ok(mut i) => inv.append(&mut i),
-                    Err(e) => err.push(e),
+        .map(|region| async move {
+            let inventories = search_inventories_in_region(region.as_path(), config).await;
+            let inventories = match inventories {
+                Ok(inventories) => inventories,
+                Err(err) => {
+                    log::error!("{err}");
+                    return Err(err);
                 }
-                (inv, err)
-            },
-        );
+            };
+            save_region_inventories(&inventories_dir, region.x(), region.z(), inventories).await.map_err(Error::Io)
+        });
+    let errors = futures::future::join_all(regions_future).await;
 
     for e in errors {
-        log::error!("Error while reading region file {}", e);
+        if let Err(e) = e {
+            log::error!("Error while reading region file {}", e);
+        }
     }
+/*
     if inventories.is_empty() {
         log::info!("No inventories found");
         return;
@@ -87,7 +99,9 @@ pub fn main(
 
     let (x1, z1, x2, z2) = inventories
         .iter()
-        .fold((i32::MAX, i32::MAX, i32::MIN, i32::MIN), |v, inv| find_corners(v, &inv.position));
+        .fold((i32::MAX, i32::MAX, i32::MIN, i32::MIN), |v, inv| {
+            find_corners(v, &inv.position)
+        });
     log::debug!("Bounds: ({x1}, {z1}) - ({x2}, {z2})");
     assert!(x1 <= x2 && z1 <= z2, "{x1} <= {x2} && {z1} <= {z2}");
     let bounds = Boundary::between_points((x1, z1), (x2, z2));
@@ -121,7 +135,7 @@ pub fn main(
                     .write_all(format!("{x},{y},{z},{item},{count}").as_bytes())
                     .expect("Error writing message");
             })
-        });
+        });*/
 }
 
 fn collect_items_in_area<'a>(
@@ -130,7 +144,11 @@ fn collect_items_in_area<'a>(
     inventory_tree: &'a QuadTree,
     detection_method: &dyn DetectionMethod,
 ) -> (Position, HashMap<&'a str, usize>) {
-    let boundary = Boundary::new((inventory.position.x - radius, inventory.position.z - radius), radius, radius);
+    let boundary = Boundary::new(
+        (inventory.position.x - radius, inventory.position.z - radius),
+        radius,
+        radius,
+    );
     let mut items_in_area_by_group =
         inventory_tree
             .query(boundary)
@@ -144,42 +162,37 @@ fn collect_items_in_area<'a>(
                 items_in_area
             });
     items_in_area_by_group.retain(|group, count| detection_method.exceeds_max(group, *count));
-    (
-        inventory.position.clone(),
-        items_in_area_by_group,
-    )
+    (inventory.position.clone(), items_in_area_by_group)
 }
 
-fn search_inventories_in_region<'a>(
+async fn search_inventories_in_region<'a>(
     region: &Path,
     config: &'a SearchDupeStashesConfig,
-) -> Result<Vec<FoundInventory<'a>>, Error> {
-    let region = OpenOptions::new().read(true).open(region)?;
-    let region = read_file(region)?;
+) -> Result<impl Iterator<Item = FoundInventory<'a>>, Error> {
+    let region = OpenOptions::new().read(true).open(region).await?;
+    let region = read_file(region).await?;
     let region = mc_map_reader::load_region(region.as_slice(), None)?;
     let inv = region
         .chunks
-        .iter()
+        .into_iter()
         .filter_map(|c| search_inventories_in_chunk(c, config))
-        .fold(Vec::default(), |mut invnentories, mut new| {
-            invnentories.append(&mut new);
-            invnentories
-        });
+        .flatten();
     Ok(inv)
 }
 
-fn search_inventories_in_chunk<'a, 'b>(
-    chunk: &ChunkData,
-    config: &'b SearchDupeStashesConfig,
-) -> Option<Vec<FoundInventory<'a>>>
+fn search_inventories_in_chunk<'inventory, 'config, 'chunk>(
+    chunk: ChunkData,
+    config: &'config SearchDupeStashesConfig,
+) -> Option<impl Iterator<Item = FoundInventory<'inventory>>>
 where
-    'b: 'a,
+    'config: 'inventory,
+    'chunk: 'inventory
 {
-    let Some(block_entities) = &chunk.block_entities else {
+    let Some(block_entities) = chunk.block_entities else {
         return None;
     };
-    let res = block_entities
-        .iter()
+    let inventories = block_entities
+        .into_iter()
         .filter_map(|block_entity| {
             let inventory: &dyn InventoryBlock = match &block_entity.entity_type {
                 BlockEntityType::Barrel(block) => block,
@@ -191,15 +204,9 @@ where
                 BlockEntityType::TrappedChest(block) => block,
                 _ => return None,
             };
-            search_inventory_block(inventory, block_entity, config)
-        })
-        .collect::<Vec<_>>();
-    log::debug!("Found {} inventories in chunk", res.len());
-    if res.is_empty() {
-        None
-    } else {
-        Some(res)
-    }
+            search_inventory_block(inventory, &block_entity, config)
+        });
+    Some(inventories)
 }
 
 fn search_inventory_block<'a, 'b>(
@@ -234,9 +241,7 @@ where
     Some(FoundInventory {
         inventory_type: base_entity.id.clone(),
         items,
-        position: Position {
-            x,y,z
-        }
+        position: Position { x, y, z },
     })
 }
 
@@ -296,6 +301,34 @@ fn add_item_to_map<'a, 'b>(
                     count: item.count as usize * mul,
                 });
         });
+}
+
+async fn save_region_inventories<'a>(dir: &Path, x: i32, z: i32, inventories: impl Iterator<Item = FoundInventory<'a>>) -> std::io::Result<()> {
+    use crate::file::region_inventories::{Item, Inventory, RegionInventories};
+
+    fn into_inv_file_item(key: &str, item: FoundItem) -> Item {
+        Item {
+            group_id: 0,
+            count: item.count as i32,
+        }
+    }
+
+    let path = dir.join(format!("region_{x}_{z}.mtri"));
+    let mut file = OpenOptions::new().create(true).write(true).open(path).await?;
+    let inventories = RegionInventories {
+        inventories: inventories.map(|inv| {
+            Inventory {
+                x: inv.position.x,
+                y: inv.position.y,
+                z: inv.position.z,
+                items: inv.items.into_iter().map(|(key, item)| into_inv_file_item(key, item)).collect()
+            }
+        }).collect(),
+    };
+    let mut buf = Vec::new();
+    inventories.write(&mut buf).await;
+    file.write_all(&buf).await?;
+    Ok(())
 }
 
 fn find_corners(

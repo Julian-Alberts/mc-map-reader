@@ -18,6 +18,9 @@ log = "0.4.20"
 simplelog = "0.12.1"
 test-case = "3.2.1"
 qutee = { version = "0.2.0" }
+async-std = {version = "1.12", features = ["attributes"]}
+async-trait = "0.1.73"
+futures = "0.3.28"
 
 [features]
 parallel = ["rayon", "mc-map-reader/parallel"]
