@@ -7,9 +7,6 @@ use async_std::fs::OpenOptions;
 use data::*;
 use futures::AsyncWriteExt;
 use qutee::{Boundary, ConstCap};
-#[cfg(feature = "parallel")]
-use rayon::prelude::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
-use std::env::temp_dir;
 use std::hash::{Hash, Hasher};
 use std::io::Write;
 use std::sync::Arc;
@@ -24,9 +21,10 @@ use mc_map_reader::{
     RegionLoadError,
 };
 
-use crate::file::region_inventories::{Inventory, RegionInventories};
 use crate::file::FileItemWrite;
+use crate::file::region_inventories::Inventory;
 use crate::search_dupe_stashes::detection_method::DetectionMethod;
+use crate::tmp_dir::TmpDir;
 use crate::{config::Config, read_file};
 
 use self::config::SearchDupeStashesConfig;
@@ -65,9 +63,9 @@ pub async fn main(
     );
     let config = &config.search_dupe_stashes;
 
-    let mut inventories_dir = std::env::temp_dir();
-    inventories_dir.push(format!("mc-map-tools-{}", std::process::id()));
-    inventories_dir.push("inventories");
+
+    let temp_dir = TmpDir::new().expect("Error creating tmp dir");
+    let inventories_dir = temp_dir.as_ref().join("inventories");
 
     if let Err(e) = async_std::fs::create_dir(&inventories_dir).await {
         log::error!("Error creating tmp directory: {e}");
@@ -166,7 +164,9 @@ pub async fn main(
             })
         });
 
-    // TODO Delete tmp files
+    if let Err(err) = async_std::fs::remove_dir_all(temp_dir.as_ref()).await {
+        log::error!("Could not remove temporary directory \"{}\": {err}", temp_dir.as_ref().display());
+    }
 }
 
 fn min_corner_block_in_chunk(region_x: i32, region_z: i32) -> (i32, i32) {
@@ -365,7 +365,7 @@ async fn save_region_inventories<'a>(
     z: i32,
     inventories: impl Iterator<Item = FoundInventory<'a>>,
 ) -> std::io::Result<()> {
-    use crate::file::region_inventories::{Inventory, Item, RegionInventories};
+    use crate::file::region_inventories::{Item, RegionInventories};
 
     fn into_inv_file_item(key: &str, item: FoundItem) -> Item {
         let mut hasher = std::collections::hash_map::DefaultHasher::default();
@@ -373,7 +373,7 @@ async fn save_region_inventories<'a>(
         let group_id = hasher.finish();
         Item {
             group_id,
-            count: item.count as i32,
+            count: item.count as u64,
         }
     }
 

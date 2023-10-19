@@ -20,9 +20,10 @@ mod paths;
 #[cfg(feature = "experimental")]
 mod read_level_dat;
 mod search_dupe_stashes;
+mod tmp_dir;
 
 use async_std::io::ReadExt;
-use std::{fs::File, io::Read, path::PathBuf};
+use std::{fs::File,  path::PathBuf};
 
 use arguments::Action;
 use clap::Parser;
