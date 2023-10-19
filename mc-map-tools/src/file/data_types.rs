@@ -1,11 +1,12 @@
-use std::io::Result;
+use crate::file::{FileItemRead, FileItemWrite};
 use async_std::io::{Read, ReadExt, Write, WriteExt};
 use async_trait::async_trait;
-use crate::file::{FileItemRead, FileItemWrite};
+use std::io::Result;
 
 #[async_trait]
-impl <R> FileItemRead<R> for i32
-    where R: Read + Unpin + Send + Sync
+impl<R> FileItemRead<R> for i32
+where
+    R: Read + Unpin + Send + Sync,
 {
     async fn read(data: &mut R) -> Result<Self> {
         let mut bytes = [0; std::mem::size_of::<i32>()];
@@ -15,8 +16,9 @@ impl <R> FileItemRead<R> for i32
 }
 
 #[async_trait]
-impl <W> FileItemWrite<W> for i32
-    where W: Write + Unpin + Send + Sync
+impl<W> FileItemWrite<W> for i32
+where
+    W: Write + Unpin + Send + Sync,
 {
     async fn write(&self, data: &mut W) -> Result<()> {
         data.write_all(self.to_be_bytes().as_slice()).await
@@ -24,8 +26,9 @@ impl <W> FileItemWrite<W> for i32
 }
 
 #[async_trait]
-impl <R: Read> FileItemRead<R> for u32
-    where R: Read + Unpin + Send + Sync
+impl<R: Read> FileItemRead<R> for u32
+where
+    R: Read + Unpin + Send + Sync,
 {
     async fn read(data: &mut R) -> Result<Self> {
         let mut bytes = [0; 4];
@@ -36,8 +39,9 @@ impl <R: Read> FileItemRead<R> for u32
 }
 
 #[async_trait]
-impl <W> FileItemWrite<W> for u32
-    where W: Write + Unpin + Send + Sync
+impl<W> FileItemWrite<W> for u32
+where
+    W: Write + Unpin + Send + Sync,
 {
     async fn write(&self, data: &mut W) -> Result<()> {
         data.write_all(&self.to_be_bytes()).await
@@ -45,7 +49,29 @@ impl <W> FileItemWrite<W> for u32
 }
 
 #[async_trait]
-impl <R, T> FileItemRead<R> for Vec<T>
+impl<R> FileItemRead<R> for u64
+where
+    R: Read + Unpin + Send + Sync,
+{
+    async fn read(read: &mut R) -> Result<Self> {
+        let mut buf = [0; std::mem::size_of::<Self>()];
+        read.read_exact(&mut buf).await?;
+        Ok(Self::from_be_bytes(buf))
+    }
+}
+
+#[async_trait]
+impl<W> FileItemWrite<W> for u64
+where
+    W: Write + Unpin + Send + Sync,
+{
+    async fn write(&self, write: &mut W) -> Result<()> {
+        write.write_all(self.to_be_bytes().as_slice()).await
+    }
+}
+
+#[async_trait]
+impl<R, T> FileItemRead<R> for Vec<T>
 where
     T: FileItemRead<R> + Send + Sync,
     R: Read + Unpin + Send + Sync,
@@ -61,10 +87,10 @@ where
 }
 
 #[async_trait]
-impl <W, T> FileItemWrite<W> for Vec<T>
-    where
-        T: FileItemWrite<W> + Send + Sync,
-        W: Write + Unpin + Send + Sync,
+impl<W, T> FileItemWrite<W> for Vec<T>
+where
+    T: FileItemWrite<W> + Send + Sync,
+    W: Write + Unpin + Send + Sync,
 {
     async fn write(&self, data: &mut W) -> Result<()> {
         (self.len() as u32).write(data).await?;
@@ -77,36 +103,41 @@ impl <W, T> FileItemWrite<W> for Vec<T>
 
 #[cfg(test)]
 mod tests {
-    use crate::file::{Write, Read};
 
     mod i32 {
-        use crate::file::{FileItemRead, FileItemWrite};
         use super::*;
+        use crate::file::{FileItemRead, FileItemWrite};
 
         #[async_std::test]
         async fn i32_serialize() {
             let mut vec = Vec::new();
-            10_i32.write(&mut vec).await;
+            10_i32.write(&mut vec).await.expect("Unexpected Error");
             assert_eq!(&[0, 0, 0, 10], vec.as_slice());
         }
 
         #[async_std::test]
         async fn i32_from_slice() {
             let mut slice = [0u8, 0, 0, 10].as_slice();
-            assert_eq!(10_i32, i32::read(&mut slice).await.expect("Unexpected Error"));
+            assert_eq!(
+                10_i32,
+                i32::read(&mut slice).await.expect("Unexpected Error")
+            );
         }
 
         #[async_std::test]
         async fn i32_serialize_into_none_empty() {
             let mut vec = Vec::from_iter([5, 5, 5, 5]);
-            10_i32.write(&mut vec).await;
+            10_i32.write(&mut vec).await.expect("Unexpected Error");
             assert_eq!(&[5, 5, 5, 5, 0, 0, 0, 10], vec.as_slice());
         }
 
         #[async_std::test]
         async fn i32_from_long_slice() {
             let mut slice = [0u8, 0, 0, 10, 123, 43, 54].as_slice();
-            assert_eq!(10_i32, i32::read(&mut slice).await.expect("Unexpected Error"));
+            assert_eq!(
+                10_i32,
+                i32::read(&mut slice).await.expect("Unexpected Error")
+            );
             assert_eq!(slice.len(), 3);
         }
 
@@ -119,7 +150,7 @@ mod tests {
         #[async_std::test]
         async fn i32_serialize_neg_value() {
             let mut vec = Vec::new();
-            (-1_i32).write(&mut vec).await;
+            (-1_i32).write(&mut vec).await.expect("Unexpected Error");
             assert_eq!(&[0xFF, 0xFF, 0xFF, 0xFF], vec.as_slice());
         }
 
@@ -135,27 +166,33 @@ mod tests {
         #[async_std::test]
         async fn u32_serialize() {
             let mut vec = Vec::new();
-            10_u32.write(&mut vec).await;
+            10_u32.write(&mut vec).await.expect("Unexpected Error");
             assert_eq!(&[0, 0, 0, 10], vec.as_slice());
         }
 
         #[async_std::test]
         async fn u32_from_slice() {
             let mut slice = [0u8, 0, 0, 10].as_slice();
-            assert_eq!(10_u32, u32::read(&mut slice).await.expect("Unexpected Error"));
+            assert_eq!(
+                10_u32,
+                u32::read(&mut slice).await.expect("Unexpected Error")
+            );
         }
 
         #[async_std::test]
         async fn u32_serialize_into_none_empty() {
             let mut vec = Vec::from_iter([5, 5, 5, 5]);
-            10_u32.write(&mut vec).await;
+            10_u32.write(&mut vec).await.unwrap();
             assert_eq!(&[5, 5, 5, 5, 0, 0, 0, 10], vec.as_slice());
         }
 
         #[async_std::test]
         async fn u32_from_long_slice() {
             let mut slice = [0u8, 0, 0, 10, 123, 43, 54].as_slice();
-            assert_eq!(10_u32, u32::read(&mut slice).await.expect("Unexpected Error"));
+            assert_eq!(
+                10_u32,
+                u32::read(&mut slice).await.expect("Unexpected Error")
+            );
             assert_eq!(slice.len(), 3);
         }
 
@@ -173,27 +210,45 @@ mod tests {
             let vec: Vec<i32> = Vec::new();
             let mut res_vec = Vec::new();
 
-            vec.write(&mut res_vec).await;
-            assert_eq!(&[0,0,0,0], res_vec.as_slice());
-            assert_eq!(vec, Vec::<i32>::read(&mut res_vec.as_slice()).await.expect("Unexpected Error"));
+            vec.write(&mut res_vec).await.unwrap();
+            assert_eq!(&[0, 0, 0, 0], res_vec.as_slice());
+            assert_eq!(
+                vec,
+                Vec::<i32>::read(&mut res_vec.as_slice())
+                    .await
+                    .expect("Unexpected Error")
+            );
         }
 
         #[async_std::test]
         async fn serialize_vec_with_one_item() {
             let vec = Vec::from_iter([0x01FF]);
             let mut res_vec = Vec::new();
-            vec.write(&mut res_vec).await;
-            assert_eq!(&[0,0,0,1,0,0,0x01,0xFF], res_vec.as_slice());
-            assert_eq!(vec, Vec::<i32>::read(&mut res_vec.as_slice()).await.expect("Unexpected Error"));
+            vec.write(&mut res_vec).await.unwrap();
+            assert_eq!(&[0, 0, 0, 1, 0, 0, 0x01, 0xFF], res_vec.as_slice());
+            assert_eq!(
+                vec,
+                Vec::<i32>::read(&mut res_vec.as_slice())
+                    .await
+                    .expect("Unexpected Error")
+            );
         }
 
         #[async_std::test]
         async fn serialize_vec_with_multiple_items() {
-            let vec = Vec::from_iter([1,2,3,4]);
+            let vec = Vec::from_iter([1, 2, 3, 4]);
             let mut res_vec = Vec::new();
             vec.write(&mut res_vec).await.expect("Unexpected Error");
-            assert_eq!(&[0,0,0,4, 0,0,0,1, 0,0,0,2, 0,0,0,3, 0,0,0,4], res_vec.as_slice());
-            assert_eq!(vec, Vec::<i32>::read(&mut res_vec.as_slice()).await.expect("Unexpected Error"));
+            assert_eq!(
+                &[0, 0, 0, 4, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4],
+                res_vec.as_slice()
+            );
+            assert_eq!(
+                vec,
+                Vec::<i32>::read(&mut res_vec.as_slice())
+                    .await
+                    .expect("Unexpected Error")
+            );
         }
     }
 }

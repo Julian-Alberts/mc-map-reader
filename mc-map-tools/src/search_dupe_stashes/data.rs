@@ -1,17 +1,17 @@
+use async_std::sync::RwLock;
 use std::collections::VecDeque;
-use std::path::PathBuf;
-use std::{collections::HashMap, fmt::Display};
-use std::fmt::format;
-use std::fs::File;
+use std::path::Path;
 use std::sync::Arc;
+use std::{collections::HashMap, fmt::Display};
 
-use qutee::Point;
 use crate::file::region_inventories::RegionInventories;
+use crate::file::FileItemRead;
+use qutee::Point;
 
-pub struct RegionInventoryCache {
-    regions: VecDeque<RegionInventoryCacheItem>,
+pub struct RegionInventoryCache<'a> {
+    regions: RwLock<VecDeque<RegionInventoryCacheItem>>,
     cache_size: usize,
-    base_dir: PathBuf,
+    base_dir: &'a Path,
 }
 
 struct RegionInventoryCacheItem {
@@ -51,8 +51,8 @@ pub struct PotentialStashLocationsByGroup<'a> {
 
 pub struct PotentialStashLocations<'a>(pub Vec<PotentialStashLocationsByGroup<'a>>);
 
-impl RegionInventoryCache {
-    pub fn new(base_dir: PathBuf, cache_size: usize) -> Self {
+impl<'a> RegionInventoryCache<'a> {
+    pub fn new(base_dir: &'a Path, cache_size: usize) -> Self {
         Self {
             cache_size,
             regions: Default::default(),
@@ -62,20 +62,31 @@ impl RegionInventoryCache {
 
     pub async fn get(&self, x: i32, z: i32) -> std::io::Result<Arc<RegionInventories>> {
         use async_std::fs::File;
-        let region = self
-            .regions
-            .iter()
-            .find(|reg| reg.x == x && reg.z == z);
+        let regions_lock = self.regions.read().await;
+        let region = regions_lock.iter().find(|reg| reg.x == x && reg.z == z);
+
         if let Some(reg) = region {
             return Ok(reg.inventories.clone());
         }
 
+        drop(regions_lock);
+
         let region = self.base_dir.join(format!("region_{x}_{z}.mtri"));
-        let file = File::open(region).await?;
+        let mut file = File::open(region).await?;
 
+        let inventories = Arc::new(RegionInventories::read(&mut file).await?);
+        let mut regions_lock = self.regions.write().await;
+        regions_lock.push_back(RegionInventoryCacheItem {
+            x,
+            z,
+            inventories: Arc::clone(&inventories),
+        });
 
+        if regions_lock.len() > self.cache_size {
+            regions_lock.pop_front();
+        }
 
-        todo!()
+        Ok(inventories)
     }
 }
 
@@ -170,12 +181,12 @@ Group: key2
     }
 
     mod cache {
-        use std::path::PathBuf;
         use super::super::RegionInventoryCache;
+        use std::path::PathBuf;
 
         #[test]
         fn find() {
-            let cache = RegionInventoryCache::new(PathBuf::from(""), 5);
+            let cache = RegionInventoryCache::new(PathBuf::from("").as_path(), 5);
         }
     }
 }

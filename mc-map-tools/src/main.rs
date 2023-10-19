@@ -14,15 +14,15 @@
 
 mod arguments;
 mod config;
+mod file;
 mod find_inventories;
 mod paths;
 #[cfg(feature = "experimental")]
 mod read_level_dat;
 mod search_dupe_stashes;
-mod file;
 
-use std::{fs::File, io::Read, path::PathBuf};
 use async_std::io::ReadExt;
+use std::{fs::File, io::Read, path::PathBuf};
 
 use arguments::Action;
 use clap::Parser;
@@ -59,7 +59,8 @@ async fn main() {
                 data,
                 config,
                 &mut std::io::stdout().lock(),
-            ).await
+            )
+            .await
         }
         Action::FindInventories(sub_args) => {
             find_inventories::main(args.save_directory.as_path(), &sub_args)
