@@ -189,7 +189,7 @@ pub mod tests {
         ]
         .map(|(k, v)| (k.to_string(), v))
         .into();
-        map.extend(mob_test_data_provider().into_iter());
+        map.extend(mob_test_data_provider());
         map
     }
 

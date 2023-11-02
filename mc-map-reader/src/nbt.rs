@@ -446,6 +446,7 @@ fn convert_to_i64_array(data: &[u8], offset: &mut usize) -> Result<Array<i64>, E
     Ok(Array(result))
 }
 
+#[allow(clippy::unwrap_used)]
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;

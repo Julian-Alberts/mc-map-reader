@@ -186,7 +186,7 @@ Group: key2
 
         #[test]
         fn find() {
-            let cache = RegionInventoryCache::new(PathBuf::from("").as_path(), 5);
+            let _cache = RegionInventoryCache::new(PathBuf::from("").as_path(), 5);
         }
     }
 }

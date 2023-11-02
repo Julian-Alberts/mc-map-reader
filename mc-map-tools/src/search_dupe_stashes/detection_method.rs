@@ -41,15 +41,15 @@ mod tests {
     #[test_case(&[("other", 312),("test", 41),("even more", 124)], "test", 42 => true; "Multiple")]
     fn absolute_detection_method(groups: &[(&str, usize)], key: &str, amount: usize) -> bool {
         let config = HashMap::from_iter(groups.iter().map(|(key, threshold)| {
-            (key.to_string(),
-            Group {
-                items: Vec::default(),
-                threshold: *threshold,
-            })
+            (
+                key.to_string(),
+                Group {
+                    items: Vec::default(),
+                    threshold: *threshold,
+                },
+            )
         }));
         let abs = Absolute::new(&config);
         abs.exceeds_max(key, amount)
     }
-
 }
-

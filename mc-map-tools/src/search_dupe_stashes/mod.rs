@@ -21,8 +21,8 @@ use mc_map_reader::{
     RegionLoadError,
 };
 
-use crate::file::FileItemWrite;
 use crate::file::region_inventories::Inventory;
+use crate::file::FileItemWrite;
 use crate::search_dupe_stashes::detection_method::DetectionMethod;
 use crate::tmp_dir::TmpDir;
 use crate::{config::Config, read_file};
@@ -63,7 +63,6 @@ pub async fn main(
     );
     let config = &config.search_dupe_stashes;
 
-
     let temp_dir = TmpDir::new().expect("Error creating tmp dir");
     let inventories_dir = temp_dir.as_ref().join("inventories");
 
@@ -81,7 +80,7 @@ pub async fn main(
                 return Err(err);
             }
         };
-        save_region_inventories(&inventories_dir, region.x(), region.z(), inventories).await?;
+        save_region_inventories(inventories_dir, region.x(), region.z(), inventories).await?;
         Ok((region.x(), region.z()))
     });
     let results = futures::future::join_all(regions_future).await;
@@ -108,9 +107,8 @@ pub async fn main(
         let bottom = z + 1;
         let left = x - 1;
         let right = x + 1;
-        let regions = (left..right)
-            .map(|x| (top..bottom).map(move |z| region_cache_ref.get(x, z)))
-            .flatten();
+        let regions =
+            (left..right).flat_map(|x| (top..bottom).map(move |z| region_cache_ref.get(x, z)));
         let regions = futures::future::join_all(regions).await;
 
         let Some(Ok(center_region)) = regions.get(4) else {
@@ -139,15 +137,19 @@ pub async fn main(
                 tree.insert_at((inventory.x, inventory.z), inventory)
                     .expect("Inventory is outside of quad tree");
             });
-        center_region.inventories.iter().map(move |inventory| {
-            collect_items_in_area(
-                data.radius as i32,
-                inventory,
-                &tree,
-                detection_method_ref,
-                group_hash_lookup_table_ref,
-            )
-        }).collect::<Vec<_>>()
+        center_region
+            .inventories
+            .iter()
+            .map(move |inventory| {
+                collect_items_in_area(
+                    data.radius as i32,
+                    inventory,
+                    &tree,
+                    detection_method_ref,
+                    group_hash_lookup_table_ref,
+                )
+            })
+            .collect::<Vec<_>>()
     });
 
     let potential_stash_locations = futures::future::join_all(potential_stash_locations).await;
@@ -165,7 +167,10 @@ pub async fn main(
         });
 
     if let Err(err) = async_std::fs::remove_dir_all(temp_dir.as_ref()).await {
-        log::error!("Could not remove temporary directory \"{}\": {err}", temp_dir.as_ref().display());
+        log::error!(
+            "Could not remove temporary directory \"{}\": {err}",
+            temp_dir.as_ref().display()
+        );
     }
 }
 
@@ -185,10 +190,10 @@ fn max_corner_block_in_chunk(region_x: i32, region_z: i32) -> (i32, i32) {
     )
 }
 
-fn collect_items_in_area<'a>(
+fn collect_items_in_area(
     radius: i32,
     inventory: &Inventory,
-    inventory_tree: &'a QuadTree,
+    inventory_tree: &QuadTree,
     detection_method: &dyn DetectionMethod,
     group_hash_lookup_table: &HashMap<u64, &str>,
 ) -> (Position, HashMap<u64, u64>) {
@@ -208,7 +213,7 @@ fn collect_items_in_area<'a>(
     items_in_area_by_group.retain(|group, count| {
         detection_method.exceeds_max(
             group_hash_lookup_table
-                .get(&*group)
+                .get(group)
                 .expect("Tried to access unknown group"),
             *count as usize,
         )
@@ -398,18 +403,7 @@ async fn save_region_inventories<'a>(
             .collect(),
     };
     let mut buf = Vec::new();
-    inventories.write(&mut buf).await;
+    inventories.write(&mut buf).await?;
     file.write_all(&buf).await?;
     Ok(())
-}
-
-fn find_corners(
-    (mut x1, mut z1, mut x2, mut z2): (i32, i32, i32, i32),
-    inv: &Position,
-) -> (i32, i32, i32, i32) {
-    x1 = x1.min(inv.x);
-    z1 = z1.min(inv.z);
-    x2 = x2.max(inv.x);
-    z2 = z2.max(inv.z);
-    (x1, z1, x2, z2)
 }

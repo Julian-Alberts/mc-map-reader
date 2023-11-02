@@ -1,4 +1,4 @@
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
 pub struct TmpDir(PathBuf);
 
@@ -20,7 +20,10 @@ impl AsRef<Path> for TmpDir {
 impl Drop for TmpDir {
     fn drop(&mut self) {
         if let Err(err) = std::fs::remove_dir_all(&self) {
-            log::error!("Could not delete temporary directory \"{}\": {err}", self.as_ref().display())
+            log::error!(
+                "Could not delete temporary directory \"{}\": {err}",
+                self.as_ref().display()
+            )
         }
     }
 }
@@ -41,4 +44,3 @@ mod tests {
         assert!(!path.exists());
     }
 }
-

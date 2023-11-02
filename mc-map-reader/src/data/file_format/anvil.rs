@@ -199,12 +199,10 @@ mod tests {
                 vec
             },
         );
-        let raw = (0..CHUNKS_PER_FILE as u32)
-            .into_iter()
-            .fold(raw, |mut vec, time| {
-                vec.extend(time.to_be_bytes().iter());
-                vec
-            });
+        let raw = (0..CHUNKS_PER_FILE as u32).fold(raw, |mut vec, time| {
+            vec.extend(time.to_be_bytes().iter());
+            vec
+        });
         assert_eq!(raw.len(), MC_REGION_HEADER_SIZE);
         let raw: [u8; MC_REGION_HEADER_SIZE] = raw.try_into().unwrap();
         let actual = McRegionHeader::from(raw);

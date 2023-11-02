@@ -222,7 +222,7 @@ pub mod tests {
             ]
             .map(|(k, v)| (k.to_string(), v)),
         );
-        map.extend(Entity_test_data_provider().into_iter());
+        map.extend(Entity_test_data_provider());
         map
     }
 
